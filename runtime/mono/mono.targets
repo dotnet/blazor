@@ -1,7 +1,8 @@
 <Project>
   <PropertyGroup>
-    <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming</MonoIncomingDir>
-    <MonoCompiledDir>$(MSBuildThisFileDirectory)dist</MonoCompiledDir>
+    <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming\</MonoIncomingDir>
+    <MonoDistDir>$(MSBuildThisFileDirectory)dist\</MonoDistDir>
+    <MonoUnoptimizedDir>$(MonoDistDir)unoptimized\</MonoUnoptimizedDir>
   </PropertyGroup>
 
   <Target Name="OptimizeMono">
@@ -15,7 +16,7 @@
       For it to succeed, you need to run in a command prompt that has emcc already activated.
     -->
     <Exec WorkingDirectory="$(MonoIncomingDir)"
-          Command="emcc -g4 -Os -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s &quot;BINARYEN_METHOD='native-wasm'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0 --js-library library_mono.js driver.c libmonosgen-2.0.a -o $(MonoCompiledDir)\wasm\mono.js" />
+          Command="emcc -g4 -Os -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s &quot;BINARYEN_METHOD='native-wasm'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0 --js-library library_mono.js driver.c libmonosgen-2.0.a -o $(MonoUnoptimizedDir)\wasm\mono.js" />
 
     <!-- 
       Also build asm.js version of Mono
@@ -23,6 +24,11 @@
       because we want different selection and fallback logic than Emscripten generates on its own
     -->
     <Exec WorkingDirectory="$(MonoIncomingDir)"
-          Command="emcc -Os -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s &quot;BINARYEN_METHOD='asmjs'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0 --js-library library_mono.js driver.c libmonosgen-2.0.a -o $(MonoCompiledDir)\asmjs\mono.js" />
+          Command="emcc -Os -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s &quot;BINARYEN_METHOD='asmjs'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0 --js-library library_mono.js driver.c libmonosgen-2.0.a -o $(MonoUnoptimizedDir)\asmjs\mono.js" />
+
+    <!-- These files are not needed -->
+    <Delete Files="$(MonoUnoptimizedDir)\wasm\mono.js.map" />
+    <Delete Files="$(MonoUnoptimizedDir)\wasm\mono.wast" />
+    <Delete Files="$(MonoUnoptimizedDir)\asmjs\mono.wasm" />
   </Target>
 </Project>
