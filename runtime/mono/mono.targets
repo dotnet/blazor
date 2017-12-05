@@ -3,10 +3,42 @@
     <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming\</MonoIncomingDir>
     <MonoDistDir>$(MSBuildThisFileDirectory)dist\</MonoDistDir>
     <MonoUnoptimizedDir>$(MonoDistDir)unoptimized\</MonoUnoptimizedDir>
+    <MonoOptimizedDir>$(MonoDistDir)optimized\</MonoOptimizedDir>
   </PropertyGroup>
 
-  <Target Name="OptimizeMono">
-    <Message Importance="High" Text="TODO: OptimizeMono" />
+  <Target Name="OptimizeMono" DependsOnTargets="OptimizeMonoWasm; OptimizeMonoAsmJs; OptimizeBcl" />
+
+  <Target Name="OptimizeMonoWasm">
+    <!-- TODO: Implement WASM code stripping like in prototype -->
+    <Message Importance="High" Text="Creating optimized Mono WebAssembly build" />
+    <ItemGroup>
+      <WasmItemsToCopy Include="$(MonoUnoptimizedDir)wasm\**" />
+    </ItemGroup>
+    <RemoveDir Directories="$(MonoOptimizedDir)wasm" />
+    <Copy SourceFiles="@(WasmItemsToCopy)"
+          DestinationFolder="$(MonoOptimizedDir)wasm\%(RecursiveDir)" />
+  </Target>
+
+  <Target Name="OptimizeMonoAsmJs">
+    <!-- TODO: Implement asm.js stripping like in prototype -->
+    <Message Importance="High" Text="Creating optimized Mono asm.js build" />
+    <ItemGroup>
+      <AsmJsItemsToCopy Include="$(MonoUnoptimizedDir)asmjs\**" />
+    </ItemGroup>
+    <RemoveDir Directories="$(MonoOptimizedDir)asmjs" />
+    <Copy SourceFiles="@(AsmJsItemsToCopy)"
+          DestinationFolder="$(MonoOptimizedDir)asmjs\%(RecursiveDir)" />
+  </Target>
+
+  <Target Name="OptimizeBcl">
+    <!-- TODO: Implement IL stripping like in prototype -->
+    <Message Importance="High" Text="Creating optimized BCL build" />
+    <ItemGroup>
+      <BclItemsToCopy Include="$(MonoIncomingDir)bcl\**" />
+    </ItemGroup>
+    <RemoveDir Directories="$(MonoOptimizedDir)bcl" />
+    <Copy SourceFiles="@(BclItemsToCopy)"
+          DestinationFolder="$(MonoOptimizedDir)bcl\%(RecursiveDir)" />
   </Target>
 
   <Target Name="BuildMonoEmcc">
