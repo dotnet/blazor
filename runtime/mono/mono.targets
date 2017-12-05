@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup>
+    <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming</MonoIncomingDir>
+    <MonoCompiledDir>$(MSBuildThisFileDirectory)dist</MonoCompiledDir>
+  </PropertyGroup>
+
+  <Target Name="OptimizeMono">
+    <Message Importance="High" Text="TODO: OptimizeMono" />
+  </Target>
+
+  <Target Name="BuildMonoEmcc">
+    <!--
+      Build WASM version of Mono.
+      This does not run on every build - it only runs if you explicitly call "dotnet msbuild mono.targets /t:BuildMonoEmcc"
+      For it to succeed, you need to run in a command prompt that has emcc already activated.
+    -->
+    <Exec WorkingDirectory="$(MonoIncomingDir)"
+          Command="emcc -g4 -Os -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s &quot;BINARYEN_METHOD='native-wasm'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0 --js-library library_mono.js driver.c libmonosgen-2.0.a -o $(MonoCompiledDir)\wasm\mono.js" />
+
+    <!-- 
+      Also build asm.js version of Mono
+      It works better to build the different formats separately intead of defining multiple BINARYEN_METHOD entries,
+      because we want different selection and fallback logic than Emscripten generates on its own
+    -->
+    <Exec WorkingDirectory="$(MonoIncomingDir)"
+          Command="emcc -Os -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s &quot;BINARYEN_METHOD='asmjs'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0 --js-library library_mono.js driver.c libmonosgen-2.0.a -o $(MonoCompiledDir)\asmjs\mono.js" />
+  </Target>
+</Project>
