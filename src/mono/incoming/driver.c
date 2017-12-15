@@ -95,7 +95,7 @@ mono_wasm_invoke_js (MonoString *str, int *is_exception)
 		var str = UTF8ToString ($0);
 		try {
 			var res = eval (str);
-			if (res === null)
+			if (res === null || res === undefined)
 				return 0;
 			res = res.toString ();
 			setValue ($1, 0, "i32");

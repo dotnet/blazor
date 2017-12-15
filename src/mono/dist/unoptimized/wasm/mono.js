@@ -1932,7 +1932,7 @@ integrateWasmJS(Module);
 
 // === Body ===
 
-var ASM_CONSTS = [function($0, $1) { { var str = UTF8ToString ($0); try { var res = eval (str); if (res === null) return 0; res = res.toString (); setValue ($1, 0, "i32"); } catch (e) { res = e.stack; setValue ($1, 1, "i32"); if (res === null) res = "unknown exception"; } var buff = Module._malloc((res.length + 1) * 2); stringToUTF16 (res, buff, (res.length + 1) * 2); return buff; } }];
+var ASM_CONSTS = [function($0, $1) { { var str = UTF8ToString ($0); try { var res = eval (str); if (res === null || res === undefined) return 0; res = res.toString (); setValue ($1, 0, "i32"); } catch (e) { res = e.stack; setValue ($1, 1, "i32"); if (res === null) res = "unknown exception"; } var buff = Module._malloc((res.length + 1) * 2); stringToUTF16 (res, buff, (res.length + 1) * 2); return buff; } }];
 
 function _emscripten_asm_const_iii(code, a0, a1) {
  return ASM_CONSTS[code](a0, a1);
