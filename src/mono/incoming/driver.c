@@ -100,7 +100,7 @@ mono_wasm_invoke_js (MonoString *str, int *is_exception)
 			res = res.toString ();
 			setValue ($1, 0, "i32");
 		} catch (e) {
-			res = e.toString ();
+			res = e.stack;
 			setValue ($1, 1, "i32");
 			if (res === null)
 				res = "unknown exception";
