@@ -84,6 +84,42 @@ m_strdup (const char *str)
 
 static MonoDomain *root_domain;
 
+static MonoObject*
+mono_wasm_invoke_js_unmarshalled (MonoString *funcExpression, MonoObject *argsArray, int *is_exception)
+{
+	is_exception = 0;
+	char *funcExpressionUtf8 = mono_string_to_utf8 (funcExpression);
+	void *native_res = (void *)EM_ASM_INT ({
+		try {
+			var funcNameJsString = UTF8ToString ($0);
+			var registeredFunctions = window.__blazorRegisteredFunctions;
+			if (!(registeredFunctions && registeredFunctions.hasOwnProperty(funcNameJsString))) {
+				throw new Error('Could not find registered function with name "' + funcNameJsString + '".');
+			}
+
+			var funcInstance = registeredFunctions[funcNameJsString];
+			
+			// TODO: Use funcInstance.apply(null, jsArgsArray) (i.e., map the .NET array to a JS array first)
+			return funcInstance.call(null, $1);
+		} catch (ex) {
+			setValue ($2, 1, 'i32'); // is_exception = 1;
+			var exceptionResultString = ex.stack;
+			var exceptionResultBuffer = Module._malloc((exceptionResultString.length + 1) * 2);
+			stringToUTF16 (exceptionResultString, exceptionResultBuffer, (exceptionResultString.length + 1) * 2);
+			return exceptionResultBuffer;
+		}
+	}, (int)funcExpressionUtf8, (int)argsArray, is_exception);
+	mono_free (funcExpressionUtf8);
+
+	if (is_exception) {
+		MonoString *res = mono_string_from_utf16 ((char *)native_res);
+		free (native_res);
+		return (MonoObject *)res;
+	} else {
+		return (MonoObject *)native_res;
+	}
+}
+
 static MonoString*
 mono_wasm_invoke_js (MonoString *str, int *is_exception)
 {
@@ -130,6 +166,7 @@ mono_wasm_load_runtime (const char *managed_path)
 	root_domain = mono_jit_init_version ("mono", "v4.0.30319");
 
 	mono_add_internal_call ("WebAssembly.Runtime::InvokeJS", mono_wasm_invoke_js);
+	mono_add_internal_call ("WebAssembly.Runtime::InvokeJSUnmarshalled", mono_wasm_invoke_js_unmarshalled);
 }
 
 EMSCRIPTEN_KEEPALIVE MonoAssembly*
