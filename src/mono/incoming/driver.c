@@ -91,13 +91,13 @@ mono_wasm_invoke_js (MonoString **exceptionMessage, MonoString *funcName, void* 
 	char *funcNameUtf8 = mono_string_to_utf8 (funcName);
 	void *jsCallResult = (void *)EM_ASM_INT ({
 		try {
-			// Determine which function you're trying to invoke
+			// Get the function you're trying to invoke
 			var funcNameJsString = UTF8ToString ($1);
-			var registeredFunctions = window.__blazorRegisteredFunctions;
-			if (!(registeredFunctions && registeredFunctions.hasOwnProperty(funcNameJsString))) {
-				throw new Error('Could not find registered function with name "' + funcNameJsString + '".');
+			var blazorExports = window.Blazor;
+			if (!blazorExports) { // Shouldn't be possible, because you can't start up the .NET code without loading that library
+				throw new Error('The Blazor JavaScript library is not loaded.');
 			}
-			var funcInstance = registeredFunctions[funcNameJsString];
+			var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString);
 
 			return funcInstance.call(null, $2, $3, $4);
 		} catch (ex) {
@@ -120,13 +120,13 @@ mono_wasm_invoke_js_array (MonoString **exceptionMessage, MonoString *funcName, 
 	char *funcNameUtf8 = mono_string_to_utf8 (funcName);
 	void *jsCallResult = (void *)EM_ASM_INT ({
 		try {
-			// Determine which function you're trying to invoke
+			// Get the function you're trying to invoke
 			var funcNameJsString = UTF8ToString ($0);
-			var registeredFunctions = window.__blazorRegisteredFunctions;
-			if (!(registeredFunctions && registeredFunctions.hasOwnProperty(funcNameJsString))) {
-				throw new Error('Could not find registered function with name "' + funcNameJsString + '".');
+			var blazorExports = window.Blazor;
+			if (!blazorExports) { // Shouldn't be possible, because you can't start up the .NET code without loading that library
+				throw new Error('The Blazor JavaScript library is not loaded.');
 			}
-			var funcInstance = registeredFunctions[funcNameJsString];
+			var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString);
 			
 			// Map the incoming .NET object array to a JavaScript array of System_Object pointers
 			var argsArrayDataPtr = $1 + 12; // First byte from here is length, then following bytes are entries

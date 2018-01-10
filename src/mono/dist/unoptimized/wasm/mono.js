@@ -1932,8 +1932,8 @@ integrateWasmJS(Module);
 
 // === Body ===
 
-var ASM_CONSTS = [function($0, $1, $2, $3, $4) { { try { var funcNameJsString = UTF8ToString ($1); var registeredFunctions = window.__blazorRegisteredFunctions; if (!(registeredFunctions && registeredFunctions.hasOwnProperty(funcNameJsString))) { throw new Error('Could not find registered function with name "' + funcNameJsString + '".'); } var funcInstance = registeredFunctions[funcNameJsString]; return funcInstance.call(null, $2, $3, $4); } catch (ex) { var exceptionJsString = ex.message + '\n' + ex.stack; var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); var exceptionSystemString = mono_string(exceptionJsString); setValue ($0, exceptionSystemString, 'i32'); return 0; } } },
- function($0, $1, $2) { { try { var funcNameJsString = UTF8ToString ($0); var registeredFunctions = window.__blazorRegisteredFunctions; if (!(registeredFunctions && registeredFunctions.hasOwnProperty(funcNameJsString))) { throw new Error('Could not find registered function with name "' + funcNameJsString + '".'); } var funcInstance = registeredFunctions[funcNameJsString]; var argsArrayDataPtr = $1 + 12; var argsArrayLength = Module.getValue(argsArrayDataPtr, 'i32'); var argsJsArray = []; for (var i = 0; i < argsArrayLength; i++) { argsArrayDataPtr += 4; argsJsArray[i] = Module.getValue(argsArrayDataPtr, 'i32'); } return funcInstance.apply(null, argsJsArray); } catch (ex) { var exceptionJsString = ex.message + '\n' + ex.stack; var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); var exceptionSystemString = mono_string(exceptionJsString); setValue ($2, exceptionSystemString, 'i32'); return 0; } } }];
+var ASM_CONSTS = [function($0, $1, $2, $3, $4) { { try { var funcNameJsString = UTF8ToString ($1); var blazorExports = window.Blazor; if (!blazorExports) { throw new Error('The Blazor JavaScript library is not loaded.'); } var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString); return funcInstance.call(null, $2, $3, $4); } catch (ex) { var exceptionJsString = ex.message + '\n' + ex.stack; var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); var exceptionSystemString = mono_string(exceptionJsString); setValue ($0, exceptionSystemString, 'i32'); return 0; } } },
+ function($0, $1, $2) { { try { var funcNameJsString = UTF8ToString ($0); var blazorExports = window.Blazor; if (!blazorExports) { throw new Error('The Blazor JavaScript library is not loaded.'); } var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString); var argsArrayDataPtr = $1 + 12; var argsArrayLength = Module.getValue(argsArrayDataPtr, 'i32'); var argsJsArray = []; for (var i = 0; i < argsArrayLength; i++) { argsArrayDataPtr += 4; argsJsArray[i] = Module.getValue(argsArrayDataPtr, 'i32'); } return funcInstance.apply(null, argsJsArray); } catch (ex) { var exceptionJsString = ex.message + '\n' + ex.stack; var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); var exceptionSystemString = mono_string(exceptionJsString); setValue ($2, exceptionSystemString, 'i32'); return 0; } } }];
 
 function _emscripten_asm_const_iiii(code, a0, a1, a2) {
  return ASM_CONSTS[code](a0, a1, a2);
@@ -1947,7 +1947,7 @@ function _emscripten_asm_const_iiiiii(code, a0, a1, a2, a3, a4) {
 
 STATIC_BASE = 1024;
 
-STATICTOP = STATIC_BASE + 767008;
+STATICTOP = STATIC_BASE + 766880;
   /* global initializers */  __ATINIT__.push();
   
 
@@ -1956,7 +1956,7 @@ memoryInitializer = Module["wasmJSMethod"].indexOf("asmjs") >= 0 || Module["wasm
 
 
 
-var STATIC_BUMP = 767008;
+var STATIC_BUMP = 766880;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
