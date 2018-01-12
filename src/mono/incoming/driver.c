@@ -84,71 +84,40 @@ m_strdup (const char *str)
 
 static MonoDomain *root_domain;
 
-static void*
-mono_wasm_invoke_js (MonoString **exceptionMessage, MonoString *funcName, void* arg0, void* arg1, void* arg2)
+static MonoString*
+mono_wasm_invoke_js (MonoString *str, int *is_exception)
 {
-	*exceptionMessage = NULL;
-	char *funcNameUtf8 = mono_string_to_utf8 (funcName);
-	void *jsCallResult = (void *)EM_ASM_INT ({
+	if (str == NULL)
+		return NULL;
+
+	char *native_val = mono_string_to_utf8 (str);
+	char *native_res = (char*)EM_ASM_INT ({
+		var str = UTF8ToString ($0);
 		try {
-			// Get the function you're trying to invoke
-			var funcNameJsString = UTF8ToString ($1);
-			var blazorExports = window.Blazor;
-			if (!blazorExports) { // Shouldn't be possible, because you can't start up the .NET code without loading that library
-				throw new Error('The Blazor JavaScript library is not loaded.');
-			}
-			var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString);
-
-			return funcInstance.call(null, $2, $3, $4);
-		} catch (ex) {
-			var exceptionJsString = ex.message + '\n' + ex.stack;
-			var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); // TODO: Cache
-			var exceptionSystemString = mono_string(exceptionJsString);
-			setValue ($0, exceptionSystemString, 'i32'); // *exceptionMessage = exceptionSystemString;
-			return 0;
+			var res = eval (str);
+			if (res === null)
+				return 0;
+			res = res.toString ();
+			setValue ($1, 0, "i32");
+		} catch (e) {
+			res = e.toString ();
+			setValue ($1, 1, "i32");
+			if (res === null)
+				res = "unknown exception";
 		}
-	}, exceptionMessage, (int)funcNameUtf8, (int)arg0, (int)arg1, (int)arg2);
-	mono_free (funcNameUtf8);
+		var buff = Module._malloc((res.length + 1) * 2);
+		stringToUTF16 (res, buff, (res.length + 1) * 2);
+		return buff;
+	}, (int)native_val, is_exception);
 
-	return jsCallResult;
-}
+	mono_free (native_val);
 
-static void*
-mono_wasm_invoke_js_array (MonoString **exceptionMessage, MonoString *funcName, MonoObject *argsArray)
-{
-	*exceptionMessage = NULL;
-	char *funcNameUtf8 = mono_string_to_utf8 (funcName);
-	void *jsCallResult = (void *)EM_ASM_INT ({
-		try {
-			// Get the function you're trying to invoke
-			var funcNameJsString = UTF8ToString ($0);
-			var blazorExports = window.Blazor;
-			if (!blazorExports) { // Shouldn't be possible, because you can't start up the .NET code without loading that library
-				throw new Error('The Blazor JavaScript library is not loaded.');
-			}
-			var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString);
-			
-			// Map the incoming .NET object array to a JavaScript array of System_Object pointers
-			var argsArrayDataPtr = $1 + 12; // First byte from here is length, then following bytes are entries
-			var argsArrayLength = Module.getValue(argsArrayDataPtr, 'i32');
-			var argsJsArray = [];
-			for (var i = 0; i < argsArrayLength; i++) {
-				argsArrayDataPtr += 4;
-				argsJsArray[i] = Module.getValue(argsArrayDataPtr, 'i32');
-			}
+	if (native_res == NULL)
+		return NULL;
 
-			return funcInstance.apply(null, argsJsArray);
-		} catch (ex) {
-			var exceptionJsString = ex.message + '\n' + ex.stack;
-			var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); // TODO: Cache
-			var exceptionSystemString = mono_string(exceptionJsString);
-			setValue ($2, exceptionSystemString, 'i32'); // *exceptionMessage = exceptionSystemString;
-			return 0;
-		}
-	}, (int)funcNameUtf8, (int)argsArray, exceptionMessage);
-	mono_free (funcNameUtf8);
-
-	return jsCallResult;
+	MonoString *res = mono_string_from_utf16 (native_res);
+	free (native_res);
+	return res;
 }
 
 EMSCRIPTEN_KEEPALIVE void
@@ -161,7 +130,6 @@ mono_wasm_load_runtime (const char *managed_path)
 	root_domain = mono_jit_init_version ("mono", "v4.0.30319");
 
 	mono_add_internal_call ("WebAssembly.Runtime::InvokeJS", mono_wasm_invoke_js);
-	mono_add_internal_call ("WebAssembly.Runtime::InvokeJSArray", mono_wasm_invoke_js_array);
 }
 
 EMSCRIPTEN_KEEPALIVE MonoAssembly*

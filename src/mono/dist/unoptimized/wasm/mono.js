@@ -1932,22 +1932,23 @@ integrateWasmJS(Module);
 
 // === Body ===
 
-var ASM_CONSTS = [function($0, $1, $2, $3, $4) { { try { var funcNameJsString = UTF8ToString ($1); var blazorExports = window.Blazor; if (!blazorExports) { throw new Error('The Blazor JavaScript library is not loaded.'); } var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString); return funcInstance.call(null, $2, $3, $4); } catch (ex) { var exceptionJsString = ex.message + '\n' + ex.stack; var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); var exceptionSystemString = mono_string(exceptionJsString); setValue ($0, exceptionSystemString, 'i32'); return 0; } } },
- function($0, $1, $2) { { try { var funcNameJsString = UTF8ToString ($0); var blazorExports = window.Blazor; if (!blazorExports) { throw new Error('The Blazor JavaScript library is not loaded.'); } var funcInstance = blazorExports.platform.monoGetRegisteredFunction(funcNameJsString); var argsArrayDataPtr = $1 + 12; var argsArrayLength = Module.getValue(argsArrayDataPtr, 'i32'); var argsJsArray = []; for (var i = 0; i < argsArrayLength; i++) { argsArrayDataPtr += 4; argsJsArray[i] = Module.getValue(argsArrayDataPtr, 'i32'); } return funcInstance.apply(null, argsJsArray); } catch (ex) { var exceptionJsString = ex.message + '\n' + ex.stack; var mono_string = Module.cwrap('mono_wasm_string_from_js', 'number', ['string']); var exceptionSystemString = mono_string(exceptionJsString); setValue ($2, exceptionSystemString, 'i32'); return 0; } } }];
+var ASM_CONSTS = [function($0, $1) { { var str = UTF8ToString ($0); try { var res = eval (str); if (res === null) return 0; res = res.toString (); setValue ($1, 0, "i32"); } catch (e) { res = e.toString (); setValue ($1, 1, "i32"); if (res === null) res = "unknown exception"; } var buff = Module._malloc((res.length + 1) * 2); stringToUTF16 (res, buff, (res.length + 1) * 2); return buff; } },
+ function() { { return STACK_BASE; } },
+ function() { { return TOTAL_STACK; } }];
 
-function _emscripten_asm_const_iiii(code, a0, a1, a2) {
- return ASM_CONSTS[code](a0, a1, a2);
+function _emscripten_asm_const_i(code) {
+ return ASM_CONSTS[code]();
 }
 
-function _emscripten_asm_const_iiiiii(code, a0, a1, a2, a3, a4) {
- return ASM_CONSTS[code](a0, a1, a2, a3, a4);
+function _emscripten_asm_const_iii(code, a0, a1) {
+ return ASM_CONSTS[code](a0, a1);
 }
 
 
 
 STATIC_BASE = 1024;
 
-STATICTOP = STATIC_BASE + 766880;
+STATICTOP = STATIC_BASE + 644720;
   /* global initializers */  __ATINIT__.push();
   
 
@@ -1956,7 +1957,7 @@ memoryInitializer = Module["wasmJSMethod"].indexOf("asmjs") >= 0 || Module["wasm
 
 
 
-var STATIC_BUMP = 766880;
+var STATIC_BUMP = 644720;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
@@ -5612,8 +5613,6 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function _pthread_condattr_setclock() { return 0; }
-
   function _sigemptyset(set) {
       HEAP32[((set)>>2)]=0;
       return 0;
@@ -5657,6 +5656,13 @@ function copyTempDouble(ptr) {
     }
 
   function _sem_destroy() {}
+
+  function _llvm_stackrestore(p) {
+      var self = _llvm_stacksave;
+      var ret = self.LLVM_SAVEDSTACKS[p];
+      self.LLVM_SAVEDSTACKS.splice(p, 1);
+      Runtime.stackRestore(ret);
+    }
 
   
   var PTHREAD_SPECIFIC={};
@@ -5775,34 +5781,13 @@ function copyTempDouble(ptr) {
   }
   }
 
-  
-  var MONO={pump_count:0,pump_message:function () {
-  			while (MONO.pump_count > 0) {
-  				--MONO.pump_count;
-  				Module.cwrap ("mono_gc_pump_callback") ();
-  			}
-  		}};function _request_gc_cycle() {
-  		++MONO.pump_count;
-  		//if (Module.ENVIRONMENT_IS_WEB) {
-  			window.setTimeout (MONO.pump_message, 0);
-  		//}
-  	}
-
-  function ___syscall77(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // getrusage
-      var who = SYSCALLS.get(), usage = SYSCALLS.get();
-      _memset(usage, 0, 136);
-      HEAP32[((usage)>>2)]=1; // fake some values
-      HEAP32[(((usage)+(4))>>2)]=2;
-      HEAP32[(((usage)+(8))>>2)]=3;
-      HEAP32[(((usage)+(12))>>2)]=4;
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
+  function _fork() {
+      // pid_t fork(void);
+      // http://pubs.opengroup.org/onlinepubs/000095399/functions/fork.html
+      // We don't support multiple processes.
+      ___setErrNo(ERRNO_CODES.EAGAIN);
+      return -1;
+    }
 
   function ___syscall39(which, varargs) {SYSCALLS.varargs = varargs;
   try {
@@ -5934,7 +5919,16 @@ function copyTempDouble(ptr) {
 
   function _pthread_cond_signal() { return 0; }
 
-  function _getpwnam() { throw 'getpwnam: TODO' }
+  
+  function _wait(stat_loc) {
+      // pid_t wait(int *stat_loc);
+      // http://pubs.opengroup.org/onlinepubs/009695399/functions/wait.html
+      // Makes no sense in a single-process environment.
+      ___setErrNo(ERRNO_CODES.ECHILD);
+      return -1;
+    }function _waitpid() {
+  return _wait.apply(null, arguments)
+  }
 
   
   
@@ -6012,6 +6006,20 @@ function copyTempDouble(ptr) {
   }
 
   function _pthread_cond_wait() { return 0; }
+
+  function ___syscall144(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // msync
+      var addr = SYSCALLS.get(), len = SYSCALLS.get(), flags = SYSCALLS.get();
+      var info = SYSCALLS.mappings[addr];
+      if (!info) return 0;
+      SYSCALLS.doMsync(addr, FS.getStream(info.fd), len, info.flags);
+      return 0;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
 
   function ___syscall122(which, varargs) {SYSCALLS.varargs = varargs;
   try {
@@ -6101,7 +6109,16 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function _pthread_condattr_destroy() { return 0; }
+  function ___syscall41(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // dup
+      var old = SYSCALLS.getStreamFromFD();
+      return FS.open(old.path, old.flags, 0).fd;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
 
   
   var ___tm_timezone=allocate(intArrayFromString("GMT"), "i8", ALLOC_STATIC);function _gmtime_r(time, tmPtr) {
@@ -6312,8 +6329,6 @@ function copyTempDouble(ptr) {
    
   Module["_memset"] = _memset;
 
-  var _llvm_maxnum_f64=true;
-
   function _atexit(func, arg) {
       __ATEXIT__.unshift({ func: func, arg: arg });
     }
@@ -6324,47 +6339,6 @@ function copyTempDouble(ptr) {
 
   function _pthread_cond_destroy() { return 0; }
 
-  function ___syscall220(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // SYS_getdents64
-      var stream = SYSCALLS.getStreamFromFD(), dirp = SYSCALLS.get(), count = SYSCALLS.get();
-      if (!stream.getdents) {
-        stream.getdents = FS.readdir(stream.path);
-      }
-      var pos = 0;
-      while (stream.getdents.length > 0 && pos + 268 <= count) {
-        var id;
-        var type;
-        var name = stream.getdents.pop();
-        assert(name.length < 256); // limit of dirent struct
-        if (name[0] === '.') {
-          id = 1;
-          type = 4; // DT_DIR
-        } else {
-          var child = FS.lookupNode(stream.node, name);
-          id = child.id;
-          type = FS.isChrdev(child.mode) ? 2 :  // DT_CHR, character device.
-                 FS.isDir(child.mode) ? 4 :     // DT_DIR, directory.
-                 FS.isLink(child.mode) ? 10 :   // DT_LNK, symbolic link.
-                 8;                             // DT_REG, regular file.
-        }
-        HEAP32[((dirp + pos)>>2)]=id;
-        HEAP32[(((dirp + pos)+(4))>>2)]=stream.position;
-        HEAP16[(((dirp + pos)+(8))>>1)]=268;
-        HEAP8[(((dirp + pos)+(10))>>0)]=type;
-        for (var i = 0; i < name.length; i++) {
-          HEAP8[(((dirp + pos)+(11 + i))>>0)]=name.charCodeAt(i);
-        }
-        HEAP8[(((dirp + pos)+(11 + i))>>0)]=0;
-        pos += 268;
-      }
-      return pos;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
   function ___lock() {}
 
   function ___unlock() {}
@@ -6374,8 +6348,6 @@ function copyTempDouble(ptr) {
   function _pthread_getspecific(key) {
       return PTHREAD_SPECIFIC[key] || 0;
     }
-
-  var _llvm_fabs_f64=Math_abs;
 
   function ___syscall221(which, varargs) {SYSCALLS.varargs = varargs;
   try {
@@ -6507,16 +6479,6 @@ function copyTempDouble(ptr) {
   Module['printErr']('missing function: pthread_setcancelstate'); abort(-1);
   }
 
-  function _pthread_condattr_init() { return 0; }
-
-  function _fork() {
-      // pid_t fork(void);
-      // http://pubs.opengroup.org/onlinepubs/000095399/functions/fork.html
-      // We don't support multiple processes.
-      ___setErrNo(ERRNO_CODES.EAGAIN);
-      return -1;
-    }
-
    
   Module["_llvm_bswap_i16"] = _llvm_bswap_i16;
 
@@ -6546,6 +6508,22 @@ function copyTempDouble(ptr) {
     if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
     return -e.errno;
   }
+  }
+
+  function ___syscall12(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // chdir
+      var path = SYSCALLS.getStr();
+      FS.chdir(path);
+      return 0;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
+  function ___clock_gettime() {
+  return _clock_gettime.apply(null, arguments)
   }
 
   
@@ -6609,22 +6587,6 @@ function copyTempDouble(ptr) {
       return tmPtr;
     }
 
-  function ___syscall12(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // chdir
-      var path = SYSCALLS.getStr();
-      FS.chdir(path);
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
-  function ___clock_gettime() {
-  return _clock_gettime.apply(null, arguments)
-  }
-
   function ___syscall3(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // read
@@ -6634,6 +6596,10 @@ function copyTempDouble(ptr) {
     if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
     return -e.errno;
   }
+  }
+
+  function _schedule_background_exec() {
+  Module['printErr']('missing function: schedule_background_exec'); abort(-1);
   }
 
   function ___syscall5(which, varargs) {SYSCALLS.varargs = varargs;
@@ -6659,10 +6625,6 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function _llvm_copysign_f64(x, y) {
-      return y < 0 || (y === 0 && 1/y < 0) ? -Math_abs(x) : Math_abs(x);
-    }
-
   function ___syscall6(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // close
@@ -6685,6 +6647,15 @@ function copyTempDouble(ptr) {
     return -e.errno;
   }
   }
+
+  function _llvm_stacksave() {
+      var self = _llvm_stacksave;
+      if (!self.LLVM_SAVEDSTACKS) {
+        self.LLVM_SAVEDSTACKS = [];
+      }
+      self.LLVM_SAVEDSTACKS.push(Runtime.stackSave());
+      return self.LLVM_SAVEDSTACKS.length-1;
+    }
 
   
   var SOCKFS={mount:function (mount) {
@@ -7526,6 +7497,170 @@ function copyTempDouble(ptr) {
       return 0;
     }
 
+  function _time(ptr) {
+      var ret = (Date.now()/1000)|0;
+      if (ptr) {
+        HEAP32[((ptr)>>2)]=ret;
+      }
+      return ret;
+    }
+
+  function ___syscall142(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // newselect
+      // readfds are supported,
+      // writefds checks socket open status
+      // exceptfds not supported
+      // timeout is always 0 - fully async
+      var nfds = SYSCALLS.get(), readfds = SYSCALLS.get(), writefds = SYSCALLS.get(), exceptfds = SYSCALLS.get(), timeout = SYSCALLS.get();
+  
+      assert(nfds <= 64, 'nfds must be less than or equal to 64');  // fd sets have 64 bits // TODO: this could be 1024 based on current musl headers
+      assert(!exceptfds, 'exceptfds not supported');
+  
+      var total = 0;
+      
+      var srcReadLow = (readfds ? HEAP32[((readfds)>>2)] : 0),
+          srcReadHigh = (readfds ? HEAP32[(((readfds)+(4))>>2)] : 0);
+      var srcWriteLow = (writefds ? HEAP32[((writefds)>>2)] : 0),
+          srcWriteHigh = (writefds ? HEAP32[(((writefds)+(4))>>2)] : 0);
+      var srcExceptLow = (exceptfds ? HEAP32[((exceptfds)>>2)] : 0),
+          srcExceptHigh = (exceptfds ? HEAP32[(((exceptfds)+(4))>>2)] : 0);
+  
+      var dstReadLow = 0,
+          dstReadHigh = 0;
+      var dstWriteLow = 0,
+          dstWriteHigh = 0;
+      var dstExceptLow = 0,
+          dstExceptHigh = 0;
+  
+      var allLow = (readfds ? HEAP32[((readfds)>>2)] : 0) |
+                   (writefds ? HEAP32[((writefds)>>2)] : 0) |
+                   (exceptfds ? HEAP32[((exceptfds)>>2)] : 0);
+      var allHigh = (readfds ? HEAP32[(((readfds)+(4))>>2)] : 0) |
+                    (writefds ? HEAP32[(((writefds)+(4))>>2)] : 0) |
+                    (exceptfds ? HEAP32[(((exceptfds)+(4))>>2)] : 0);
+  
+      function check(fd, low, high, val) {
+        return (fd < 32 ? (low & val) : (high & val));
+      }
+  
+      for (var fd = 0; fd < nfds; fd++) {
+        var mask = 1 << (fd % 32);
+        if (!(check(fd, allLow, allHigh, mask))) {
+          continue;  // index isn't in the set
+        }
+  
+        var stream = FS.getStream(fd);
+        if (!stream) throw new FS.ErrnoError(ERRNO_CODES.EBADF);
+  
+        var flags = SYSCALLS.DEFAULT_POLLMASK;
+  
+        if (stream.stream_ops.poll) {
+          flags = stream.stream_ops.poll(stream);
+        }
+  
+        if ((flags & 1) && check(fd, srcReadLow, srcReadHigh, mask)) {
+          fd < 32 ? (dstReadLow = dstReadLow | mask) : (dstReadHigh = dstReadHigh | mask);
+          total++;
+        }
+        if ((flags & 4) && check(fd, srcWriteLow, srcWriteHigh, mask)) {
+          fd < 32 ? (dstWriteLow = dstWriteLow | mask) : (dstWriteHigh = dstWriteHigh | mask);
+          total++;
+        }
+        if ((flags & 2) && check(fd, srcExceptLow, srcExceptHigh, mask)) {
+          fd < 32 ? (dstExceptLow = dstExceptLow | mask) : (dstExceptHigh = dstExceptHigh | mask);
+          total++;
+        }
+      }
+  
+      if (readfds) {
+        HEAP32[((readfds)>>2)]=dstReadLow;
+        HEAP32[(((readfds)+(4))>>2)]=dstReadHigh;
+      }
+      if (writefds) {
+        HEAP32[((writefds)>>2)]=dstWriteLow;
+        HEAP32[(((writefds)+(4))>>2)]=dstWriteHigh;
+      }
+      if (exceptfds) {
+        HEAP32[((exceptfds)>>2)]=dstExceptLow;
+        HEAP32[(((exceptfds)+(4))>>2)]=dstExceptHigh;
+      }
+      
+      return total;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
+  function ___syscall140(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // llseek
+      var stream = SYSCALLS.getStreamFromFD(), offset_high = SYSCALLS.get(), offset_low = SYSCALLS.get(), result = SYSCALLS.get(), whence = SYSCALLS.get();
+      var offset = offset_low;
+      assert(offset_high === 0);
+      FS.llseek(stream, offset, whence);
+      HEAP32[((result)>>2)]=stream.position;
+      if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null; // reset readdir state
+      return 0;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
+  function ___syscall220(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // SYS_getdents64
+      var stream = SYSCALLS.getStreamFromFD(), dirp = SYSCALLS.get(), count = SYSCALLS.get();
+      if (!stream.getdents) {
+        stream.getdents = FS.readdir(stream.path);
+      }
+      var pos = 0;
+      while (stream.getdents.length > 0 && pos + 268 <= count) {
+        var id;
+        var type;
+        var name = stream.getdents.pop();
+        assert(name.length < 256); // limit of dirent struct
+        if (name[0] === '.') {
+          id = 1;
+          type = 4; // DT_DIR
+        } else {
+          var child = FS.lookupNode(stream.node, name);
+          id = child.id;
+          type = FS.isChrdev(child.mode) ? 2 :  // DT_CHR, character device.
+                 FS.isDir(child.mode) ? 4 :     // DT_DIR, directory.
+                 FS.isLink(child.mode) ? 10 :   // DT_LNK, symbolic link.
+                 8;                             // DT_REG, regular file.
+        }
+        HEAP32[((dirp + pos)>>2)]=id;
+        HEAP32[(((dirp + pos)+(4))>>2)]=stream.position;
+        HEAP16[(((dirp + pos)+(8))>>1)]=268;
+        HEAP8[(((dirp + pos)+(10))>>0)]=type;
+        for (var i = 0; i < name.length; i++) {
+          HEAP8[(((dirp + pos)+(11 + i))>>0)]=name.charCodeAt(i);
+        }
+        HEAP8[(((dirp + pos)+(11 + i))>>0)]=0;
+        pos += 268;
+      }
+      return pos;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
+  function ___syscall146(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // writev
+      var stream = SYSCALLS.getStreamFromFD(), iov = SYSCALLS.get(), iovcnt = SYSCALLS.get();
+      return SYSCALLS.doWritev(stream, iov, iovcnt);
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
   
   function __isLeapYear(year) {
         return year%4 === 0 && (year%100 !== 0 || year%400 === 0);
@@ -7865,154 +8000,6 @@ function copyTempDouble(ptr) {
       return bytes.length-1;
     }
 
-  function _time(ptr) {
-      var ret = (Date.now()/1000)|0;
-      if (ptr) {
-        HEAP32[((ptr)>>2)]=ret;
-      }
-      return ret;
-    }
-
-  function ___syscall142(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // newselect
-      // readfds are supported,
-      // writefds checks socket open status
-      // exceptfds not supported
-      // timeout is always 0 - fully async
-      var nfds = SYSCALLS.get(), readfds = SYSCALLS.get(), writefds = SYSCALLS.get(), exceptfds = SYSCALLS.get(), timeout = SYSCALLS.get();
-  
-      assert(nfds <= 64, 'nfds must be less than or equal to 64');  // fd sets have 64 bits // TODO: this could be 1024 based on current musl headers
-      assert(!exceptfds, 'exceptfds not supported');
-  
-      var total = 0;
-      
-      var srcReadLow = (readfds ? HEAP32[((readfds)>>2)] : 0),
-          srcReadHigh = (readfds ? HEAP32[(((readfds)+(4))>>2)] : 0);
-      var srcWriteLow = (writefds ? HEAP32[((writefds)>>2)] : 0),
-          srcWriteHigh = (writefds ? HEAP32[(((writefds)+(4))>>2)] : 0);
-      var srcExceptLow = (exceptfds ? HEAP32[((exceptfds)>>2)] : 0),
-          srcExceptHigh = (exceptfds ? HEAP32[(((exceptfds)+(4))>>2)] : 0);
-  
-      var dstReadLow = 0,
-          dstReadHigh = 0;
-      var dstWriteLow = 0,
-          dstWriteHigh = 0;
-      var dstExceptLow = 0,
-          dstExceptHigh = 0;
-  
-      var allLow = (readfds ? HEAP32[((readfds)>>2)] : 0) |
-                   (writefds ? HEAP32[((writefds)>>2)] : 0) |
-                   (exceptfds ? HEAP32[((exceptfds)>>2)] : 0);
-      var allHigh = (readfds ? HEAP32[(((readfds)+(4))>>2)] : 0) |
-                    (writefds ? HEAP32[(((writefds)+(4))>>2)] : 0) |
-                    (exceptfds ? HEAP32[(((exceptfds)+(4))>>2)] : 0);
-  
-      function check(fd, low, high, val) {
-        return (fd < 32 ? (low & val) : (high & val));
-      }
-  
-      for (var fd = 0; fd < nfds; fd++) {
-        var mask = 1 << (fd % 32);
-        if (!(check(fd, allLow, allHigh, mask))) {
-          continue;  // index isn't in the set
-        }
-  
-        var stream = FS.getStream(fd);
-        if (!stream) throw new FS.ErrnoError(ERRNO_CODES.EBADF);
-  
-        var flags = SYSCALLS.DEFAULT_POLLMASK;
-  
-        if (stream.stream_ops.poll) {
-          flags = stream.stream_ops.poll(stream);
-        }
-  
-        if ((flags & 1) && check(fd, srcReadLow, srcReadHigh, mask)) {
-          fd < 32 ? (dstReadLow = dstReadLow | mask) : (dstReadHigh = dstReadHigh | mask);
-          total++;
-        }
-        if ((flags & 4) && check(fd, srcWriteLow, srcWriteHigh, mask)) {
-          fd < 32 ? (dstWriteLow = dstWriteLow | mask) : (dstWriteHigh = dstWriteHigh | mask);
-          total++;
-        }
-        if ((flags & 2) && check(fd, srcExceptLow, srcExceptHigh, mask)) {
-          fd < 32 ? (dstExceptLow = dstExceptLow | mask) : (dstExceptHigh = dstExceptHigh | mask);
-          total++;
-        }
-      }
-  
-      if (readfds) {
-        HEAP32[((readfds)>>2)]=dstReadLow;
-        HEAP32[(((readfds)+(4))>>2)]=dstReadHigh;
-      }
-      if (writefds) {
-        HEAP32[((writefds)>>2)]=dstWriteLow;
-        HEAP32[(((writefds)+(4))>>2)]=dstWriteHigh;
-      }
-      if (exceptfds) {
-        HEAP32[((exceptfds)>>2)]=dstExceptLow;
-        HEAP32[(((exceptfds)+(4))>>2)]=dstExceptHigh;
-      }
-      
-      return total;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
-  function ___syscall140(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // llseek
-      var stream = SYSCALLS.getStreamFromFD(), offset_high = SYSCALLS.get(), offset_low = SYSCALLS.get(), result = SYSCALLS.get(), whence = SYSCALLS.get();
-      var offset = offset_low;
-      assert(offset_high === 0);
-      FS.llseek(stream, offset, whence);
-      HEAP32[((result)>>2)]=stream.position;
-      if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null; // reset readdir state
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
-  function ___syscall41(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // dup
-      var old = SYSCALLS.getStreamFromFD();
-      return FS.open(old.path, old.flags, 0).fd;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
-  function ___syscall146(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // writev
-      var stream = SYSCALLS.getStreamFromFD(), iov = SYSCALLS.get(), iovcnt = SYSCALLS.get();
-      return SYSCALLS.doWritev(stream, iov, iovcnt);
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
-  function ___syscall144(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // msync
-      var addr = SYSCALLS.get(), len = SYSCALLS.get(), flags = SYSCALLS.get();
-      var info = SYSCALLS.mappings[addr];
-      if (!info) return 0;
-      SYSCALLS.doMsync(addr, FS.getStream(info.fd), len, info.flags);
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
   function ___syscall145(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // readv
@@ -8041,7 +8028,6 @@ if (ENVIRONMENT_IS_NODE) {
   } else {
     _emscripten_get_now = Date.now;
   };
-Module["pump_message"] = MONO.pump_message;
 ___buildEnvironment(ENV);;
 __ATINIT__.push(function() { SOCKFS.root = FS.mount(SOCKFS, {}, null); });;
 DYNAMICTOP_PTR = allocate(1, "i32", ALLOC_STATIC);
@@ -8074,15 +8060,6 @@ function invoke_iiiiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
 function invoke_jijii(index,a1,a2,a3,a4,a5) {
   try {
     return Module["dynCall_jijii"](index,a1,a2,a3,a4,a5);
-  } catch(e) {
-    if (typeof e !== 'number' && e !== 'longjmp') throw e;
-    Module["setThrew"](1, 0);
-  }
-}
-
-function invoke_viiiij(index,a1,a2,a3,a4,a5,a6) {
-  try {
-    Module["dynCall_viiiij"](index,a1,a2,a3,a4,a5,a6);
   } catch(e) {
     if (typeof e !== 'number' && e !== 'longjmp') throw e;
     Module["setThrew"](1, 0);
@@ -8539,6 +8516,15 @@ function invoke_i(index) {
   }
 }
 
+function invoke_vijii(index,a1,a2,a3,a4,a5) {
+  try {
+    Module["dynCall_vijii"](index,a1,a2,a3,a4,a5);
+  } catch(e) {
+    if (typeof e !== 'number' && e !== 'longjmp') throw e;
+    Module["setThrew"](1, 0);
+  }
+}
+
 function invoke_viii(index,a1,a2,a3) {
   try {
     Module["dynCall_viii"](index,a1,a2,a3);
@@ -8595,7 +8581,7 @@ function invoke_viiii(index,a1,a2,a3,a4) {
 
 Module.asmGlobalArg = { "Math": Math, "Int8Array": Int8Array, "Int16Array": Int16Array, "Int32Array": Int32Array, "Uint8Array": Uint8Array, "Uint16Array": Uint16Array, "Uint32Array": Uint32Array, "Float32Array": Float32Array, "Float64Array": Float64Array, "NaN": NaN, "Infinity": Infinity, "byteLength": byteLength };
 
-Module.asmLibraryArg = { "abort": abort, "assert": assert, "enlargeMemory": enlargeMemory, "getTotalMemory": getTotalMemory, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "invoke_iiiiiiii": invoke_iiiiiiii, "invoke_jijii": invoke_jijii, "invoke_viiiij": invoke_viiiij, "invoke_vif": invoke_vif, "invoke_jj": invoke_jj, "invoke_vid": invoke_vid, "invoke_fiff": invoke_fiff, "invoke_vij": invoke_vij, "invoke_vi": invoke_vi, "invoke_vj": invoke_vj, "invoke_vii": invoke_vii, "invoke_iiiiiii": invoke_iiiiiii, "invoke_vijji": invoke_vijji, "invoke_ii": invoke_ii, "invoke_jjj": invoke_jjj, "invoke_jji": invoke_jji, "invoke_viiiiiiiii": invoke_viiiiiiiii, "invoke_viiiii": invoke_viiiii, "invoke_id": invoke_id, "invoke_iiiiii": invoke_iiiiii, "invoke_jijj": invoke_jijj, "invoke_jij": invoke_jij, "invoke_jii": invoke_jii, "invoke_iiii": invoke_iiii, "invoke_fif": invoke_fif, "invoke_viff": invoke_viff, "invoke_iijjji": invoke_iijjji, "invoke_ddd": invoke_ddd, "invoke_viiiiiiii": invoke_viiiiiiii, "invoke_vifffffi": invoke_vifffffi, "invoke_di": invoke_di, "invoke_viffff": invoke_viffff, "invoke_dd": invoke_dd, "invoke_v": invoke_v, "invoke_ji": invoke_ji, "invoke_ff": invoke_ff, "invoke_jd": invoke_jd, "invoke_fi": invoke_fi, "invoke_jf": invoke_jf, "invoke_viiiiiiiiii": invoke_viiiiiiiiii, "invoke_iii": invoke_iii, "invoke_iij": invoke_iij, "invoke_didd": invoke_didd, "invoke_viiiiiiiiiii": invoke_viiiiiiiiiii, "invoke_viiiiii": invoke_viiiiii, "invoke_d": invoke_d, "invoke_viiiiiii": invoke_viiiiiii, "invoke_did": invoke_did, "invoke_jiii": invoke_jiii, "invoke_jiij": invoke_jiij, "invoke_j": invoke_j, "invoke_iiiii": invoke_iiiii, "invoke_i": invoke_i, "invoke_viii": invoke_viii, "invoke_viij": invoke_viij, "invoke_iijiiii": invoke_iijiiii, "invoke_iiiiiiiii": invoke_iiiiiiiii, "invoke_iiji": invoke_iiji, "invoke_viiii": invoke_viiii, "___syscall221": ___syscall221, "___syscall220": ___syscall220, "__inet_ntop6_raw": __inet_ntop6_raw, "___syscall63": ___syscall63, "_llvm_fabs_f64": _llvm_fabs_f64, "__write_sockaddr": __write_sockaddr, "_emscripten_get_now_res": _emscripten_get_now_res, "_clock_gettime": _clock_gettime, "_clock_getres": _clock_getres, "_pthread_key_delete": _pthread_key_delete, "_emscripten_memcpy_big": _emscripten_memcpy_big, "__addDays": __addDays, "_sysconf": _sysconf, "_utime": _utime, "_execl": _execl, "_pthread_setcancelstate": _pthread_setcancelstate, "_pthread_condattr_init": _pthread_condattr_init, "___syscall77": ___syscall77, "_pthread_mutexattr_settype": _pthread_mutexattr_settype, "_llvm_copysign_f64": _llvm_copysign_f64, "__isLeapYear": __isLeapYear, "_gmtime_r": _gmtime_r, "_unsetenv": _unsetenv, "_getaddrinfo": _getaddrinfo, "_pthread_cond_destroy": _pthread_cond_destroy, "___syscall140": ___syscall140, "___syscall142": ___syscall142, "___syscall144": ___syscall144, "___syscall145": ___syscall145, "___syscall146": ___syscall146, "_pthread_cleanup_pop": _pthread_cleanup_pop, "___syscall85": ___syscall85, "_execve": _execve, "_emscripten_get_now_is_monotonic": _emscripten_get_now_is_monotonic, "___syscall122": ___syscall122, "__inet_ntop4_raw": __inet_ntop4_raw, "_pthread_cleanup_push": _pthread_cleanup_push, "_sem_init": _sem_init, "_pthread_cond_init": _pthread_cond_init, "_llvm_cttz_i32": _llvm_cttz_i32, "___setErrNo": ___setErrNo, "_pthread_condattr_setclock": _pthread_condattr_setclock, "___syscall118": ___syscall118, "_nanosleep": _nanosleep, "___syscall91": ___syscall91, "_kill": _kill, "___syscall15": ___syscall15, "___syscall12": ___syscall12, "_emscripten_get_now": _emscripten_get_now, "___syscall10": ___syscall10, "_getpwnam": _getpwnam, "___syscall3": ___syscall3, "___lock": ___lock, "___syscall6": ___syscall6, "___syscall5": ___syscall5, "___clock_gettime": ___clock_gettime, "_time": _time, "_gettimeofday": _gettimeofday, "_exit": _exit, "___syscall202": ___syscall202, "___syscall201": ___syscall201, "__inet_pton4_raw": __inet_pton4_raw, "___syscall102": ___syscall102, "_llvm_pow_f64": _llvm_pow_f64, "___syscall20": ___syscall20, "__Exit": __Exit, "_sem_trywait": _sem_trywait, "___buildEnvironment": ___buildEnvironment, "_localtime_r": _localtime_r, "_tzset": _tzset, "___syscall192": ___syscall192, "___syscall197": ___syscall197, "___syscall196": ___syscall196, "___syscall195": ___syscall195, "___syscall194": ___syscall194, "_sigemptyset": _sigemptyset, "_pthread_getspecific": _pthread_getspecific, "_sem_wait": _sem_wait, "_pthread_cond_signal": _pthread_cond_signal, "_pthread_mutex_destroy": _pthread_mutex_destroy, "_setprotoent": _setprotoent, "_getenv": _getenv, "___map_file": ___map_file, "___syscall33": ___syscall33, "_pthread_key_create": _pthread_key_create, "___syscall39": ___syscall39, "___syscall38": ___syscall38, "_emscripten_asm_const_iiiiii": _emscripten_asm_const_iiiiii, "_getnameinfo": _getnameinfo, "_pthread_cond_timedwait": _pthread_cond_timedwait, "_abort": _abort, "___syscall183": ___syscall183, "_strftime": _strftime, "_pthread_cond_wait": _pthread_cond_wait, "___syscall40": ___syscall40, "___syscall41": ___syscall41, "___syscall42": ___syscall42, "_sem_destroy": _sem_destroy, "_fork": _fork, "__inet_pton6_raw": __inet_pton6_raw, "___syscall4": ___syscall4, "_usleep": _usleep, "__read_sockaddr": __read_sockaddr, "_pthread_mutexattr_destroy": _pthread_mutexattr_destroy, "_sem_post": _sem_post, "__arraySum": __arraySum, "___syscall51": ___syscall51, "_pthread_condattr_destroy": _pthread_condattr_destroy, "___syscall54": ___syscall54, "___unlock": ___unlock, "_pthread_mutexattr_init": _pthread_mutexattr_init, "_pthread_setspecific": _pthread_setspecific, "_getpwuid": _getpwuid, "_emscripten_asm_const_iiii": _emscripten_asm_const_iiii, "_getprotobyname": _getprotobyname, "_request_gc_cycle": _request_gc_cycle, "_atexit": _atexit, "_pthread_mutex_init": _pthread_mutex_init, "_setenv": _setenv, "_sigaction": _sigaction, "DYNAMICTOP_PTR": DYNAMICTOP_PTR, "tempDoublePtr": tempDoublePtr, "ABORT": ABORT, "STACKTOP": STACKTOP, "STACK_MAX": STACK_MAX, "cttz_i8": cttz_i8, "_environ": _environ };
+Module.asmLibraryArg = { "abort": abort, "assert": assert, "enlargeMemory": enlargeMemory, "getTotalMemory": getTotalMemory, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "invoke_iiiiiiii": invoke_iiiiiiii, "invoke_jijii": invoke_jijii, "invoke_vif": invoke_vif, "invoke_jj": invoke_jj, "invoke_vid": invoke_vid, "invoke_fiff": invoke_fiff, "invoke_vij": invoke_vij, "invoke_vi": invoke_vi, "invoke_vj": invoke_vj, "invoke_vii": invoke_vii, "invoke_iiiiiii": invoke_iiiiiii, "invoke_vijji": invoke_vijji, "invoke_ii": invoke_ii, "invoke_jjj": invoke_jjj, "invoke_jji": invoke_jji, "invoke_viiiiiiiii": invoke_viiiiiiiii, "invoke_viiiii": invoke_viiiii, "invoke_id": invoke_id, "invoke_iiiiii": invoke_iiiiii, "invoke_jijj": invoke_jijj, "invoke_jij": invoke_jij, "invoke_jii": invoke_jii, "invoke_iiii": invoke_iiii, "invoke_fif": invoke_fif, "invoke_viff": invoke_viff, "invoke_iijjji": invoke_iijjji, "invoke_ddd": invoke_ddd, "invoke_viiiiiiii": invoke_viiiiiiii, "invoke_vifffffi": invoke_vifffffi, "invoke_di": invoke_di, "invoke_viffff": invoke_viffff, "invoke_dd": invoke_dd, "invoke_v": invoke_v, "invoke_ji": invoke_ji, "invoke_ff": invoke_ff, "invoke_jd": invoke_jd, "invoke_fi": invoke_fi, "invoke_jf": invoke_jf, "invoke_viiiiiiiiii": invoke_viiiiiiiiii, "invoke_iii": invoke_iii, "invoke_iij": invoke_iij, "invoke_didd": invoke_didd, "invoke_viiiiiiiiiii": invoke_viiiiiiiiiii, "invoke_viiiiii": invoke_viiiiii, "invoke_d": invoke_d, "invoke_viiiiiii": invoke_viiiiiii, "invoke_did": invoke_did, "invoke_jiii": invoke_jiii, "invoke_jiij": invoke_jiij, "invoke_j": invoke_j, "invoke_iiiii": invoke_iiiii, "invoke_i": invoke_i, "invoke_vijii": invoke_vijii, "invoke_viii": invoke_viii, "invoke_viij": invoke_viij, "invoke_iijiiii": invoke_iijiiii, "invoke_iiiiiiiii": invoke_iiiiiiiii, "invoke_iiji": invoke_iiji, "invoke_viiii": invoke_viiii, "___syscall221": ___syscall221, "___syscall220": ___syscall220, "__inet_ntop6_raw": __inet_ntop6_raw, "___syscall63": ___syscall63, "_wait": _wait, "__write_sockaddr": __write_sockaddr, "_emscripten_get_now_res": _emscripten_get_now_res, "_clock_gettime": _clock_gettime, "_clock_getres": _clock_getres, "_pthread_key_delete": _pthread_key_delete, "_emscripten_memcpy_big": _emscripten_memcpy_big, "__addDays": __addDays, "_sysconf": _sysconf, "_utime": _utime, "_execl": _execl, "_pthread_setcancelstate": _pthread_setcancelstate, "_llvm_stacksave": _llvm_stacksave, "_pthread_mutexattr_settype": _pthread_mutexattr_settype, "__isLeapYear": __isLeapYear, "_gmtime_r": _gmtime_r, "_unsetenv": _unsetenv, "_getaddrinfo": _getaddrinfo, "_pthread_cond_destroy": _pthread_cond_destroy, "___syscall140": ___syscall140, "___syscall142": ___syscall142, "___syscall144": ___syscall144, "___syscall145": ___syscall145, "___syscall146": ___syscall146, "_pthread_cleanup_pop": _pthread_cleanup_pop, "___syscall85": ___syscall85, "_execve": _execve, "_emscripten_get_now_is_monotonic": _emscripten_get_now_is_monotonic, "___syscall122": ___syscall122, "__inet_ntop4_raw": __inet_ntop4_raw, "_pthread_cleanup_push": _pthread_cleanup_push, "_llvm_stackrestore": _llvm_stackrestore, "_sem_init": _sem_init, "_pthread_cond_init": _pthread_cond_init, "_emscripten_asm_const_i": _emscripten_asm_const_i, "_llvm_cttz_i32": _llvm_cttz_i32, "___setErrNo": ___setErrNo, "___syscall118": ___syscall118, "_nanosleep": _nanosleep, "___syscall91": ___syscall91, "_kill": _kill, "___syscall15": ___syscall15, "___syscall12": ___syscall12, "_emscripten_get_now": _emscripten_get_now, "___syscall10": ___syscall10, "___syscall3": ___syscall3, "___lock": ___lock, "___syscall6": ___syscall6, "___syscall5": ___syscall5, "___clock_gettime": ___clock_gettime, "_time": _time, "_gettimeofday": _gettimeofday, "_exit": _exit, "___syscall202": ___syscall202, "___syscall201": ___syscall201, "__inet_pton4_raw": __inet_pton4_raw, "___syscall102": ___syscall102, "_llvm_pow_f64": _llvm_pow_f64, "___syscall20": ___syscall20, "__Exit": __Exit, "_sem_trywait": _sem_trywait, "___buildEnvironment": ___buildEnvironment, "_localtime_r": _localtime_r, "_tzset": _tzset, "___syscall192": ___syscall192, "___syscall197": ___syscall197, "___syscall196": ___syscall196, "___syscall195": ___syscall195, "___syscall194": ___syscall194, "_sigemptyset": _sigemptyset, "_pthread_getspecific": _pthread_getspecific, "_sem_wait": _sem_wait, "_pthread_cond_signal": _pthread_cond_signal, "_pthread_mutex_destroy": _pthread_mutex_destroy, "_setprotoent": _setprotoent, "_getenv": _getenv, "___map_file": ___map_file, "___syscall33": ___syscall33, "_pthread_key_create": _pthread_key_create, "_pthread_setspecific": _pthread_setspecific, "___syscall39": ___syscall39, "___syscall38": ___syscall38, "_emscripten_asm_const_iii": _emscripten_asm_const_iii, "_getnameinfo": _getnameinfo, "_pthread_cond_timedwait": _pthread_cond_timedwait, "_abort": _abort, "___syscall183": ___syscall183, "_waitpid": _waitpid, "_strftime": _strftime, "_pthread_cond_wait": _pthread_cond_wait, "___syscall40": ___syscall40, "___syscall41": ___syscall41, "___syscall42": ___syscall42, "_sem_destroy": _sem_destroy, "_fork": _fork, "__inet_pton6_raw": __inet_pton6_raw, "___syscall4": ___syscall4, "_usleep": _usleep, "__read_sockaddr": __read_sockaddr, "_pthread_mutexattr_destroy": _pthread_mutexattr_destroy, "_sem_post": _sem_post, "__arraySum": __arraySum, "___syscall51": ___syscall51, "___syscall54": ___syscall54, "___unlock": ___unlock, "_pthread_mutexattr_init": _pthread_mutexattr_init, "_schedule_background_exec": _schedule_background_exec, "_getpwuid": _getpwuid, "_getprotobyname": _getprotobyname, "_atexit": _atexit, "_pthread_mutex_init": _pthread_mutex_init, "_setenv": _setenv, "_sigaction": _sigaction, "DYNAMICTOP_PTR": DYNAMICTOP_PTR, "tempDoublePtr": tempDoublePtr, "ABORT": ABORT, "STACKTOP": STACKTOP, "STACK_MAX": STACK_MAX, "cttz_i8": cttz_i8, "_environ": _environ };
 // EMSCRIPTEN_START_ASM
 var asm =Module["asm"]// EMSCRIPTEN_END_ASM
 (Module.asmGlobalArg, Module.asmLibraryArg, buffer);
@@ -8610,11 +8596,13 @@ var _mono_wasm_string_from_js = Module["_mono_wasm_string_from_js"] = function()
 var _fflush = Module["_fflush"] = function() { return Module["asm"]["_fflush"].apply(null, arguments) };
 var setTempRet0 = Module["setTempRet0"] = function() { return Module["asm"]["setTempRet0"].apply(null, arguments) };
 var _mono_wasm_invoke_method = Module["_mono_wasm_invoke_method"] = function() { return Module["asm"]["_mono_wasm_invoke_method"].apply(null, arguments) };
+var _wasm_get_stack_base = Module["_wasm_get_stack_base"] = function() { return Module["asm"]["_wasm_get_stack_base"].apply(null, arguments) };
 var _memset = Module["_memset"] = function() { return Module["asm"]["_memset"].apply(null, arguments) };
 var _sbrk = Module["_sbrk"] = function() { return Module["asm"]["_sbrk"].apply(null, arguments) };
 var _memcpy = Module["_memcpy"] = function() { return Module["asm"]["_memcpy"].apply(null, arguments) };
 var _mono_print_method_from_ip = Module["_mono_print_method_from_ip"] = function() { return Module["asm"]["_mono_print_method_from_ip"].apply(null, arguments) };
 var _emscripten_replace_memory = Module["_emscripten_replace_memory"] = function() { return Module["asm"]["_emscripten_replace_memory"].apply(null, arguments) };
+var _wasm_get_stack_size = Module["_wasm_get_stack_size"] = function() { return Module["asm"]["_wasm_get_stack_size"].apply(null, arguments) };
 var stackAlloc = Module["stackAlloc"] = function() { return Module["asm"]["stackAlloc"].apply(null, arguments) };
 var getTempRet0 = Module["getTempRet0"] = function() { return Module["asm"]["getTempRet0"].apply(null, arguments) };
 var _ntohs = Module["_ntohs"] = function() { return Module["asm"]["_ntohs"].apply(null, arguments) };
@@ -8627,7 +8615,7 @@ var _emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = functi
 var _htons = Module["_htons"] = function() { return Module["asm"]["_htons"].apply(null, arguments) };
 var _pthread_cond_broadcast = Module["_pthread_cond_broadcast"] = function() { return Module["asm"]["_pthread_cond_broadcast"].apply(null, arguments) };
 var ___errno_location = Module["___errno_location"] = function() { return Module["asm"]["___errno_location"].apply(null, arguments) };
-var _mono_gc_pump_callback = Module["_mono_gc_pump_callback"] = function() { return Module["asm"]["_mono_gc_pump_callback"].apply(null, arguments) };
+var _mono_background_exec = Module["_mono_background_exec"] = function() { return Module["asm"]["_mono_background_exec"].apply(null, arguments) };
 var _free = Module["_free"] = function() { return Module["asm"]["_free"].apply(null, arguments) };
 var runPostSets = Module["runPostSets"] = function() { return Module["asm"]["runPostSets"].apply(null, arguments) };
 var establishStackSpace = Module["establishStackSpace"] = function() { return Module["asm"]["establishStackSpace"].apply(null, arguments) };
@@ -8641,7 +8629,6 @@ var _memalign = Module["_memalign"] = function() { return Module["asm"]["_memali
 var _mono_wasm_load_runtime = Module["_mono_wasm_load_runtime"] = function() { return Module["asm"]["_mono_wasm_load_runtime"].apply(null, arguments) };
 var dynCall_iiiiiiii = Module["dynCall_iiiiiiii"] = function() { return Module["asm"]["dynCall_iiiiiiii"].apply(null, arguments) };
 var dynCall_jijii = Module["dynCall_jijii"] = function() { return Module["asm"]["dynCall_jijii"].apply(null, arguments) };
-var dynCall_viiiij = Module["dynCall_viiiij"] = function() { return Module["asm"]["dynCall_viiiij"].apply(null, arguments) };
 var dynCall_vif = Module["dynCall_vif"] = function() { return Module["asm"]["dynCall_vif"].apply(null, arguments) };
 var dynCall_jj = Module["dynCall_jj"] = function() { return Module["asm"]["dynCall_jj"].apply(null, arguments) };
 var dynCall_vid = Module["dynCall_vid"] = function() { return Module["asm"]["dynCall_vid"].apply(null, arguments) };
@@ -8692,6 +8679,7 @@ var dynCall_jiij = Module["dynCall_jiij"] = function() { return Module["asm"]["d
 var dynCall_j = Module["dynCall_j"] = function() { return Module["asm"]["dynCall_j"].apply(null, arguments) };
 var dynCall_iiiii = Module["dynCall_iiiii"] = function() { return Module["asm"]["dynCall_iiiii"].apply(null, arguments) };
 var dynCall_i = Module["dynCall_i"] = function() { return Module["asm"]["dynCall_i"].apply(null, arguments) };
+var dynCall_vijii = Module["dynCall_vijii"] = function() { return Module["asm"]["dynCall_vijii"].apply(null, arguments) };
 var dynCall_viii = Module["dynCall_viii"] = function() { return Module["asm"]["dynCall_viii"].apply(null, arguments) };
 var dynCall_viij = Module["dynCall_viij"] = function() { return Module["asm"]["dynCall_viij"].apply(null, arguments) };
 var dynCall_iijiiii = Module["dynCall_iijiiii"] = function() { return Module["asm"]["dynCall_iijiiii"].apply(null, arguments) };
