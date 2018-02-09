@@ -17,7 +17,6 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         private readonly int _componentId; // TODO: Change the type to 'long' when the Mono runtime has more complete support for passing longs in .NET->JS calls
         private readonly IComponent _component;
         private readonly Renderer _renderer;
-        private readonly RenderTreeDiffComputer _diffComputer;
         private RenderTreeBuilder _renderTreeBuilderCurrent;
         private RenderTreeBuilder _renderTreeBuilderPrevious;
 
@@ -32,7 +31,6 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             _componentId = componentId;
             _component = component ?? throw new ArgumentNullException(nameof(component));
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
-            _diffComputer = new RenderTreeDiffComputer(renderer);
             _renderTreeBuilderCurrent = new RenderTreeBuilder(renderer);
             _renderTreeBuilderPrevious = new RenderTreeBuilder(renderer);
         }
@@ -41,50 +39,47 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         /// Regenerates the <see cref="RenderTree"/> and adds the changes to the
         /// <paramref name="batchBuilder"/>.
         /// </summary>
-        public void Render(RenderBatchBuilder batchBuilder)
+        public void Render(Renderer renderer, RenderBatchBuilder batchBuilder)
         {
+            if (_component is IHandlePropertiesChanged notifyableComponent)
+            {
+                notifyableComponent.OnPropertiesChanged();
+            }
+
             // Swap the old and new tree builders
             (_renderTreeBuilderCurrent, _renderTreeBuilderPrevious) = (_renderTreeBuilderPrevious, _renderTreeBuilderCurrent);
 
             _renderTreeBuilderCurrent.Clear();
             _component.BuildRenderTree(_renderTreeBuilderCurrent);
-            _diffComputer.ApplyNewRenderTreeVersion(
+
+            var diff = RenderTreeDiffBuilder.ComputeDiff(
+                _renderer,
                 batchBuilder,
                 _componentId,
                 _renderTreeBuilderPrevious.GetFrames(),
                 _renderTreeBuilderCurrent.GetFrames());
-        }
+            batchBuilder.UpdatedComponentDiffs.Append(diff);
 
-        /// <summary>
-        /// Invokes the handler corresponding to an event.
-        /// </summary>
-        /// <param name="referenceTreeIndex">The index of the frame in the latest diff reference tree that holds the event handler to be invoked.</param>
-        /// <param name="eventArgs">Arguments to be passed to the event handler.</param>
-        public void DispatchEvent(int referenceTreeIndex, UIEventArgs eventArgs)
-        {
-            if (eventArgs == null)
+            // Process disposal queue now in case it causes further component renders to be enqueued
+            while (batchBuilder.ComponentDisposalQueue.Count > 0)
             {
-                throw new ArgumentNullException(nameof(eventArgs));
+                var disposeComponentId = batchBuilder.ComponentDisposalQueue.Dequeue();
+                renderer.DisposeInExistingBatch(batchBuilder, disposeComponentId);
             }
-
-            var eventHandler = _diffComputer.TemporaryGetEventHandlerMethod(referenceTreeIndex);
-            eventHandler.Invoke(eventArgs);
-
-            // After any event, we synchronously re-render. Most of the time this means that
-            // developers don't need to call Render() on their components explicitly.
-            _renderer.RenderNewBatch(_componentId);
         }
 
         /// <summary>
         /// Notifies the component that it is being disposed.
         /// </summary>
-        public void NotifyDisposed()
+        public void NotifyDisposed(RenderBatchBuilder batchBuilder)
         {
             // TODO: Handle components throwing during dispose. Shouldn't break the whole render batch.
             if (_component is IDisposable disposable)
             {
                 disposable.Dispose();
             }
+
+            RenderTreeDiffBuilder.DisposeFrames(batchBuilder, _renderTreeBuilderCurrent.GetFrames());
         }
     }
 }
