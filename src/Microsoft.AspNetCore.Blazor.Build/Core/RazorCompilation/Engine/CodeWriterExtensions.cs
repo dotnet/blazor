@@ -537,15 +537,15 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation.Engine
 
         public struct CSharpCodeWritingScope : IDisposable
         {
-            private CodeWriter _writer;
-            private bool _autoSpace;
-            private int _tabSize;
+            private readonly CodeWriter _writer;
+            private readonly bool _autoSpace;
+            private readonly int _tabSize;
             private int _startIndent;
 
             public CSharpCodeWritingScope(CodeWriter writer, int tabSize = 4, bool autoSpace = true)
             {
                 _writer = writer;
-                _autoSpace = true;
+                _autoSpace = autoSpace;
                 _tabSize = tabSize;
                 _startIndent = -1; // Set in WriteStartScope
 
