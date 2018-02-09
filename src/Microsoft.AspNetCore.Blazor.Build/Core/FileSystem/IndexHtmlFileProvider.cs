@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
 using System.Linq;
+using AngleSharp.Parser.Html;
+using AngleSharp.Dom;
 
 namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
 {
@@ -27,6 +29,24 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
             }
         }
 
+        /// <summary>
+        /// Injects either the Blazor boot code or just the configuration data supporting
+        /// boot.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If the template already contains a &lt;script&gt; tag that has a type of
+        /// <c>blazor-boot</c>, then it is expected that the tag is responsible for
+        /// loading the Blazor boot script.  In this case a script element containing
+        /// only boot configuration is inserted at the very top of the body.
+        /// </para><para>
+        /// Otherwise, we inject a new script tag that includes both the configuration
+        /// data and the Blazor boot code and we inject just before the first user-owned
+        /// &lt;script&gt; tag we find in body, or at the very end of the body if no other
+        /// script tag is found.  This prevents blocking the page rendering while fetching
+        /// the script.
+        /// </para>
+        /// </remarks>
         private static string GetIndexHtmlContents(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles)
         {
             // TODO: Instead of inserting the script as the first element in <body>,
@@ -42,11 +62,50 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
             //     <body> (e.g., <script type='blazor-config'>{ ...json... }</script>)
             //     and then let the developer manually place the tag that loads blazor.js
             //     wherever they want (adding their own async/defer if they want).
-            return htmlTemplate
-                .Replace("<body>", "<body>\n" + CreateBootMarkup(assemblyName, binFiles));
+
+            // ORIGINAL CODE:
+            //return htmlTemplate
+            //    .Replace("<body>", "<body>\n" + CreateBootMarkup(assemblyName, binFiles));
+
+            var parser = new HtmlParser();
+            var dom = parser.Parse(htmlTemplate);
+
+            // First see if the user has declared a 'boot' script,
+            // then it's their responsibility to load blazor.js
+            var bootScript = dom.Body?.QuerySelectorAll("script")
+                   .Where(x => x.Attributes["type"]?.Value == "blazor-boot").FirstOrDefault();
+            if (bootScript != null)
+            {
+                // We just insert only blazor config data at the top
+                var newScript = new DocumentFragment((Element)dom.Body,
+                    CreateBootMarkup(assemblyName, binFiles, loadJs: false));
+                ((Element)dom.Body).InsertChild(0, newScript);
+            }
+            else
+            {
+                // We insert the loader script
+                var newScript = new DocumentFragment((Element)dom.Body,
+                    CreateBootMarkup(assemblyName, binFiles));
+
+                // If no boot script, get the first script if there is one
+                var firstScript = dom.Body?.QuerySelector("script");
+                if (firstScript != null)
+                {
+                    // So we can inject our own boot script just before it
+                    dom.Body.InsertBefore(newScript, firstScript);
+                }
+                else if (dom.Body != null)
+                {
+                    // No user-provided script, guess we can load at the very end
+                    dom.Body.AppendChild(newScript);
+                }
+            }
+
+            return dom.DocumentElement.OuterHtml;
         }
 
-        private static string CreateBootMarkup(string assemblyName, IEnumerable<IFileInfo> binFiles)
+        private static string CreateBootMarkup(string assemblyName, IEnumerable<IFileInfo> binFiles,
+            bool loadJs = true)
         {
             var assemblyNameWithExtension = $"{assemblyName}.dll";
             var referenceNames = binFiles
@@ -54,7 +113,16 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
                 .Select(file => file.Name);
             var referencesAttribute = string.Join(",", referenceNames.ToArray());
 
-            return $"<script src=\"/_framework/blazor.js\"" +
+            var scriptSrc = string.Empty;
+            var scriptType = "blazor-config";
+            if (loadJs)
+            {
+                scriptSrc = $"src=\"/_framework/blazor.js\"";
+                scriptType = "blazor-boot";
+            }
+
+            return $"<script {scriptSrc}" +
+                   $" type=\"{scriptType}\"" +
                    $" main=\"{assemblyNameWithExtension}\"" +
                    $" references=\"{referencesAttribute}\"></script>";
         }

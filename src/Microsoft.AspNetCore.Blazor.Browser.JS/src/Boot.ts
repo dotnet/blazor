@@ -6,13 +6,15 @@ import './GlobalExports';
 async function boot() {
   // Read startup config from the <script> element that's importing this file
   const allScriptElems = document.getElementsByTagName('script');
-  const thisScriptElem = allScriptElems[allScriptElems.length - 1];
-  const entryPoint = thisScriptElem.getAttribute('main');
+  const thisScriptElem = document.currentScript || allScriptElems[allScriptElems.length - 1];
+  // Try to find the script element that has our bootstrap configuration, or default to this
+  const configScriptElem = document.querySelector('script[type=="blazor-config"]') || thisScriptElem;
+  const entryPoint = configScriptElem.getAttribute('main');
   if (!entryPoint) {
-    throw new Error('Missing "main" attribute on Blazor script tag.');
+    throw new Error('Missing "main" attribute on Blazor Config script tag.');
   }
   const entryPointAssemblyName = getAssemblyNameFromUrl(entryPoint);
-  const referenceAssembliesCommaSeparated = thisScriptElem.getAttribute('references') || '';
+  const referenceAssembliesCommaSeparated = configScriptElem.getAttribute('references') || '';
   const referenceAssemblies = referenceAssembliesCommaSeparated
     .split(',')
     .map(s => s.trim())
