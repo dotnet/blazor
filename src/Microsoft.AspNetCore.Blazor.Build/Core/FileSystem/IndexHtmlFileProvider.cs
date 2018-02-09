@@ -35,10 +35,11 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
         /// </summary>
         /// <remarks>
         /// <para>
-        /// If the template already contains a &lt;script&gt; tag that has a type of
-        /// <c>blazor-boot</c>, then it is expected that the tag is responsible for
-        /// loading the Blazor boot script.  In this case a script element containing
-        /// only boot configuration is inserted at the very top of the body.
+        /// If the template already contains a &lt;script&gt; tag that has a
+        /// <c>blazor</c> attribute with a value of <c>boot</c>, then
+        /// it is expected that the tag is responsible for loading the Blazor
+        /// boot script.  In this case a script element containing only boot
+        /// configuration is inserted at the very top of the body.
         /// </para><para>
         /// Otherwise, we inject a new script tag that includes both the configuration
         /// data and the Blazor boot code and we inject just before the first user-owned
@@ -73,7 +74,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
             // First see if the user has declared a 'boot' script,
             // then it's their responsibility to load blazor.js
             var bootScript = dom.Body?.QuerySelectorAll("script")
-                   .Where(x => x.Attributes["type"]?.Value == "blazor-boot").FirstOrDefault();
+                   .Where(x => x.Attributes["blazor"]?.Value == "boot").FirstOrDefault();
             if (bootScript != null)
             {
                 // We just insert only blazor config data at the top
@@ -113,16 +114,16 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
                 .Select(file => file.Name);
             var referencesAttribute = string.Join(",", referenceNames.ToArray());
 
-            var scriptSrc = string.Empty;
-            var scriptType = "blazor-config";
+            var scriptSrcOrType = "type=\"blazor-config\"";
+            var scriptType = "config";
             if (loadJs)
             {
-                scriptSrc = $"src=\"/_framework/blazor.js\"";
-                scriptType = "blazor-boot";
+                scriptSrcOrType = $"src=\"/_framework/blazor.js\"";
+                scriptType = "boot";
             }
 
-            return $"<script {scriptSrc}" +
-                   $" type=\"{scriptType}\"" +
+            return $"<script {scriptSrcOrType}" +
+                   $" blazor=\"{scriptType}\"" +
                    $" main=\"{assemblyNameWithExtension}\"" +
                    $" references=\"{referencesAttribute}\"></script>";
         }

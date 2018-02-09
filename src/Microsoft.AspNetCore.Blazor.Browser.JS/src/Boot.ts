@@ -8,7 +8,7 @@ async function boot() {
   const allScriptElems = document.getElementsByTagName('script');
   const thisScriptElem = document.currentScript || allScriptElems[allScriptElems.length - 1];
   // Try to find the script element that has our bootstrap configuration, or default to this
-  const configScriptElem = document.querySelector('script[type=="blazor-config"]') || thisScriptElem;
+  const configScriptElem = document.querySelector('script[type="blazor-config"]') || thisScriptElem;
   const entryPoint = configScriptElem.getAttribute('main');
   if (!entryPoint) {
     throw new Error('Missing "main" attribute on Blazor Config script tag.');
