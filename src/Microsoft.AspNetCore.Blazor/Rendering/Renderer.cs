@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.AspNetCore.Blazor.Activators;
 
 namespace Microsoft.AspNetCore.Blazor.Rendering
 {
@@ -148,7 +149,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
                 throw new ArgumentException($"The frame already has a non-null component instance", nameof(frame));
             }
 
-            var newComponent = (IComponent)Activator.CreateInstance(frame.ComponentType);
+            var newComponent = (IComponent)FastActivator.CreateInstance(frame.ComponentType);
             var newComponentId = AssignComponentId(newComponent);
             frame = frame.WithComponentInstance(newComponentId, newComponent);
         }
