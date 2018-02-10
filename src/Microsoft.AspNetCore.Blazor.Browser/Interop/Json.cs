@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.AspNetCore.Blazor.Activators;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
@@ -32,7 +33,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 // Return default value for type
                 if (typeOfT.GetTypeInfo().IsValueType)
                 {
-                    return Activator.CreateInstance(typeOfT);
+                    return FastActivator.CreateInstance(typeOfT);
                 }
                 else
                 {
@@ -112,7 +113,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             }
             else if (deserializedValue is Dictionary<string, object>)
             {
-                var result = Activator.CreateInstance(typeOfT);
+                var result = FastActivator.CreateInstance(typeOfT);
                 var deserializedPropertyDict = (Dictionary<string, object>)deserializedValue;
                 foreach (var propInfo in typeOfT.GetRuntimeProperties())
                 {

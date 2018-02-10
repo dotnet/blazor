@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Blazor.Browser.Interop;
 using Microsoft.AspNetCore.Blazor.Browser.Rendering;
 using Microsoft.AspNetCore.Blazor.Components;
 using System;
+using Microsoft.AspNetCore.Blazor.Activators;
 
 namespace BasicTestApp
 {
@@ -19,7 +20,7 @@ namespace BasicTestApp
         public static void MountTestComponent(string componentTypeName)
         {
             var componentType = Type.GetType(componentTypeName);
-            var componentInstance = (IComponent)Activator.CreateInstance(componentType);
+            var componentInstance = (IComponent)FastActivator.CreateInstance(componentType);
             new BrowserRenderer().AddComponent("app", componentInstance);
         }
     }
