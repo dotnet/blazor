@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.AspNetCore.Blazor.Activators;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Build.Test
@@ -379,7 +380,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             var assemblyResult = CompileToAssembly("c:\\ignored", $"{testComponentTypeName}.cshtml", cshtmlSource, testComponentNamespace);
             Assert.Empty(assemblyResult.Diagnostics);
             var testComponentType = assemblyResult.Assembly.GetType($"{testComponentNamespace}.{testComponentTypeName}");
-            return (IComponent)Activator.CreateInstance(testComponentType);
+            return (IComponent)FastActivator.CreateInstance(testComponentType);
         }
 
         private static CompileToAssemblyResult CompileToAssembly(string cshtmlRootPath, string cshtmlRelativePath, string cshtmlContent, string outputNamespace)

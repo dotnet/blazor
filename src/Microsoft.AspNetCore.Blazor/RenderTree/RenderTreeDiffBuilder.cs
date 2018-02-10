@@ -3,6 +3,7 @@
 
 using System;
 using System.Reflection;
+using Microsoft.AspNetCore.Blazor.Activators;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Rendering;
 
@@ -270,7 +271,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         {
             var propertyInfo = GetChildComponentPropertyInfo(component.GetType(), componentPropertyName);
             var defaultValue = propertyInfo.PropertyType.IsValueType
-                ? Activator.CreateInstance(propertyInfo.PropertyType)
+                ? FastActivator.CreateInstance(propertyInfo.PropertyType)
                 : null;
             SetChildComponentProperty(component, componentPropertyName, defaultValue);
         }
