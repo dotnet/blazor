@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
 using System.Linq;
+using Mono.Cecil;
 
 namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
 {
@@ -58,8 +59,8 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
             if (assemblyPath != null)
             {
                 var asmPath = Path.Combine(assemblyPath);
-                var asm = System.Reflection.Assembly.LoadFrom(asmPath);
-                var epMethod = asm.EntryPoint;
+                var asmDef = AssemblyDefinition.ReadAssembly(asmPath);
+                var epMethod = asmDef.EntryPoint;
                 if (epMethod != null)
                 {
                     var ns = epMethod.DeclaringType.Namespace;
