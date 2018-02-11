@@ -49,7 +49,20 @@ export const monoPlatform: Platform = {
     // TODO: There should be a proper way of running whatever counts as the entrypoint without
     // having to specify what method it is, but I haven't found it. The code here assumes
     // that the entry point is "<assemblyname>.Program.Main" (i.e., namespace == assembly name).
-    const entryPointMethod = monoPlatform.findMethod(assemblyName, assemblyName, 'Program', 'Main');
+    var namespace = assemblyName;
+    var className = "Program";
+    var methodName = "Main";
+    var indexOfAt = assemblyName.indexOf('@');
+    if (indexOfAt > 0) {
+        var entryPointParts = assemblyName.substr(indexOfAt + 1).split(",");
+        assemblyName = assemblyName.substring(0, indexOfAt);
+        if (entryPointParts.length == 3) {
+            namespace = entryPointParts[0];
+            className = entryPointParts[1];
+            methodName = entryPointParts[2];
+        }
+    }
+    const entryPointMethod = monoPlatform.findMethod(assemblyName, namespace, className, methodName);
     monoPlatform.callMethod(entryPointMethod, null, args);
   },
 

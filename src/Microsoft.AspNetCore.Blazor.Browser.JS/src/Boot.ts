@@ -7,11 +7,17 @@ async function boot() {
   // Read startup config from the <script> element that's importing this file
   const allScriptElems = document.getElementsByTagName('script');
   const thisScriptElem = allScriptElems[allScriptElems.length - 1];
-  const entryPoint = thisScriptElem.getAttribute('main');
-  if (!entryPoint) {
+  var entryPointMethod = "";
+  var entryPointDll = thisScriptElem.getAttribute('main');
+  if (!entryPointDll) {
     throw new Error('Missing "main" attribute on Blazor script tag.');
   }
-  const entryPointAssemblyName = getAssemblyNameFromUrl(entryPoint);
+  var indexOfAt = entryPointDll.indexOf("@");
+  if (indexOfAt > 0) {
+      entryPointMethod = entryPointDll.substring(indexOfAt);
+      entryPointDll = entryPointDll.substring(0, indexOfAt);
+  }
+  const entryPointAssemblyName = getAssemblyNameFromUrl(entryPointDll);
   const referenceAssembliesCommaSeparated = thisScriptElem.getAttribute('references') || '';
   const referenceAssemblies = referenceAssembliesCommaSeparated
     .split(',')
@@ -19,7 +25,7 @@ async function boot() {
     .filter(s => !!s);
 
   // Determine the URLs of the assemblies we want to load
-  const loadAssemblyUrls = [entryPoint]
+  const loadAssemblyUrls = [entryPointDll]
     .concat(referenceAssemblies)
     .map(filename => `/_framework/_bin/${filename}`);
 
@@ -30,7 +36,7 @@ async function boot() {
   }
 
   // Start up the application
-  platform.callEntryPoint(entryPointAssemblyName, []);
+  platform.callEntryPoint(entryPointAssemblyName + entryPointMethod, []);
 }
 
 boot();

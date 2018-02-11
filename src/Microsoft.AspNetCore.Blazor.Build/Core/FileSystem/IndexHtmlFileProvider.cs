@@ -12,22 +12,22 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
 {
     internal class IndexHtmlFileProvider : InMemoryFileProvider
     {
-        public IndexHtmlFileProvider(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles)
-            : base(ComputeContents(htmlTemplate, assemblyName, binFiles))
+        public IndexHtmlFileProvider(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles, string assemblyPath = null)
+            : base(ComputeContents(htmlTemplate, assemblyName, binFiles, assemblyPath))
         {
         }
 
-        private static IEnumerable<(string, byte[])> ComputeContents(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles)
+        private static IEnumerable<(string, byte[])> ComputeContents(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles, string assemblyPath = null)
         {
             if (htmlTemplate != null)
             {
-                var html = GetIndexHtmlContents(htmlTemplate, assemblyName, binFiles);
+                var html = GetIndexHtmlContents(htmlTemplate, assemblyName, binFiles, assemblyPath);
                 var htmlBytes = Encoding.UTF8.GetBytes(html);
                 yield return ("/index.html", htmlBytes);
             }
         }
 
-        private static string GetIndexHtmlContents(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles)
+        private static string GetIndexHtmlContents(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles, string assemblyPath = null)
         {
             // TODO: Instead of inserting the script as the first element in <body>,
             // consider either:
@@ -43,10 +43,10 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
             //     and then let the developer manually place the tag that loads blazor.js
             //     wherever they want (adding their own async/defer if they want).
             return htmlTemplate
-                .Replace("<body>", "<body>\n" + CreateBootMarkup(assemblyName, binFiles));
+                .Replace("<body>", "<body>\n" + CreateBootMarkup(assemblyName, binFiles, assemblyPath));
         }
 
-        private static string CreateBootMarkup(string assemblyName, IEnumerable<IFileInfo> binFiles)
+        private static string CreateBootMarkup(string assemblyName, IEnumerable<IFileInfo> binFiles, string assemblyPath = null)
         {
             var assemblyNameWithExtension = $"{assemblyName}.dll";
             var referenceNames = binFiles
@@ -54,8 +54,24 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
                 .Select(file => file.Name);
             var referencesAttribute = string.Join(",", referenceNames.ToArray());
 
+            var entryPoint = "";
+            if (assemblyPath != null)
+            {
+                var asmPath = Path.Combine(assemblyPath);
+                var asm = System.Reflection.Assembly.LoadFrom(asmPath);
+                var epMethod = asm.EntryPoint;
+                if (epMethod != null)
+                {
+                    var ns = epMethod.DeclaringType.Namespace;
+                    var cn = epMethod.DeclaringType.Name;
+                    var mn = epMethod.Name;
+                    entryPoint = $"@{ns},{cn},{mn}";
+                }
+
+            }
+
             return $"<script src=\"/_framework/blazor.js\"" +
-                   $" main=\"{assemblyNameWithExtension}\"" +
+                   $" main=\"{assemblyNameWithExtension}{entryPoint}\"" +
                    $" references=\"{referencesAttribute}\"></script>";
         }
     }

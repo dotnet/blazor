@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
                     var template = File.ReadAllText(path);
                     var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
                     var binFiles = frameworkFileProvider.GetDirectoryContents("/_bin");
-                    result = new IndexHtmlFileProvider(template, assemblyName, binFiles);
+                    result = new IndexHtmlFileProvider(template, assemblyName, binFiles, assemblyPath);
                     return true;
                 }
             }
