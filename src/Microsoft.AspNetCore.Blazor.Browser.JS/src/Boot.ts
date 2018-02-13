@@ -6,11 +6,11 @@ import './GlobalExports';
 async function boot() {
   // Read startup config from the <script> element that's importing this file
   const allScriptElems = document.getElementsByTagName('script');
-  const thisScriptElem = allScriptElems[allScriptElems.length - 1];
+  const thisScriptElem = document.currentScript || allScriptElems[allScriptElems.length - 1];
   var entryPointMethod = "";
   var entryPointDll = thisScriptElem.getAttribute('main');
   if (!entryPointDll) {
-    throw new Error('Missing "main" attribute on Blazor script tag.');
+    throw new Error('Missing "main" attribute on Blazor Config script tag.');
   }
   var indexOfAt = entryPointDll.indexOf("@");
   if (indexOfAt > 0) {
