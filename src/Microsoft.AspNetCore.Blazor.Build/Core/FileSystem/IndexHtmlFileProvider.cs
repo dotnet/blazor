@@ -17,16 +17,18 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
 {
     internal class IndexHtmlFileProvider : InMemoryFileProvider
     {
-        public IndexHtmlFileProvider(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles, string assemblyPath = null)
-            : base(ComputeContents(htmlTemplate, assemblyName, binFiles, assemblyPath))
+        public IndexHtmlFileProvider(string htmlTemplate, string assemblyName, string assemblyEntryPoint,
+            IEnumerable<IFileInfo> binFiles) : base(ComputeContents(htmlTemplate, assemblyName,
+            assemblyEntryPoint, binFiles))
         {
         }
 
-        private static IEnumerable<(string, byte[])> ComputeContents(string htmlTemplate, string assemblyName, IEnumerable<IFileInfo> binFiles, string assemblyPath = null)
+        private static IEnumerable<(string, byte[])> ComputeContents(string htmlTemplate,
+            string assemblyName, string assemblyEntryPoint, IEnumerable<IFileInfo> binFiles)
         {
             if (htmlTemplate != null)
             {
-                var html = GetIndexHtmlContents(htmlTemplate, assemblyName, binFiles, assemblyPath);
+                var html = GetIndexHtmlContents(htmlTemplate, assemblyName, assemblyEntryPoint, binFiles);
                 var htmlBytes = Encoding.UTF8.GetBytes(html);
                 yield return ("/index.html", htmlBytes);
             }
@@ -51,7 +53,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
         /// </para>
         /// </remarks>
         private static string GetIndexHtmlContents(string htmlTemplate, string assemblyName,
-            IEnumerable<IFileInfo> binFiles, string assemblyPath = null)
+            string assemblyEntryPoint, IEnumerable<IFileInfo> binFiles)
         {
             var resultBuilder = new StringBuilder();
 
@@ -89,9 +91,9 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
                                 AppendScriptTagWithBootConfig(
                                     resultBuilder,
                                     assemblyName,
+                                    assemblyEntryPoint,
                                     binFiles,
-                                    tag.Attributes,
-                                    assemblyPath);
+                                    tag.Attributes);
 
                                 // Set a flag so we know not to emit anything else until the special
                                 // tag is closed
@@ -127,6 +129,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
         private static void AppendScriptTagWithBootConfig(
             StringBuilder resultBuilder,
             string assemblyName,
+            string assemblyEntryPoint,
             IEnumerable<IFileInfo> binFiles,
             List<KeyValuePair<string, string>> attributes,
             string assemblyPath = null)
@@ -137,27 +140,13 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
                 .Select(file => file.Name);
             var referencesAttribute = string.Join(",", referenceNames.ToArray());
 
-            var entryPoint = "";
-            if (assemblyPath != null)
-            {
-                var asmPath = Path.Combine(assemblyPath);
-                var asmDef = AssemblyDefinition.ReadAssembly(asmPath);
-                var epMethod = asmDef.EntryPoint;
-                if (epMethod != null)
-                {
-                    var ns = epMethod.DeclaringType.Namespace;
-                    var cn = epMethod.DeclaringType.Name;
-                    var mn = epMethod.Name;
-                    entryPoint = $"@{ns},{cn},{mn}";
-                }
-
-            }
-
             var attributesDict = attributes.ToDictionary(x => x.Key, x => x.Value);
             attributesDict.Remove("type");
             attributesDict["src"] = "/_framework/blazor.js";
-            attributesDict["main"] = assemblyNameWithExtension + entryPoint;
+            attributesDict["main"] = assemblyNameWithExtension;
             attributesDict["references"] = referencesAttribute;
+            if (!string.IsNullOrEmpty(assemblyEntryPoint))
+                attributesDict["entry-point"] = assemblyEntryPoint;
 
             resultBuilder.Append("<script");
             foreach (var attributePair in attributesDict)

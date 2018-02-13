@@ -7,16 +7,12 @@ async function boot() {
   // Read startup config from the <script> element that's importing this file
   const allScriptElems = document.getElementsByTagName('script');
   const thisScriptElem = document.currentScript || allScriptElems[allScriptElems.length - 1];
-  var entryPointMethod = "";
-  var entryPointDll = thisScriptElem.getAttribute('main');
+  const entryPointDll = thisScriptElem.getAttribute('main');
   if (!entryPointDll) {
     throw new Error('Missing "main" attribute on Blazor Config script tag.');
   }
-  var indexOfAt = entryPointDll.indexOf("@");
-  if (indexOfAt > 0) {
-      entryPointMethod = entryPointDll.substring(indexOfAt);
-      entryPointDll = entryPointDll.substring(0, indexOfAt);
-  }
+  // TODO:  should method be a required, non-empty field or just an optional *hint*?
+  const entryPointMethod = thisScriptElem.getAttribute('entry-point');
   const entryPointAssemblyName = getAssemblyNameFromUrl(entryPointDll);
   const referenceAssembliesCommaSeparated = thisScriptElem.getAttribute('references') || '';
   const referenceAssemblies = referenceAssembliesCommaSeparated
@@ -36,7 +32,7 @@ async function boot() {
   }
 
   // Start up the application
-  platform.callEntryPoint(entryPointAssemblyName + entryPointMethod, []);
+  platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
 }
 
 boot();
