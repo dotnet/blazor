@@ -144,9 +144,9 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
             attributesDict.Remove("type");
             attributesDict["src"] = "/_framework/blazor.js";
             attributesDict["main"] = assemblyNameWithExtension;
-            attributesDict["references"] = referencesAttribute;
             if (!string.IsNullOrEmpty(assemblyEntryPoint))
                 attributesDict["entry-point"] = assemblyEntryPoint;
+            attributesDict["references"] = referencesAttribute;
 
             resultBuilder.Append("<script");
             foreach (var attributePair in attributesDict)
