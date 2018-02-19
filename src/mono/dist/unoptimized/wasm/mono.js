@@ -1953,7 +1953,7 @@ function _emscripten_asm_const_i(code) {
 
 STATIC_BASE = 1024;
 
-STATICTOP = STATIC_BASE + 645808;
+STATICTOP = STATIC_BASE + 782080;
   /* global initializers */  __ATINIT__.push();
   
 
@@ -1962,7 +1962,7 @@ memoryInitializer = Module["wasmJSMethod"].indexOf("asmjs") >= 0 || Module["wasm
 
 
 
-var STATIC_BUMP = 645808;
+var STATIC_BUMP = 782080;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
@@ -5745,6 +5745,18 @@ function copyTempDouble(ptr) {
    
   Module["_pthread_mutex_trylock"] = _pthread_mutex_trylock;
 
+  function ___syscall6(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // close
+      var stream = SYSCALLS.getStreamFromFD();
+      FS.close(stream);
+      return 0;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
   function ___syscall54(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // ioctl
@@ -6012,19 +6024,8 @@ function copyTempDouble(ptr) {
 
   function _pthread_cond_wait() { return 0; }
 
-  function ___syscall144(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // msync
-      var addr = SYSCALLS.get(), len = SYSCALLS.get(), flags = SYSCALLS.get();
-      var info = SYSCALLS.mappings[addr];
-      if (!info) return 0;
-      SYSCALLS.doMsync(addr, FS.getStream(info.fd), len, info.flags);
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
+   
+  Module["_llvm_bswap_i16"] = _llvm_bswap_i16;
 
   function ___syscall122(which, varargs) {SYSCALLS.varargs = varargs;
   try {
@@ -6484,8 +6485,9 @@ function copyTempDouble(ptr) {
   Module['printErr']('missing function: pthread_setcancelstate'); abort(-1);
   }
 
-   
-  Module["_llvm_bswap_i16"] = _llvm_bswap_i16;
+  function _mini_class_is_system_array() {
+  Module['printErr']('missing function: mini_class_is_system_array'); abort(-1);
+  }
 
   function _pthread_mutexattr_settype() {}
 
@@ -6603,9 +6605,18 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function _schedule_background_exec() {
-  Module['printErr']('missing function: schedule_background_exec'); abort(-1);
-  }
+  
+  var MONO={pump_count:0,pump_message:function () {
+  			while (MONO.pump_count > 0) {
+  				--MONO.pump_count;
+  				Module.ccall ("mono_background_exec");
+  			}
+  		}};function _schedule_background_exec() {
+  		++MONO.pump_count;
+  		if (ENVIRONMENT_IS_WEB) {
+  			window.setTimeout (MONO.pump_message, 0);
+  		}
+  	}
 
   function ___syscall5(which, varargs) {SYSCALLS.varargs = varargs;
   try {
@@ -6624,18 +6635,6 @@ function copyTempDouble(ptr) {
    // write
       var stream = SYSCALLS.getStreamFromFD(), buf = SYSCALLS.get(), count = SYSCALLS.get();
       return FS.write(stream, HEAP8,buf, count);
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
-
-  function ___syscall6(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // close
-      var stream = SYSCALLS.getStreamFromFD();
-      FS.close(stream);
-      return 0;
     } catch (e) {
     if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
     return -e.errno;
@@ -7502,6 +7501,20 @@ function copyTempDouble(ptr) {
       return 0;
     }
 
+  function ___syscall144(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // msync
+      var addr = SYSCALLS.get(), len = SYSCALLS.get(), flags = SYSCALLS.get();
+      var info = SYSCALLS.mappings[addr];
+      if (!info) return 0;
+      SYSCALLS.doMsync(addr, FS.getStream(info.fd), len, info.flags);
+      return 0;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
   function _time(ptr) {
       var ret = (Date.now()/1000)|0;
       if (ptr) {
@@ -8034,6 +8047,7 @@ if (ENVIRONMENT_IS_NODE) {
     _emscripten_get_now = Date.now;
   };
 ___buildEnvironment(ENV);;
+Module["pump_message"] = MONO.pump_message;
 __ATINIT__.push(function() { SOCKFS.root = FS.mount(SOCKFS, {}, null); });;
 DYNAMICTOP_PTR = allocate(1, "i32", ALLOC_STATIC);
 
@@ -8586,7 +8600,7 @@ function invoke_viiii(index,a1,a2,a3,a4) {
 
 Module.asmGlobalArg = { "Math": Math, "Int8Array": Int8Array, "Int16Array": Int16Array, "Int32Array": Int32Array, "Uint8Array": Uint8Array, "Uint16Array": Uint16Array, "Uint32Array": Uint32Array, "Float32Array": Float32Array, "Float64Array": Float64Array, "NaN": NaN, "Infinity": Infinity, "byteLength": byteLength };
 
-Module.asmLibraryArg = { "abort": abort, "assert": assert, "enlargeMemory": enlargeMemory, "getTotalMemory": getTotalMemory, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "invoke_iiiiiiii": invoke_iiiiiiii, "invoke_jijii": invoke_jijii, "invoke_vif": invoke_vif, "invoke_jj": invoke_jj, "invoke_vid": invoke_vid, "invoke_fiff": invoke_fiff, "invoke_vij": invoke_vij, "invoke_vi": invoke_vi, "invoke_vj": invoke_vj, "invoke_vii": invoke_vii, "invoke_iiiiiii": invoke_iiiiiii, "invoke_vijji": invoke_vijji, "invoke_ii": invoke_ii, "invoke_jjj": invoke_jjj, "invoke_jji": invoke_jji, "invoke_viiiiiiiii": invoke_viiiiiiiii, "invoke_viiiii": invoke_viiiii, "invoke_id": invoke_id, "invoke_iiiiii": invoke_iiiiii, "invoke_jijj": invoke_jijj, "invoke_jij": invoke_jij, "invoke_jii": invoke_jii, "invoke_iiii": invoke_iiii, "invoke_fif": invoke_fif, "invoke_viff": invoke_viff, "invoke_iijjji": invoke_iijjji, "invoke_ddd": invoke_ddd, "invoke_viiiiiiii": invoke_viiiiiiii, "invoke_vifffffi": invoke_vifffffi, "invoke_di": invoke_di, "invoke_viffff": invoke_viffff, "invoke_dd": invoke_dd, "invoke_v": invoke_v, "invoke_ji": invoke_ji, "invoke_ff": invoke_ff, "invoke_jd": invoke_jd, "invoke_fi": invoke_fi, "invoke_jf": invoke_jf, "invoke_viiiiiiiiii": invoke_viiiiiiiiii, "invoke_iii": invoke_iii, "invoke_iij": invoke_iij, "invoke_didd": invoke_didd, "invoke_viiiiiiiiiii": invoke_viiiiiiiiiii, "invoke_viiiiii": invoke_viiiiii, "invoke_d": invoke_d, "invoke_viiiiiii": invoke_viiiiiii, "invoke_did": invoke_did, "invoke_jiii": invoke_jiii, "invoke_jiij": invoke_jiij, "invoke_j": invoke_j, "invoke_iiiii": invoke_iiiii, "invoke_i": invoke_i, "invoke_vijii": invoke_vijii, "invoke_viii": invoke_viii, "invoke_viij": invoke_viij, "invoke_iijiiii": invoke_iijiiii, "invoke_iiiiiiiii": invoke_iiiiiiiii, "invoke_iiji": invoke_iiji, "invoke_viiii": invoke_viiii, "___syscall221": ___syscall221, "___syscall220": ___syscall220, "__inet_ntop6_raw": __inet_ntop6_raw, "___syscall63": ___syscall63, "_wait": _wait, "__write_sockaddr": __write_sockaddr, "_emscripten_get_now_res": _emscripten_get_now_res, "_clock_gettime": _clock_gettime, "_clock_getres": _clock_getres, "_pthread_key_delete": _pthread_key_delete, "_emscripten_memcpy_big": _emscripten_memcpy_big, "__addDays": __addDays, "_sysconf": _sysconf, "_utime": _utime, "_execl": _execl, "_pthread_setcancelstate": _pthread_setcancelstate, "_llvm_stacksave": _llvm_stacksave, "_pthread_mutexattr_settype": _pthread_mutexattr_settype, "__isLeapYear": __isLeapYear, "_gmtime_r": _gmtime_r, "_unsetenv": _unsetenv, "_getaddrinfo": _getaddrinfo, "_pthread_cond_destroy": _pthread_cond_destroy, "___syscall140": ___syscall140, "___syscall142": ___syscall142, "___syscall144": ___syscall144, "___syscall145": ___syscall145, "___syscall146": ___syscall146, "_pthread_cleanup_pop": _pthread_cleanup_pop, "___syscall85": ___syscall85, "_execve": _execve, "_emscripten_get_now_is_monotonic": _emscripten_get_now_is_monotonic, "___syscall122": ___syscall122, "__inet_ntop4_raw": __inet_ntop4_raw, "_pthread_cleanup_push": _pthread_cleanup_push, "_llvm_stackrestore": _llvm_stackrestore, "_sem_init": _sem_init, "_pthread_cond_init": _pthread_cond_init, "_emscripten_asm_const_i": _emscripten_asm_const_i, "_llvm_cttz_i32": _llvm_cttz_i32, "___setErrNo": ___setErrNo, "___syscall118": ___syscall118, "_nanosleep": _nanosleep, "___syscall91": ___syscall91, "_kill": _kill, "___syscall15": ___syscall15, "___syscall12": ___syscall12, "_emscripten_get_now": _emscripten_get_now, "___syscall10": ___syscall10, "___syscall3": ___syscall3, "___lock": ___lock, "___syscall6": ___syscall6, "___syscall5": ___syscall5, "___clock_gettime": ___clock_gettime, "_time": _time, "_gettimeofday": _gettimeofday, "_exit": _exit, "___syscall202": ___syscall202, "___syscall201": ___syscall201, "__inet_pton4_raw": __inet_pton4_raw, "___syscall102": ___syscall102, "_llvm_pow_f64": _llvm_pow_f64, "___syscall20": ___syscall20, "__Exit": __Exit, "_sem_trywait": _sem_trywait, "___buildEnvironment": ___buildEnvironment, "_localtime_r": _localtime_r, "_tzset": _tzset, "___syscall192": ___syscall192, "___syscall197": ___syscall197, "___syscall196": ___syscall196, "___syscall195": ___syscall195, "___syscall194": ___syscall194, "_sigemptyset": _sigemptyset, "_pthread_getspecific": _pthread_getspecific, "_sem_wait": _sem_wait, "_pthread_cond_signal": _pthread_cond_signal, "_pthread_mutex_destroy": _pthread_mutex_destroy, "_setprotoent": _setprotoent, "_getenv": _getenv, "___map_file": ___map_file, "___syscall33": ___syscall33, "_pthread_key_create": _pthread_key_create, "_pthread_setspecific": _pthread_setspecific, "___syscall39": ___syscall39, "___syscall38": ___syscall38, "_emscripten_asm_const_iiiiii": _emscripten_asm_const_iiiiii, "_getnameinfo": _getnameinfo, "_pthread_cond_timedwait": _pthread_cond_timedwait, "_abort": _abort, "___syscall183": ___syscall183, "_waitpid": _waitpid, "_strftime": _strftime, "_pthread_cond_wait": _pthread_cond_wait, "___syscall40": ___syscall40, "___syscall41": ___syscall41, "___syscall42": ___syscall42, "_sem_destroy": _sem_destroy, "_fork": _fork, "__inet_pton6_raw": __inet_pton6_raw, "___syscall4": ___syscall4, "_usleep": _usleep, "__read_sockaddr": __read_sockaddr, "_pthread_mutexattr_destroy": _pthread_mutexattr_destroy, "_sem_post": _sem_post, "__arraySum": __arraySum, "___syscall51": ___syscall51, "___syscall54": ___syscall54, "___unlock": ___unlock, "_pthread_mutexattr_init": _pthread_mutexattr_init, "_schedule_background_exec": _schedule_background_exec, "_getpwuid": _getpwuid, "_emscripten_asm_const_iiii": _emscripten_asm_const_iiii, "_getprotobyname": _getprotobyname, "_atexit": _atexit, "_pthread_mutex_init": _pthread_mutex_init, "_setenv": _setenv, "_sigaction": _sigaction, "DYNAMICTOP_PTR": DYNAMICTOP_PTR, "tempDoublePtr": tempDoublePtr, "ABORT": ABORT, "STACKTOP": STACKTOP, "STACK_MAX": STACK_MAX, "cttz_i8": cttz_i8, "_environ": _environ };
+Module.asmLibraryArg = { "abort": abort, "assert": assert, "enlargeMemory": enlargeMemory, "getTotalMemory": getTotalMemory, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "invoke_iiiiiiii": invoke_iiiiiiii, "invoke_jijii": invoke_jijii, "invoke_vif": invoke_vif, "invoke_jj": invoke_jj, "invoke_vid": invoke_vid, "invoke_fiff": invoke_fiff, "invoke_vij": invoke_vij, "invoke_vi": invoke_vi, "invoke_vj": invoke_vj, "invoke_vii": invoke_vii, "invoke_iiiiiii": invoke_iiiiiii, "invoke_vijji": invoke_vijji, "invoke_ii": invoke_ii, "invoke_jjj": invoke_jjj, "invoke_jji": invoke_jji, "invoke_viiiiiiiii": invoke_viiiiiiiii, "invoke_viiiii": invoke_viiiii, "invoke_id": invoke_id, "invoke_iiiiii": invoke_iiiiii, "invoke_jijj": invoke_jijj, "invoke_jij": invoke_jij, "invoke_jii": invoke_jii, "invoke_iiii": invoke_iiii, "invoke_fif": invoke_fif, "invoke_viff": invoke_viff, "invoke_iijjji": invoke_iijjji, "invoke_ddd": invoke_ddd, "invoke_viiiiiiii": invoke_viiiiiiii, "invoke_vifffffi": invoke_vifffffi, "invoke_di": invoke_di, "invoke_viffff": invoke_viffff, "invoke_dd": invoke_dd, "invoke_v": invoke_v, "invoke_ji": invoke_ji, "invoke_ff": invoke_ff, "invoke_jd": invoke_jd, "invoke_fi": invoke_fi, "invoke_jf": invoke_jf, "invoke_viiiiiiiiii": invoke_viiiiiiiiii, "invoke_iii": invoke_iii, "invoke_iij": invoke_iij, "invoke_didd": invoke_didd, "invoke_viiiiiiiiiii": invoke_viiiiiiiiiii, "invoke_viiiiii": invoke_viiiiii, "invoke_d": invoke_d, "invoke_viiiiiii": invoke_viiiiiii, "invoke_did": invoke_did, "invoke_jiii": invoke_jiii, "invoke_jiij": invoke_jiij, "invoke_j": invoke_j, "invoke_iiiii": invoke_iiiii, "invoke_i": invoke_i, "invoke_vijii": invoke_vijii, "invoke_viii": invoke_viii, "invoke_viij": invoke_viij, "invoke_iijiiii": invoke_iijiiii, "invoke_iiiiiiiii": invoke_iiiiiiiii, "invoke_iiji": invoke_iiji, "invoke_viiii": invoke_viiii, "___syscall221": ___syscall221, "___syscall220": ___syscall220, "__inet_ntop6_raw": __inet_ntop6_raw, "___syscall63": ___syscall63, "_wait": _wait, "__write_sockaddr": __write_sockaddr, "_emscripten_get_now_res": _emscripten_get_now_res, "_clock_gettime": _clock_gettime, "_clock_getres": _clock_getres, "_pthread_key_delete": _pthread_key_delete, "_emscripten_memcpy_big": _emscripten_memcpy_big, "__addDays": __addDays, "_sysconf": _sysconf, "_utime": _utime, "_execl": _execl, "_pthread_setcancelstate": _pthread_setcancelstate, "_llvm_stacksave": _llvm_stacksave, "_pthread_mutexattr_settype": _pthread_mutexattr_settype, "__isLeapYear": __isLeapYear, "_gmtime_r": _gmtime_r, "_unsetenv": _unsetenv, "_getaddrinfo": _getaddrinfo, "_pthread_cond_destroy": _pthread_cond_destroy, "___syscall140": ___syscall140, "___syscall142": ___syscall142, "___syscall144": ___syscall144, "___syscall145": ___syscall145, "___syscall146": ___syscall146, "_pthread_cleanup_pop": _pthread_cleanup_pop, "___syscall85": ___syscall85, "_execve": _execve, "_emscripten_get_now_is_monotonic": _emscripten_get_now_is_monotonic, "___syscall122": ___syscall122, "__inet_ntop4_raw": __inet_ntop4_raw, "_pthread_cleanup_push": _pthread_cleanup_push, "_llvm_stackrestore": _llvm_stackrestore, "_sem_init": _sem_init, "_pthread_cond_init": _pthread_cond_init, "_emscripten_asm_const_i": _emscripten_asm_const_i, "_llvm_cttz_i32": _llvm_cttz_i32, "___setErrNo": ___setErrNo, "___syscall118": ___syscall118, "_nanosleep": _nanosleep, "___syscall91": ___syscall91, "_kill": _kill, "___syscall15": ___syscall15, "___syscall12": ___syscall12, "_emscripten_get_now": _emscripten_get_now, "___syscall10": ___syscall10, "___syscall3": ___syscall3, "___lock": ___lock, "___syscall6": ___syscall6, "___syscall5": ___syscall5, "___clock_gettime": ___clock_gettime, "_time": _time, "_gettimeofday": _gettimeofday, "_exit": _exit, "___syscall202": ___syscall202, "___syscall201": ___syscall201, "__inet_pton4_raw": __inet_pton4_raw, "___syscall102": ___syscall102, "_llvm_pow_f64": _llvm_pow_f64, "___syscall20": ___syscall20, "__Exit": __Exit, "_sem_trywait": _sem_trywait, "___buildEnvironment": ___buildEnvironment, "_localtime_r": _localtime_r, "_tzset": _tzset, "___syscall192": ___syscall192, "___syscall197": ___syscall197, "___syscall196": ___syscall196, "___syscall195": ___syscall195, "___syscall194": ___syscall194, "_sigemptyset": _sigemptyset, "_pthread_getspecific": _pthread_getspecific, "_sem_wait": _sem_wait, "_pthread_cond_signal": _pthread_cond_signal, "_pthread_mutex_destroy": _pthread_mutex_destroy, "_setprotoent": _setprotoent, "_getenv": _getenv, "___map_file": ___map_file, "___syscall33": ___syscall33, "_pthread_key_create": _pthread_key_create, "_pthread_setspecific": _pthread_setspecific, "___syscall39": ___syscall39, "___syscall38": ___syscall38, "_emscripten_asm_const_iiiiii": _emscripten_asm_const_iiiiii, "_getnameinfo": _getnameinfo, "_pthread_cond_timedwait": _pthread_cond_timedwait, "_abort": _abort, "___syscall183": ___syscall183, "_waitpid": _waitpid, "_strftime": _strftime, "_pthread_cond_wait": _pthread_cond_wait, "___syscall40": ___syscall40, "___syscall41": ___syscall41, "___syscall42": ___syscall42, "_sem_destroy": _sem_destroy, "_fork": _fork, "__inet_pton6_raw": __inet_pton6_raw, "___syscall4": ___syscall4, "_usleep": _usleep, "__read_sockaddr": __read_sockaddr, "_pthread_mutexattr_destroy": _pthread_mutexattr_destroy, "_mini_class_is_system_array": _mini_class_is_system_array, "_sem_post": _sem_post, "__arraySum": __arraySum, "___syscall51": ___syscall51, "___syscall54": ___syscall54, "___unlock": ___unlock, "_pthread_mutexattr_init": _pthread_mutexattr_init, "_schedule_background_exec": _schedule_background_exec, "_getpwuid": _getpwuid, "_emscripten_asm_const_iiii": _emscripten_asm_const_iiii, "_getprotobyname": _getprotobyname, "_atexit": _atexit, "_pthread_mutex_init": _pthread_mutex_init, "_setenv": _setenv, "_sigaction": _sigaction, "DYNAMICTOP_PTR": DYNAMICTOP_PTR, "tempDoublePtr": tempDoublePtr, "ABORT": ABORT, "STACKTOP": STACKTOP, "STACK_MAX": STACK_MAX, "cttz_i8": cttz_i8, "_environ": _environ };
 // EMSCRIPTEN_START_ASM
 var asm =Module["asm"]// EMSCRIPTEN_END_ASM
 (Module.asmGlobalArg, Module.asmLibraryArg, buffer);
