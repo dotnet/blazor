@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.FileSystem
         {
             var foundAssemblies = new Dictionary<string, ReferencedAssemblyInfo>();
             AddWithReferencesRecursive(rootAssemblyName, resolver, foundAssemblies);
-
+            foundAssemblies.Remove(rootAssemblyName);
             return foundAssemblies.Values.Select(assembly => (
                 $"/{assembly.Definition.Name.Name}.dll",
                 assembly.Data));
