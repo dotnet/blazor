@@ -12,12 +12,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
     {
         public static readonly RazorConfiguration DeclarationConfiguration = new RazorConfiguration(
             RazorLanguageVersion.Version_2_1,
-            "BlazorDeclaration-0.0.5",
+            "BlazorDeclaration-0.1",
             Array.Empty<RazorExtension>());
 
         public static readonly RazorConfiguration DefaultConfiguration = new RazorConfiguration(
             RazorLanguageVersion.Version_2_1,
-            "Blazor-0.0.5",
+            "Blazor-0.1",
             Array.Empty<RazorExtension>());
 
         public static void Register(RazorProjectEngineBuilder builder)
