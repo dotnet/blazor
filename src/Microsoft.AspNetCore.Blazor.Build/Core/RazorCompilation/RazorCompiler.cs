@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Razor;
 using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation
 {
@@ -25,6 +27,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation
         /// </summary>
         /// <param name="inputRootPath">Path to a directory containing input files.</param>
         /// <param name="inputPaths">Paths to the input files relative to <paramref name="inputRootPath"/>. The generated namespaces will be based on these relative paths.</param>
+        /// <param name="referencePaths">Paths to reference assemblies. Used to discovery components.</param>
         /// <param name="baseNamespace">The base namespace for the generated classes.</param>
         /// <param name="resultOutput">A <see cref="TextWriter"/> to which C# source code will be written.</param>
         /// <param name="verboseOutput">If not null, additional information will be written to this <see cref="TextWriter"/>.</param>
@@ -32,6 +35,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation
         public ICollection<RazorCompilerDiagnostic> CompileFiles(
             string inputRootPath,
             IEnumerable<string> inputPaths,
+            IEnumerable<string> referencePaths,
             string baseNamespace,
             TextWriter resultOutput,
             TextWriter verboseOutput)
@@ -39,7 +43,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation
             {
                 using (var reader = File.OpenRead(path))
                 {
-                    return CompileSingleFile(inputRootPath, path, reader, baseNamespace, resultOutput, verboseOutput);
+                    return CompileSingleFile(inputRootPath, path, reader, referencePaths, baseNamespace, resultOutput, verboseOutput);
                 }
             }).ToList();
 
@@ -48,6 +52,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation
         /// </summary>
         /// <param name="inputRootPath">Path to a directory containing input files.</param>
         /// <param name="inputPaths">Paths to the input files relative to <paramref name="inputRootPath"/>. The generated namespaces will be based on these relative paths.</param>
+        /// <param name="referencePaths">Paths to reference assemblies. Used to discovery components.</param>
         /// <param name="baseNamespace">The base namespace for the generated class.</param>
         /// <param name="resultOutput">A <see cref="TextWriter"/> to which C# source code will be written.</param>
         /// <param name="verboseOutput">If not null, additional information will be written to this <see cref="TextWriter"/>.</param>
@@ -56,6 +61,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation
             string inputRootPath,
             string inputFilePath,
             Stream inputFileContents,
+            IEnumerable<string> referencePaths,
             string baseNamespace,
             TextWriter resultOutput,
             TextWriter verboseOutput)
@@ -93,7 +99,18 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation
                 // name and any public members. Don't need to actually emit all the RenderTreeBuilder
                 // invocations.
 
-                var engine = RazorEngine.Create(b => BlazorExtensionInitializer.Register(b));
+                var engine = RazorEngine.Create(b => 
+                {
+                    BlazorExtensionInitializer.Register(b);
+
+                    // Tag Helper infrastructure, repurposed to support components.
+                    b.Features.Add(new CompilationTagHelperFeature());
+                    b.Features.Add(new DefaultMetadataReferenceFeature()
+                    {
+                        References = referencePaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray(),
+                    });
+                });
+
                 var blazorTemplateEngine = new BlazorTemplateEngine(
                     engine,
                     RazorProjectFileSystem.Create(inputRootPath));

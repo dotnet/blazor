@@ -1,6 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Layouts;
@@ -10,18 +17,12 @@ using Microsoft.AspNetCore.Blazor.RenderTree;
 using Microsoft.AspNetCore.Blazor.Test.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
+using Microsoft.Extensions.DependencyModel;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Test
+namespace Microsoft.AspNetCore.Blazor.Build
 {
-    public class RazorCompilerTest
+    public class RazorCompilationIntegrationTest
     {
         [Fact]
         public void RejectsInvalidClassName()
@@ -698,23 +699,12 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             {
                 CSharpSyntaxTree.ParseText(csharpResult.Code)
             };
-            var referenceAssembliesContainingTypes = new[]
-            {
-                typeof(System.Runtime.AssemblyTargetedPatchBandAttribute), // System.Runtime
-                typeof(BlazorComponent),
-                typeof(RazorCompilerTest), // Reference this assembly, so that we can refer to test component types
-            };
-            var references = referenceAssembliesContainingTypes
-                .SelectMany(type => type.Assembly.GetReferencedAssemblies().Concat(new[] { type.Assembly.GetName() }))
-                .Distinct()
-                .Select(Assembly.Load)
-                .Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
-                .ToList();
+
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             var assemblyName = "TestAssembly" + Guid.NewGuid().ToString("N");
             var compilation = CSharpCompilation.Create(assemblyName,
                 syntaxTrees,
-                references,
+                GetMetadataReferences(),
                 options);
 
             using (var peStream = new MemoryStream())
@@ -752,6 +742,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                     cshtmlRootPath,
                     cshtmlRelativePath,
                     inputContents,
+                    GetMetadataReferencePaths(),
                     outputNamespace,
                     resultWriter,
                     verboseWriter);
@@ -765,6 +756,22 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                     Diagnostics = diagnostics
                 };
             }
+        }
+
+        private static MetadataReference[] GetMetadataReferences()
+        {
+            return GetMetadataReferencePaths() 
+                .Select(assemblyPath => MetadataReference.CreateFromFile(assemblyPath))
+                .ToArray();
+        }
+
+        private static string[] GetMetadataReferencePaths()
+        {
+            var dependencyContext = DependencyContext.Load(typeof(RazorCompilerTest).Assembly);
+
+            return dependencyContext.CompileLibraries
+                .SelectMany(l => l.ResolveReferencePaths())
+                .ToArray();
         }
 
         private ArrayRange<RenderTreeFrame> GetFrames(RenderFragment fragment)

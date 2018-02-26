@@ -10,6 +10,16 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 {
     public class BlazorExtensionInitializer : RazorExtensionInitializer
     {
+        public static readonly RazorConfiguration DeclarationConfiguration = new RazorConfiguration(
+            RazorLanguageVersion.Version_2_1,
+            "BlazorDeclaration-0.0.5",
+            Array.Empty<RazorExtension>());
+
+        public static readonly RazorConfiguration DefaultConfiguration = new RazorConfiguration(
+            RazorLanguageVersion.Version_2_1,
+            "Blazor-0.0.5",
+            Array.Empty<RazorExtension>());
+
         public static void Register(RazorProjectEngineBuilder builder)
         {
             if (builder == null)
@@ -29,6 +39,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             builder.Features.Add(new ConfigureBlazorCodeGenerationOptions());
 
             builder.Features.Add(new ComponentDocumentClassifierPass());
+
+            builder.Features.Add(new ComponentTagHelperDescriptorProvider());
+
+            if (builder.Configuration.ConfigurationName == DeclarationConfiguration.ConfigurationName)
+            {
+                // This is for 'declaration only' processing. We don't want to try and emit any method bodies during
+                // the design time build because we can't do it correctly until the set of components is known.
+                builder.Features.Add(new EliminateMethodBodyPass());
+            }
         }
 
         // This is temporarily used to initialize a RazorEngine by the build tools until we get the features
@@ -49,6 +68,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             builder.Features.Add(new ConfigureBlazorCodeGenerationOptions());
 
             builder.Features.Add(new ComponentDocumentClassifierPass());
+
+            builder.Features.Add(new ComponentTagHelperDescriptorProvider());
         }
 
         public override void Initialize(RazorProjectEngineBuilder builder)
