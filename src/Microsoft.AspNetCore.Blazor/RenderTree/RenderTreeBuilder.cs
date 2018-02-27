@@ -24,6 +24,11 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         private RenderTreeFrameType? _lastNonAttributeFrameType;
 
         /// <summary>
+        /// The reserved parameter name used for supplying child content.
+        /// </summary>
+        public const string ChildContent = nameof(ChildContent);
+
+        /// <summary>
         /// Constructs an instance of <see cref="RenderTreeBuilder"/>.
         /// </summary>
         /// <param name="renderer">The associated <see cref="Renderer"/>.</param>
@@ -62,16 +67,35 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         /// </summary>
         /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
         /// <param name="textContent">Content for the new text frame.</param>
-        public void AddText(int sequence, string textContent)
+        public void AddContent(int sequence, string textContent)
             => Append(RenderTreeFrame.Text(sequence, textContent ?? string.Empty));
+
+        /// <summary>
+        /// Appends frames representing an arbitrary fragment of content.
+        /// </summary>
+        /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
+        /// <param name="fragment">Content to append.</param>
+        public void AddContent(int sequence, RenderFragment fragment)
+        {
+            if (fragment != null)
+            {
+                // We surround the fragment with a region delimiter to indicate that the
+                // sequence numbers inside the fragment are unrelated to the sequence numbers
+                // outside it. If we didn't do this, the diffing logic might produce inefficient
+                // diffs depending on how the sequence numbers compared.
+                OpenRegion(sequence);
+                fragment(this);
+                CloseRegion();
+            }
+        }
 
         /// <summary>
         /// Appends a frame representing text content.
         /// </summary>
         /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
         /// <param name="textContent">Content for the new text frame.</param>
-        public void AddText(int sequence, object textContent)
-            => AddText(sequence, textContent?.ToString());
+        public void AddContent(int sequence, object textContent)
+            => AddContent(sequence, textContent?.ToString());
 
         /// <summary>
         /// Appends a frame representing a string-valued attribute.
@@ -148,16 +172,27 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         /// <typeparam name="TComponent">The type of the child component.</typeparam>
         /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
         public void OpenComponent<TComponent>(int sequence) where TComponent : IComponent
+            => OpenComponentUnchecked(sequence, typeof(TComponent));
+
+        /// <summary>
+        /// Appends a frame representing a child component.
+        /// </summary>
+        /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
+        /// <param name="componentType">The type of the child component.</param>
+        public void OpenComponent(int sequence, Type componentType)
         {
-            // Currently, child components can't have further grandchildren of their own, so it would
-            // technically be possible to skip their CloseElement calls and not track them in _openElementIndices.
-            // However at some point we might want to have the grandchildren frames available at runtime
-            // (rather than being parsed as attributes at compile time) so that we could have APIs for
-            // components to query the complete hierarchy of transcluded frames instead of forcing the
-            // transcluded subtree to be in a particular shape such as representing key/value pairs.
-            // So it's more flexible if we track open/close frames for components explicitly.
+            if (!typeof(IComponent).IsAssignableFrom(componentType))
+            {
+                throw new ArgumentException($"The component type must implement {typeof(IComponent).FullName}.");
+            }
+
+            OpenComponentUnchecked(sequence, componentType);
+        }
+
+        private void OpenComponentUnchecked(int sequence, Type componentType)
+        {
             _openElementIndices.Push(_entries.Count);
-            Append(RenderTreeFrame.ChildComponent<TComponent>(sequence));
+            Append(RenderTreeFrame.ChildComponent(sequence, componentType));
         }
 
         /// <summary>
@@ -171,22 +206,17 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
             entry = entry.WithComponentSubtreeLength(_entries.Count - indexOfEntryBeingClosed);
         }
 
-        /// <summary>
-        /// Appends a frame denoting the start of a region (that is, a tree fragment that is
-        /// processed as a unit for the purposes of diffing).
-        /// </summary>
-        /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
-        public void OpenRegion(int sequence)
+        // Internal for tests
+        // Not public because there's no current use case for user code defining regions arbitrarily.
+        // Currently the sole use case for regions is when appending a RenderFragment.
+        internal void OpenRegion(int sequence)
         {
             _openElementIndices.Push(_entries.Count);
             Append(RenderTreeFrame.Region(sequence));
         }
 
-        /// <summary>
-        /// Marks a previously appended region frame as closed. Calls to this method
-        /// must be balanced with calls to <see cref="OpenRegion"/>.
-        /// </summary>
-        public void CloseRegion()
+        // See above for why this is not public
+        internal void CloseRegion()
         {
             var indexOfEntryBeingClosed = _openElementIndices.Pop();
             ref var entry = ref _entries.Buffer[indexOfEntryBeingClosed];

@@ -34,7 +34,7 @@ export const monoPlatform: Platform = {
 
     const typeHandle = find_class(assemblyHandle, namespace, className);
     if (!typeHandle) {
-      throw new Error(`Could not find type "${className}'" in namespace "${namespace}" in assembly "${assemblyName}"`);
+      throw new Error(`Could not find type "${className}" in namespace "${namespace}" in assembly "${assemblyName}"`);
     }
 
     const methodHandle = find_method(typeHandle, methodName, -1);
@@ -45,12 +45,21 @@ export const monoPlatform: Platform = {
     return methodHandle;
   },
 
-  callEntryPoint: function callEntryPoint(assemblyName: string, args: System_Object[]): void {
-    // TODO: There should be a proper way of running whatever counts as the entrypoint without
-    // having to specify what method it is, but I haven't found it. The code here assumes
-    // that the entry point is "<assemblyname>.Program.Main" (i.e., namespace == assembly name).
-    const entryPointMethod = monoPlatform.findMethod(assemblyName, assemblyName, 'Program', 'Main');
-    monoPlatform.callMethod(entryPointMethod, null, args);
+  callEntryPoint: function callEntryPoint(assemblyName: string, entrypointMethod: string, args: System_Object[]): void {
+    // Parse the entrypointMethod, which is of the form MyApp.MyNamespace.MyTypeName::MyMethodName
+    // Note that we don't support specifying a method overload, so it has to be unique
+    const entrypointSegments = entrypointMethod.split('::');
+    if (entrypointSegments.length != 2) {
+      throw new Error('Malformed entry point method name; could not resolve class name and method name.');
+    }
+    const typeFullName = entrypointSegments[0];
+    const methodName = entrypointSegments[1];
+    const lastDot = typeFullName.lastIndexOf('.');
+    const namespace = lastDot > -1 ? typeFullName.substring(0, lastDot) : '';
+    const typeShortName = lastDot > -1 ? typeFullName.substring(lastDot + 1) : typeFullName;
+
+    const entryPointMethodHandle = monoPlatform.findMethod(assemblyName, namespace, typeShortName, methodName);
+    monoPlatform.callMethod(entryPointMethodHandle, null, args);
   },
 
   callMethod: function callMethod(method: MethodHandle, target: System_Object, args: System_Object[]): System_Object {
@@ -137,7 +146,7 @@ export const monoPlatform: Platform = {
 function addScriptTagsToDocument() {
   // Load either the wasm or asm.js version of the Mono runtime
   const browserSupportsNativeWebAssembly = typeof WebAssembly !== 'undefined' && WebAssembly.validate;
-  const monoRuntimeUrlBase = '/_framework/' + (browserSupportsNativeWebAssembly ? 'wasm' : 'asmjs');
+  const monoRuntimeUrlBase = '_framework/' + (browserSupportsNativeWebAssembly ? 'wasm' : 'asmjs');
   const monoRuntimeScriptUrl = `${monoRuntimeUrlBase}/mono.js`;
 
   if (!browserSupportsNativeWebAssembly) {
@@ -156,8 +165,8 @@ function createEmscriptenModuleInstance(loadAssemblyUrls: string[], onReady: () 
 
   module.print = line => console.log(`WASM: ${line}`);
   module.printErr = line => console.error(`WASM: ${line}`);
-  module.wasmBinaryFile = '/_framework/wasm/mono.wasm';
-  module.asmjsCodeFile = '/_framework/asmjs/mono.asm.js';
+  module.wasmBinaryFile = '_framework/wasm/mono.wasm';
+  module.asmjsCodeFile = '_framework/asmjs/mono.asm.js';
   module.preRun = [];
   module.postRun = [];
   module.preloadPlugins = [];

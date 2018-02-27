@@ -6,16 +6,20 @@ using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
 {
     public class StandaloneAppTest
-        : ServerTestBase<DevHostServerFixture<StandaloneApp.Program>>
+        : ServerTestBase<DevHostServerFixture<StandaloneApp.Program>>, IDisposable
     {
+        private readonly ServerFixture _serverFixture;
+
         public StandaloneAppTest(BrowserFixture browserFixture, DevHostServerFixture<StandaloneApp.Program> serverFixture)
             : base(browserFixture, serverFixture)
         {
+            _serverFixture = serverFixture;
             Navigate("/", noReload: true);
             WaitUntilLoaded();
         }
@@ -31,11 +35,95 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         {
             Assert.Equal("Hello, world!", Browser.FindElement(By.TagName("h1")).Text);
         }
+        
+        [Fact]
+        public void ServesStaticAssetsFromClientAppWebRoot()
+        {
+            // Verify that bootstrap.js was loaded
+            var javascriptExecutor = (IJavaScriptExecutor)Browser;
+            var bootstrapTooltipType = javascriptExecutor
+                .ExecuteScript("return typeof (window.Tooltip);");
+            Assert.Equal("function", bootstrapTooltipType);
+        }
+
+        [Fact]
+        public void NavMenuHighlightsCurrentLocation()
+        {
+            var activeNavLinksSelector = By.CssSelector(".main-nav a.active");
+            var mainHeaderSelector = By.TagName("h1");
+
+            // Verify we start at home, with the home link highlighted
+            Assert.Equal("Hello, world!", Browser.FindElement(mainHeaderSelector).Text);
+            Assert.Collection(Browser.FindElements(activeNavLinksSelector),
+                item => Assert.Equal("Home", item.Text));
+
+            // Click on the "counter" link
+            Browser.FindElement(By.LinkText("Counter")).Click();
+
+            // Verify we're now on the counter page, with that nav link (only) highlighted
+            Assert.Equal("Counter", Browser.FindElement(mainHeaderSelector).Text);
+            Assert.Collection(Browser.FindElements(activeNavLinksSelector),
+                item => Assert.Equal("Counter", item.Text));
+
+            // Verify we can navigate back to home too
+            Browser.FindElement(By.LinkText("Home")).Click();
+            Assert.Equal("Hello, world!", Browser.FindElement(mainHeaderSelector).Text);
+            Assert.Collection(Browser.FindElements(activeNavLinksSelector),
+                item => Assert.Equal("Home", item.Text));
+        }
+
+        [Fact]
+        public void HasCounterPage()
+        {
+            // Navigate to "Counter"
+            Browser.FindElement(By.LinkText("Counter")).Click();
+            Assert.Equal("Counter", Browser.FindElement(By.TagName("h1")).Text);
+
+            // Observe the initial value is zero
+            var countDisplayElement = Browser.FindElement(By.CssSelector("h1 + p"));
+            Assert.Equal("Current count: 0", countDisplayElement.Text);
+
+            // Click the button; see it counts
+            var button = Browser.FindElement(By.CssSelector(".col-sm-9 button"));
+            button.Click();
+            button.Click();
+            button.Click();
+            Assert.Equal("Current count: 3", countDisplayElement.Text);
+        }
+
+        [Fact]
+        public void HasFetchDataPage()
+        {
+            // Navigate to "Counter"
+            Browser.FindElement(By.LinkText("Fetch data")).Click();
+            Assert.Equal("Weather forecast", Browser.FindElement(By.TagName("h1")).Text);
+
+            // Wait until loaded
+            var tableSelector = By.CssSelector("table.table");
+            new WebDriverWait(Browser, TimeSpan.FromSeconds(10)).Until(
+                driver => driver.FindElement(tableSelector) != null);
+
+            // Check the table is displayed correctly
+            var rows = Browser.FindElements(By.CssSelector("table.table tbody tr"));
+            Assert.Equal(5, rows.Count);
+            var cells = rows.SelectMany(row => row.FindElements(By.TagName("td")));
+            foreach (var cell in cells)
+            {
+                Assert.True(!string.IsNullOrEmpty(cell.Text));
+            }
+        }
 
         private void WaitUntilLoaded()
         {
             new WebDriverWait(Browser, TimeSpan.FromSeconds(30)).Until(
                 driver => driver.FindElement(By.TagName("app")).Text != "Loading...");
+        }
+
+        public void Dispose()
+        {
+            // Make the tests run faster by navigating back to the home page when we are done
+            // If we don't, then the next test will reload the whole page before it starts
+            Browser.FindElement(By.LinkText("Home")).Click();
         }
     }
 }

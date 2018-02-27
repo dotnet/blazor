@@ -7,12 +7,12 @@ using System.Linq;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
-using Microsoft.AspNetCore.Blazor.Test.Shared;
+using Microsoft.AspNetCore.Blazor.Test.Helpers;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Test
 {
-    public partial class RendererTest
+    public class RendererTest
     {
         [Fact]
         public void CanRenderTopLevelComponents()
@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var component = new TestComponent(builder =>
             {
                 builder.OpenElement(0, "my element");
-                builder.AddText(1, "some text");
+                builder.AddContent(1, "some text");
                 builder.CloseElement();
             });
 
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var renderer = new TestRenderer();
             var component = new TestComponent(builder =>
             {
-                builder.AddText(0, "Hello");
+                builder.AddContent(0, "Hello");
                 builder.OpenComponent<MessageComponent>(1);
                 builder.AddAttribute(2, nameof(MessageComponent.Message), "Nested component output");
                 builder.CloseComponent();
@@ -314,7 +314,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var message = "Hello";
             var component = new TestComponent(builder =>
             {
-                builder.AddText(0, message);
+                builder.AddContent(0, message);
                 builder.OpenComponent<MessageComponent>(1);
                 builder.CloseComponent();
             });
@@ -341,7 +341,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                     Assert.Equal(0, edit.ReferenceFrameIndex);
                 });
             AssertFrame.Text(batch.ReferenceFrames[0], "Modified message");
-            Assert.Empty(batch.DiffsByComponentId[nestedComponentFrame.ComponentId].Single().Edits);
+            Assert.False(batch.DiffsByComponentId.ContainsKey(nestedComponentFrame.ComponentId));
         }
 
         [Fact]
@@ -450,14 +450,23 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 .Where(frame => frame.FrameType == RenderTreeFrameType.Component)
                 .Select(frame => frame.ComponentId)
                 .ToList();
+            var childComponent3 = batch.ReferenceFrames.Where(f => f.ComponentId == 3)
+                .Single().Component;
             Assert.Equal(new[] { 1, 2 }, childComponentIds);
+            Assert.IsType<FakeComponent>(childComponent3);
 
             // Act: Second render
             firstRender = false;
             component.TriggerRender();
 
             // Assert: Applicable children are included in disposal list
+            Assert.Equal(2, renderer.Batches.Count);
             Assert.Equal(new[] { 1, 3 }, renderer.Batches[1].DisposedComponentIDs);
+
+            // Act/Assert: If a disposed component requests a render, it's a no-op
+            ((FakeComponent)childComponent3).RenderHandle.Render(builder
+                => throw new NotImplementedException("Should not be invoked"));
+            Assert.Equal(2, renderer.Batches.Count);
         }
 
         [Fact]
@@ -613,6 +622,85 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void AllRendersTriggeredSynchronouslyDuringEventHandlerAreHandledAsSingleBatch()
+        {
+            // Arrange: A root component with a child whose event handler explicitly queues
+            // a re-render of both the root component and the child
+            var renderer = new TestRenderer();
+            var eventCount = 0;
+            TestComponent rootComponent = null;
+            EventComponent childComponent = null;
+            rootComponent = new TestComponent(builder =>
+            {
+                builder.AddContent(0, "Child event count: " + eventCount);
+                builder.OpenComponent<EventComponent>(1);
+                builder.AddAttribute(2, nameof(EventComponent.Handler), args =>
+                {
+                    eventCount++;
+                    rootComponent.TriggerRender();
+                    childComponent.TriggerRender();
+                });
+                builder.CloseComponent();
+            });
+            var rootComponentId = renderer.AssignComponentId(rootComponent);
+            rootComponent.TriggerRender();
+            var origBatchReferenceFrames = renderer.Batches.Single().ReferenceFrames;
+            var childComponentFrame = origBatchReferenceFrames
+                .Single(f => f.Component is EventComponent);
+            var childComponentId = childComponentFrame.ComponentId;
+            childComponent = (EventComponent)childComponentFrame.Component;
+            var origEventHandlerId = origBatchReferenceFrames
+                .Where(f => f.FrameType == RenderTreeFrameType.Attribute)
+                .Last(f => f.AttributeEventHandlerId != 0)
+                .AttributeEventHandlerId;
+            Assert.Single(renderer.Batches);
+
+            // Act
+            renderer.DispatchEvent(childComponentId, origEventHandlerId, args: null);
+
+            // Assert
+            Assert.Equal(2, renderer.Batches.Count);
+            var batch = renderer.Batches.Last();
+            Assert.Collection(batch.DiffsInOrder,
+                diff =>
+                {
+                    // First we triggered the root component to re-render
+                    Assert.Equal(rootComponentId, diff.ComponentId);
+                    Assert.Collection(diff.Edits, edit =>
+                    {
+                        Assert.Equal(RenderTreeEditType.UpdateText, edit.Type);
+                        AssertFrame.Text(
+                            batch.ReferenceFrames[edit.ReferenceFrameIndex],
+                            "Child event count: 1");
+                    });
+                },
+                diff =>
+                {
+                    // Then the root re-render will have triggered an update to the child
+                    Assert.Equal(childComponentId, diff.ComponentId);
+                    Assert.Collection(diff.Edits, edit =>
+                    {
+                        Assert.Equal(RenderTreeEditType.UpdateText, edit.Type);
+                        AssertFrame.Text(
+                            batch.ReferenceFrames[edit.ReferenceFrameIndex],
+                            "Render count: 2");
+                    });
+                },
+                diff =>
+                {
+                    // Finally we explicitly requested a re-render of the child
+                    Assert.Equal(childComponentId, diff.ComponentId);
+                    Assert.Collection(diff.Edits, edit =>
+                    {
+                        Assert.Equal(RenderTreeEditType.UpdateText, edit.Type);
+                        AssertFrame.Text(
+                            batch.ReferenceFrames[edit.ReferenceFrameIndex],
+                            "Render count: 3");
+                    });
+                });
+        }
+
+        [Fact]
         public void ComponentCannotTriggerRenderBeforeRenderHandleAssigned()
         {
             // Arrange
@@ -634,7 +722,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var renderCount = 0;
             var component = new TestComponent(builder =>
             {
-                builder.AddText(0, $"Render count: {++renderCount}");
+                builder.AddContent(0, $"Render count: {++renderCount}");
             });
             var componentId = renderer.AssignComponentId(component);
 
@@ -670,7 +758,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.OpenComponent<ReRendersParentComponent>(0);
                 builder.AddAttribute(1, nameof(ReRendersParentComponent.Parent), parent);
                 builder.CloseComponent();
-                builder.AddText(2, $"Parent render count: {++parentRenderCount}");
+                builder.AddContent(2, $"Parent render count: {++parentRenderCount}");
             });
             var parentComponentId = renderer.AssignComponentId(parent);
 
@@ -721,80 +809,82 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Empty(diff4.Edits);
         }
 
+        [Fact]
+        public void QueuedRenderIsSkippedIfComponentWasAlreadyDisposedInSameBatch()
+        {
+            // Arrange
+            var renderer = new TestRenderer();
+            var shouldRenderChild = true;
+            TestComponent component = null;
+            component = new TestComponent(builder =>
+            {
+                builder.AddContent(0, "Some frame so the child isn't at position zero");
+                if (shouldRenderChild)
+                {
+                    builder.OpenComponent<RendersSelfAfterEventComponent>(1);
+                    builder.AddAttribute(2, nameof(RendersSelfAfterEventComponent.OnClick), (Action)(() =>
+                    {
+                        // First we queue (1) a re-render of the root component, then the child component
+                        // will queue (2) its own re-render. But by the time (1) completes, the child will
+                        // have been disposed, even though (2) is still in the queue
+                        shouldRenderChild = false;
+                        component.TriggerRender();
+                    }));
+                    builder.CloseComponent();
+                }
+            });
+
+            var componentId = renderer.AssignComponentId(component);
+            component.TriggerRender();
+            var childComponentId = renderer.Batches.Single()
+                .ReferenceFrames
+                .Where(f => f.ComponentId != 0)
+                .Single()
+                .ComponentId;
+            var origEventHandlerId = renderer.Batches.Single()
+                .ReferenceFrames
+                .Where(f => f.FrameType == RenderTreeFrameType.Attribute)
+                .Single(f => f.AttributeEventHandlerId != 0)
+                .AttributeEventHandlerId;
+
+            // Act
+            // The fact that there's no error here is the main thing we're testing
+            renderer.DispatchEvent(childComponentId, origEventHandlerId, args: null);
+
+            // Assert: correct render result
+            var newBatch = renderer.Batches.Skip(1).Single();
+            Assert.Equal(1, newBatch.DisposedComponentIDs.Count);
+            Assert.Equal(1, newBatch.DiffsByComponentId.Count);
+            Assert.Collection(newBatch.DiffsByComponentId[componentId].Single().Edits,
+                edit =>
+                {
+                    Assert.Equal(RenderTreeEditType.RemoveFrame, edit.Type);
+                    Assert.Equal(1, edit.SiblingIndex);
+                });
+        }
+
         private class NoOpRenderer : Renderer
         {
+            public NoOpRenderer() : base(new TestServiceProvider())
+            {
+            }
+
             public new int AssignComponentId(IComponent component)
                 => base.AssignComponentId(component);
 
             protected override void UpdateDisplay(RenderBatch renderBatch)
             {
-            }
-        }
-
-        private class TestRenderer : Renderer
-        {
-            public List<CapturedBatch> Batches { get; }
-                = new List<CapturedBatch>();
-
-            public new int AssignComponentId(IComponent component)
-                => base.AssignComponentId(component);
-
-            public new void DispatchEvent(int componentId, int eventHandlerId, UIEventArgs args)
-                => base.DispatchEvent(componentId, eventHandlerId, args);
-
-            protected override void UpdateDisplay(RenderBatch renderBatch)
-            {
-                var capturedBatch = new CapturedBatch();
-                Batches.Add(capturedBatch);
-
-                for (var i = 0; i < renderBatch.UpdatedComponents.Count; i++)
-                {
-                    ref var renderTreeDiff = ref renderBatch.UpdatedComponents.Array[i];
-                    capturedBatch.AddDiff(renderTreeDiff);
-                }
-
-                // Clone other data, as underlying storage will get reused by later batches
-                capturedBatch.ReferenceFrames = renderBatch.ReferenceFrames.ToArray();
-                capturedBatch.DisposedComponentIDs = renderBatch.DisposedComponentIDs.ToList();
-            }
-        }
-
-        private class CapturedBatch
-        {
-            public IDictionary<int, List<RenderTreeDiff>> DiffsByComponentId { get; }
-                = new Dictionary<int, List<RenderTreeDiff>>();
-
-            public IList<RenderTreeDiff> DiffsInOrder { get; }
-                = new List<RenderTreeDiff>();
-
-            public IList<int> DisposedComponentIDs { get; set; }
-            public RenderTreeFrame[] ReferenceFrames { get; set; }
-
-            internal void AddDiff(RenderTreeDiff diff)
-            {
-                var componentId = diff.ComponentId;
-                if (!DiffsByComponentId.ContainsKey(componentId))
-                {
-                    DiffsByComponentId.Add(componentId, new List<RenderTreeDiff>());
-                }
-
-                // Clone the diff, because its underlying storage will get reused in subsequent batches
-                var diffClone = new RenderTreeDiff(
-                    diff.ComponentId,
-                    new ArraySegment<RenderTreeEdit>(diff.Edits.ToArray()));
-                DiffsByComponentId[componentId].Add(diffClone);
-                DiffsInOrder.Add(diffClone);
             }
         }
 
         private class TestComponent : IComponent
         {
             private RenderHandle _renderHandle;
-            private Action<RenderTreeBuilder> _renderAction;
+            private RenderFragment _renderFragment;
 
-            public TestComponent(Action<RenderTreeBuilder> renderAction)
+            public TestComponent(RenderFragment renderFragment)
             {
-                _renderAction = renderAction;
+                _renderFragment = renderFragment;
             }
 
             public void Init(RenderHandle renderHandle)
@@ -806,7 +896,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 => TriggerRender();
 
             public void TriggerRender()
-                => _renderHandle.Render(_renderAction);
+                => _renderHandle.Render(_renderFragment);
         }
 
         private class MessageComponent : AutoRenderComponent
@@ -815,7 +905,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
-                builder.AddText(0, Message);
+                builder.AddContent(0, Message);
             }
         }
 
@@ -824,10 +914,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public int IntProperty { get; set; }
             public string StringProperty { get; set; }
             public object ObjectProperty { get; set; }
+            public RenderHandle RenderHandle { get; private set; }
 
             public void Init(RenderHandle renderHandle)
-            {
-            }
+                => RenderHandle = renderHandle;
 
             public void SetParameters(ParameterCollection parameters)
                 => parameters.AssignToProperties(this);
@@ -837,6 +927,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             public UIEventHandler Handler { get; set; }
             public bool SkipElement { get; set; }
+            private int renderCount = 0;
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
@@ -853,6 +944,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                     builder.CloseElement();
                 }
                 builder.CloseElement();
+                builder.AddContent(4, $"Render count: {++renderCount}");
             }
 
             public void HandleEvent(UIEventHandler handler, UIEventArgs args)
@@ -866,7 +958,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
-                builder.AddText(0, "Parent here");
+                builder.AddContent(0, "Parent here");
                 
                 if (IncludeChild)
                 {
@@ -897,8 +989,38 @@ namespace Microsoft.AspNetCore.Blazor.Test
                     Parent.TriggerRender();
                 }
 
-                builder.AddText(0, "Child is here");
+                builder.AddContent(0, "Child is here");
             }
+        }
+
+        private class RendersSelfAfterEventComponent : IComponent, IHandleEvent
+        {
+            public Action OnClick { get; set; }
+
+            private RenderHandle _renderHandle;
+
+            public void Init(RenderHandle renderHandle)
+                => _renderHandle = renderHandle;
+
+            public void SetParameters(ParameterCollection parameters)
+            {
+                parameters.AssignToProperties(this);
+                Render();
+            }
+
+            public void HandleEvent(UIEventHandler handler, UIEventArgs args)
+            {
+                handler(args);
+                Render();
+            }
+
+            private void Render()
+                => _renderHandle.Render(builder =>
+                {
+                    builder.OpenElement(0, "my button");
+                    builder.AddAttribute(1, "my click handler", eventArgs => OnClick());
+                    builder.CloseElement();
+                });
         }
 
         private class MultiRendererComponent : IComponent
@@ -919,7 +1041,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 {
                     renderHandle.Render(builder =>
                     {
-                        builder.AddText(0, $"Hello from {nameof(MultiRendererComponent)}");
+                        builder.AddContent(0, $"Hello from {nameof(MultiRendererComponent)}");
                     });
                 }
             }

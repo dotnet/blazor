@@ -168,14 +168,31 @@ export class BrowserRenderer {
     const browserRendererId = this.browserRendererId;
     const eventHandlerId = renderTreeFrame.attributeEventHandlerId(attributeFrame);
 
+    if (attributeName === 'value') {
+      if (this.tryApplyValueProperty(toDomElement, renderTreeFrame.attributeValue(attributeFrame))) {
+        return; // If this DOM element type has special 'value' handling, don't also write it as an attribute
+      }
+    }
+
     // TODO: Instead of applying separate event listeners to each DOM element, use event delegation
     // and remove all the _blazor*Listener hacks
     switch (attributeName) {
       case 'onclick': {
         toDomElement.removeEventListener('click', toDomElement['_blazorClickListener']);
-        const listener = () => raiseEvent(browserRendererId, componentId, eventHandlerId, 'mouse', { Type: 'click' });
+        const listener = evt => raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'mouse', { Type: 'click' });
         toDomElement['_blazorClickListener'] = listener;
         toDomElement.addEventListener('click', listener);
+        break;
+      }
+      case 'onchange': {
+        toDomElement.removeEventListener('change', toDomElement['_blazorChangeListener']);
+        const targetIsCheckbox = isCheckbox(toDomElement);
+        const listener = evt => {
+          const newValue = targetIsCheckbox ? evt.target.checked : evt.target.value;
+          raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'change', { Type: 'change', Value: newValue });
+        };
+        toDomElement['_blazorChangeListener'] = listener;
+        toDomElement.addEventListener('change', listener);
         break;
       }
       case 'onkeypress': {
@@ -185,7 +202,7 @@ export class BrowserRenderer {
           // just to establish that we can pass parameters when raising events.
           // We use C#-style PascalCase on the eventInfo to simplify deserialization, but this could
           // change if we introduced a richer JSON library on the .NET side.
-          raiseEvent(browserRendererId, componentId, eventHandlerId, 'keyboard', { Type: evt.type, Key: (evt as any).key });
+          raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'keyboard', { Type: evt.type, Key: (evt as any).key });
         };
         toDomElement['_blazorKeypressListener'] = listener;
         toDomElement.addEventListener('keypress', listener);
@@ -198,6 +215,23 @@ export class BrowserRenderer {
           renderTreeFrame.attributeValue(attributeFrame)!
         );
         break;
+    }
+  }
+
+  tryApplyValueProperty(element: Element, value: string | null) {
+    // Certain elements have built-in behaviour for their 'value' property
+    switch (element.tagName) {
+      case 'INPUT':
+      case 'SELECT':
+        if (isCheckbox(element)) {
+          (element as HTMLInputElement).checked = value === 'True';
+        } else {
+          // Note: this doen't handle <select> correctly: https://github.com/aspnet/Blazor/issues/157
+          (element as any).value = value;
+        }
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -219,6 +253,10 @@ export class BrowserRenderer {
   }
 }
 
+function isCheckbox(element: Element) {
+  return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
+}
+
 function insertNodeIntoDOM(node: Node, parent: Element, childIndex: number) {
   if (childIndex >= parent.childNodes.length) {
     parent.appendChild(node);
@@ -236,7 +274,9 @@ function removeAttributeFromDOM(parent: Element, childIndex: number, attributeNa
   element.removeAttribute(attributeName);
 }
 
-function raiseEvent(browserRendererId: number, componentId: number, eventHandlerId: number, eventInfoType: EventInfoType, eventInfo: any) {
+function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventInfoType: EventInfoType, eventInfo: any) {
+  event.preventDefault();
+
   if (!raiseEventMethod) {
     raiseEventMethod = platform.findMethod(
       'Microsoft.AspNetCore.Blazor.Browser', 'Microsoft.AspNetCore.Blazor.Browser.Rendering', 'BrowserRendererEventDispatcher', 'DispatchEvent'
@@ -256,4 +296,4 @@ function raiseEvent(browserRendererId: number, componentId: number, eventHandler
   ]);
 }
 
-type EventInfoType = 'mouse' | 'keyboard';
+type EventInfoType = 'mouse' | 'keyboard' | 'change';

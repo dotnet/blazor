@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Html;
 using AngleSharp.Parser.Html;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -18,15 +20,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
     /// </summary>
     internal class BlazorIntermediateNodeWriter : IntermediateNodeWriter
     {
-        private const string builderVarName = "builder";
-
         // Per the HTML spec, the following elements are inherently self-closing
         // For example, <img> is the same as <img /> (and therefore it cannot contain descendants)
-        private static HashSet<string> htmlVoidElementsLookup
+        private readonly static HashSet<string> htmlVoidElementsLookup
             = new HashSet<string>(
                 new[] { "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr" },
                 StringComparer.OrdinalIgnoreCase);
+        private readonly static Regex bindExpressionRegex = new Regex(@"^bind\((.+)\)$");
 
+        private readonly ScopeStack _scopeStack = new ScopeStack();
         private string _unconsumedHtml;
         private IList<object> _currentAttributeValues;
         private IDictionary<string, PendingAttribute> _currentElementAttributes = new Dictionary<string, PendingAttribute>();
@@ -75,6 +77,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 if (node.Children[i] is IntermediateToken token && token.IsCSharp)
                 {
+                    _scopeStack.IncrementCurrentScopeChildCount(context);
                     context.CodeWriter.Write(token.Content);
                 }
                 else
@@ -118,8 +121,9 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             // Since we're not in the middle of writing an element, this must evaluate as some
             // text to display
+            _scopeStack.IncrementCurrentScopeChildCount(context);
             context.CodeWriter
-                .WriteStartMethodInvocation($"{builderVarName}.{nameof(RenderTreeBuilder.AddText)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(RenderTreeBuilder.AddContent)}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator();
 
@@ -207,8 +211,9 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     case HtmlTokenType.Character:
                         {
                             // Text node
+                            _scopeStack.IncrementCurrentScopeChildCount(context);
                             codeWriter
-                                .WriteStartMethodInvocation($"{builderVarName}.{nameof(RenderTreeBuilder.AddText)}")
+                                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(RenderTreeBuilder.AddContent)}")
                                 .Write((_sourceSequence++).ToString())
                                 .WriteParameterSeparator()
                                 .WriteStringLiteral(nextToken.Data)
@@ -220,70 +225,83 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     case HtmlTokenType.EndTag:
                         {
                             var nextTag = nextToken.AsTag();
-                            var isComponent = false;
+                            var tagNameOriginalCase = GetTagNameWithOriginalCase(originalHtmlContent, nextTag);
+                            var isComponent = TryGetComponentTypeNameFromTagName(tagNameOriginalCase, out var componentTypeName);
+
                             if (nextToken.Type == HtmlTokenType.StartTag)
                             {
-                                var tagNameOriginalCase = GetTagNameWithOriginalCase(originalHtmlContent, nextTag);
-                                if (TryGetComponentTypeNameFromTagName(tagNameOriginalCase, out var componentTypeName))
+                                _scopeStack.IncrementCurrentScopeChildCount(context);
+                                if (isComponent)
                                 {
                                     codeWriter
-                                        .WriteStartMethodInvocation($"{builderVarName}.{nameof(RenderTreeBuilder.OpenComponent)}<{componentTypeName}>")
+                                        .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(RenderTreeBuilder.OpenComponent)}<{componentTypeName}>")
                                         .Write((_sourceSequence++).ToString())
                                         .WriteEndMethodInvocation();
-                                    isComponent = true;
                                 }
                                 else
                                 {
                                     codeWriter
-                                        .WriteStartMethodInvocation($"{builderVarName}.{nameof(RenderTreeBuilder.OpenElement)}")
+                                        .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(RenderTreeBuilder.OpenElement)}")
                                         .Write((_sourceSequence++).ToString())
                                         .WriteParameterSeparator()
                                         .WriteStringLiteral(nextTag.Data)
                                         .WriteEndMethodInvocation();
                                 }
-                            }
 
-                            foreach (var attribute in nextTag.Attributes)
-                            {
-                                WriteAttribute(codeWriter, attribute.Key, attribute.Value);
-                            }
-
-                            if (_currentElementAttributes.Count > 0)
-                            {
-                                foreach (var pair in _currentElementAttributes)
+                                if (isComponent && nextTag.Attributes.Count > 0)
                                 {
-                                    WriteAttribute(codeWriter, pair.Key, pair.Value.AttributeValue);
+                                    ThrowTemporaryComponentSyntaxError(node, nextTag, tagNameOriginalCase);
                                 }
-                                _currentElementAttributes.Clear();
-                            }
 
-                            if (_currentElementAttributeTokens.Count > 0)
-                            {
-                                foreach (var token in _currentElementAttributeTokens)
+                                foreach (var attribute in nextTag.Attributes)
                                 {
-                                    codeWriter
-                                        .WriteStartMethodInvocation($"{builderVarName}.{nameof(RenderTreeBuilder.AddAttribute)}")
-                                        .Write((_sourceSequence++).ToString())
-                                        .WriteParameterSeparator()
-                                        .Write(token.AttributeValue.Content)
-                                        .WriteEndMethodInvocation();
+                                    WriteAttribute(codeWriter, attribute.Key, attribute.Value);
                                 }
-                                _currentElementAttributeTokens.Clear();
+
+                                if (_currentElementAttributes.Count > 0)
+                                {
+                                    foreach (var pair in _currentElementAttributes)
+                                    {
+                                        WriteAttribute(codeWriter, pair.Key, pair.Value.AttributeValue);
+                                    }
+                                    _currentElementAttributes.Clear();
+                                }
+
+                                if (_currentElementAttributeTokens.Count > 0)
+                                {
+                                    foreach (var token in _currentElementAttributeTokens)
+                                    {
+                                        WriteElementAttributeToken(context, nextTag, token);
+                                    }
+                                    _currentElementAttributeTokens.Clear();
+                                }
+
+                                _scopeStack.OpenScope(
+                                    tagName: isComponent ? tagNameOriginalCase : nextTag.Data,
+                                    isComponent: isComponent);
                             }
 
                             if (nextToken.Type == HtmlTokenType.EndTag
                                 || nextTag.IsSelfClosing
-                                || htmlVoidElementsLookup.Contains(nextTag.Data))
+                                || (!isComponent && htmlVoidElementsLookup.Contains(nextTag.Data)))
                             {
+                                _scopeStack.CloseScope(
+                                    context: context,
+                                    tagName: isComponent ? tagNameOriginalCase : nextTag.Data,
+                                    isComponent: isComponent,
+                                    source: CalculateSourcePosition(node.Source, nextToken.Position));
                                 var closeMethodName = isComponent
                                     ? nameof(RenderTreeBuilder.CloseComponent)
                                     : nameof(RenderTreeBuilder.CloseElement);
                                 codeWriter
-                                    .WriteStartMethodInvocation($"{builderVarName}.{closeMethodName}")
+                                    .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{closeMethodName}")
                                     .WriteEndMethodInvocation();
                             }
                             break;
                         }
+
+                    case HtmlTokenType.Comment:
+                        break;
 
                     default:
                         throw new InvalidCastException($"Unsupported token type: {nextToken.Type.ToString()}");
@@ -300,8 +318,80 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
         }
 
+        private void WriteElementAttributeToken(CodeRenderingContext context, HtmlTagToken tag, PendingAttributeToken token)
+        {
+            var bindMatch = bindExpressionRegex.Match(token.AttributeValue.Content);
+            if (bindMatch.Success)
+            {
+                // The @bind(X) syntax is special. We convert it to a pair of attributes:
+                // [1] value=@X
+                var valueExpression = bindMatch.Groups[1].Value;
+                WriteAttribute(context.CodeWriter, "value",
+                    new IntermediateToken { Kind = TokenKind.CSharp, Content = valueExpression });
+
+                // [2] @onchange(newValue => { X = newValue; })
+                var isCheckbox = tag.Data.Equals("input", StringComparison.OrdinalIgnoreCase)
+                    && tag.Attributes.Any(a =>
+                        a.Key.Equals("type", StringComparison.Ordinal)
+                        && a.Value.Equals("checkbox", StringComparison.Ordinal));
+                var castToType = isCheckbox ? "bool" : "string";
+                var onChangeAttributeToken = new PendingAttributeToken
+                {
+                    AttributeValue = new IntermediateToken
+                    {
+                        Kind = TokenKind.CSharp,
+                        Content = $"onchange(_newValue_ => {{ {valueExpression} = ({castToType})_newValue_; }})"
+                    }
+                };
+                WriteElementAttributeToken(context, tag, onChangeAttributeToken);
+            }
+            else
+            {
+                // For any other attribute token (e.g., @onclick(...)), treat it as an expression
+                // that will evaluate as an attribute frame
+                context.CodeWriter
+                    .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(RenderTreeBuilder.AddAttribute)}")
+                    .Write((_sourceSequence++).ToString())
+                    .WriteParameterSeparator()
+                    .Write(token.AttributeValue.Content)
+                    .WriteEndMethodInvocation();
+            }
+        }
+
+        private void ThrowTemporaryComponentSyntaxError(HtmlContentIntermediateNode node, HtmlTagToken tag, string componentName)
+            => throw new RazorCompilerException(
+                $"Wrong syntax for '{tag.Attributes[0].Key}' on '{componentName}': As a temporary " +
+                $"limitation, component attributes must be expressed with C# syntax. For example, " +
+                $"SomeParam=@(\"Some value\") is allowed, but SomeParam=\"Some value\" is not.",
+                CalculateSourcePosition(node.Source, tag.Position));
+
+        private SourceSpan? CalculateSourcePosition(
+            SourceSpan? razorTokenPosition,
+            TextPosition htmlNodePosition)
+        {
+            if (razorTokenPosition.HasValue)
+            {
+                var razorPos = razorTokenPosition.Value;
+                return new SourceSpan(
+                    razorPos.FilePath,
+                    razorPos.AbsoluteIndex + htmlNodePosition.Position,
+                    razorPos.LineIndex + htmlNodePosition.Line - 1,
+                    htmlNodePosition.Line == 1
+                        ? razorPos.CharacterIndex + htmlNodePosition.Column - 1
+                        : htmlNodePosition.Column - 1,
+                    length: 1);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private static string GetTagNameWithOriginalCase(string document, HtmlTagToken tagToken)
-            => document.Substring(tagToken.Position.Position, tagToken.Name.Length);
+        {
+            var offset = tagToken.Type == HtmlTokenType.EndTag ? 1 : 0; // For end tags, skip the '/'
+            return document.Substring(tagToken.Position.Position + offset, tagToken.Name.Length);
+        }
 
         private bool TryGetComponentTypeNameFromTagName(string tagName, out string componentTypeName)
         {
@@ -331,14 +421,19 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private void WriteAttribute(CodeWriter codeWriter, string key, object value)
         {
+            BeginWriteAttribute(codeWriter, key);
+            WriteAttributeValue(codeWriter, value);
+            codeWriter.WriteEndMethodInvocation();
+        }
+
+        public void BeginWriteAttribute(CodeWriter codeWriter, string key)
+        {
             codeWriter
-                .WriteStartMethodInvocation($"{builderVarName}.{nameof(RenderTreeBuilder.AddAttribute)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(RenderTreeBuilder.AddAttribute)}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator()
                 .WriteStringLiteral(key)
                 .WriteParameterSeparator();
-            WriteAttributeValue(codeWriter, value);
-            codeWriter.WriteEndMethodInvocation();
         }
 
         public override void WriteUsingDirective(CodeRenderingContext context, UsingDirectiveIntermediateNode node)

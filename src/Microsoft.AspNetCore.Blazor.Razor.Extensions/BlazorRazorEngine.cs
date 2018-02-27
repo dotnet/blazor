@@ -15,6 +15,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         private readonly RazorEngine _engine;
         private readonly RazorCodeGenerationOptions _codegenOptions;
 
+        public RazorEngine Engine => _engine;
+
         public BlazorRazorEngine()
         {
             _codegenOptions = RazorCodeGenerationOptions.CreateDefault();
@@ -22,6 +24,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             _engine = RazorEngine.Create(configure =>
             {
                 FunctionsDirective.Register(configure);
+                InheritsDirective.Register(configure);
+                InjectDirective.Register(configure);
+                TemporaryLayoutPass.Register(configure);
+                TemporaryImplementsPass.Register(configure);
 
                 configure.SetBaseType(BlazorComponent.FullTypeName);
 
@@ -36,8 +42,5 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 });
             });
         }
-
-        public void Process(RazorCodeDocument document)
-            => _engine.Process(document);
     }
 }

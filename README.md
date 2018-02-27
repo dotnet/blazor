@@ -36,11 +36,11 @@ Prerequisites:
 - [.NET Core SDK](https://dot.net/core) (>2.1.4)
 - [Node.js](https://nodejs.org/) (>8.3)
 
-Run `dotnet build` from the solution directory.
+Run `dotnet build Blazor.sln` from the solution directory.
 
 ## Run tests
 
-Run `dotnet test test/<test name>.Test.csproj`
+Run `dotnet test test/<dir>/<project>.Test.csproj`
 
 ## Run end-to-end tests
 
@@ -52,7 +52,13 @@ Prerequisites:
 
 Run `selenium-standalone start`
 
-Run `dotnet test test/<test name>.E2ETest.csproj`
+Run `dotnet test test\Microsoft.AspNetCore.Blazor.E2ETest\Microsoft.AspNetCore.Blazor.E2ETest.csproj`
+
+## Run all tests
+
+Install prerequisites for E2E tests
+
+Run `dotnet test test\AllTests.proj`
 
 ## Contributing
 

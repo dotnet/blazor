@@ -14,6 +14,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
     /// </summary>
     public abstract class Renderer
     {
+        private readonly ComponentFactory _componentFactory;
         private int _nextComponentId = 0; // TODO: change to 'long' when Mono .NET->JS interop supports it
         private readonly Dictionary<int, ComponentState> _componentStateById
             = new Dictionary<int, ComponentState>();
@@ -26,19 +27,21 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             = new Dictionary<int, UIEventHandler>();
 
         /// <summary>
+        /// Constructs an instance of <see cref="Renderer"/>.
+        /// </summary>
+        /// <param name="serviceProvider">The <see cref="IServiceProvider"/> to be used when initialising components.</param>
+        public Renderer(IServiceProvider serviceProvider)
+        {
+            _componentFactory = new ComponentFactory(serviceProvider);
+        }
+
+        /// <summary>
         /// Constructs a new component of the specified type.
         /// </summary>
         /// <param name="componentType">The type of the component to instantiate.</param>
         /// <returns>The component instance.</returns>
         protected IComponent InstantiateComponent(Type componentType)
-        {
-            if (!typeof(IComponent).IsAssignableFrom(componentType))
-            {
-                throw new ArgumentException($"Must implement {nameof(IComponent)}", nameof(componentType));
-            }
-
-            return (IComponent)Activator.CreateInstance(componentType);
-        }
+            => _componentFactory.InstantiateComponent(componentType);
 
         /// <summary>
         /// Associates the <see cref="IComponent"/> with the <see cref="Renderer"/>, assigning
@@ -71,7 +74,18 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         {
             if (_eventHandlersById.TryGetValue(eventHandlerId, out var handler))
             {
-                GetRequiredComponentState(componentId).DispatchEvent(handler, eventArgs);
+                // The event handler might request multiple renders in sequence. Capture them
+                // all in a single batch.
+                try
+                {
+                    _isBatchInProgress = true;
+                    GetRequiredComponentState(componentId).DispatchEvent(handler, eventArgs);
+                }
+                finally
+                {
+                    _isBatchInProgress = false;
+                    ProcessRenderQueue();
+                }
             }
             else
             {
@@ -103,9 +117,18 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             frame = frame.WithAttributeEventHandlerId(id);
         }
 
-        internal void AddToRenderQueue(RenderQueueEntry renderQueueEntry)
+        internal void AddToRenderQueue(int componentId, RenderFragment renderFragment)
         {
-            _batchBuilder.ComponentRenderQueue.Enqueue(renderQueueEntry);
+            var componentState = GetOptionalComponentState(componentId);
+            if (componentState == null)
+            {
+                // If the component was already disposed, then its render handle trying to
+                // queue a render is a no-op.
+                return;
+            }
+
+            _batchBuilder.ComponentRenderQueue.Enqueue(
+                new RenderQueueEntry(componentState, renderFragment));
 
             if (!_isBatchInProgress)
             {
@@ -117,6 +140,11 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             => _componentStateById.TryGetValue(componentId, out var componentState)
                 ? componentState
                 : throw new ArgumentException($"The renderer does not have a component with ID {componentId}.");
+
+        private ComponentState GetOptionalComponentState(int componentId)
+            => _componentStateById.TryGetValue(componentId, out var componentState)
+                ? componentState
+                : null;
 
         private void ProcessRenderQueue()
         {
@@ -143,9 +171,8 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
         private void RenderInExistingBatch(RenderQueueEntry renderQueueEntry)
         {
-            var componentId = renderQueueEntry.ComponentId;
-            GetRequiredComponentState(componentId)
-                .RenderIntoBatch(_batchBuilder, renderQueueEntry.RenderAction);
+            renderQueueEntry.ComponentState
+                .RenderIntoBatch(_batchBuilder, renderQueueEntry.RenderFragment);
 
             // Process disposal queue now in case it causes further component renders to be enqueued
             while (_batchBuilder.ComponentDisposalQueue.Count > 0)

@@ -3,9 +3,11 @@
 
 using Microsoft.AspNetCore.Blazor.Build.Core.RazorCompilation;
 using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Blazor.Layouts;
+using Microsoft.AspNetCore.Blazor.Razor;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
-using Microsoft.AspNetCore.Blazor.Test.Shared;
+using Microsoft.AspNetCore.Blazor.Test.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
@@ -187,6 +189,19 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
+        public void SupportsComments()
+        {
+            // Arrange/Act
+            var component = CompileToComponent("Start<!-- My comment -->End");
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(frames,
+                frame => AssertFrame.Text(frame, "Start", 0),
+                frame => AssertFrame.Text(frame, "End", 1));
+        }
+
+        [Fact]
         public void SupportsAttributesWithLiteralValues()
         {
             // Arrange/Act
@@ -348,16 +363,363 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
+        public void SupportsTwoWayBindingForTextboxes()
+        {
+            // Arrange/Act
+            var component = CompileToComponent(
+                @"<input @bind(MyValue) />
+                @functions {
+                    public string MyValue { get; set; } = ""Initial value"";
+                }");
+            var myValueProperty = component.GetType().GetProperty("MyValue");
+
+            // Assert
+            var frames = GetRenderTree(component);
+            Assert.Collection(frames,
+                frame => AssertFrame.Element(frame, "input", 3, 0),
+                frame => AssertFrame.Attribute(frame, "value", "Initial value", 1),
+                frame =>
+                {
+                    AssertFrame.Attribute(frame, "onchange", 2);
+
+                    // Trigger the change event to show it updates the property
+                    ((UIEventHandler)frame.AttributeValue)(new UIChangeEventArgs
+                    {
+                        Value = "Modified value"
+                    });
+                    Assert.Equal("Modified value", myValueProperty.GetValue(component));
+                },
+                frame => AssertFrame.Text(frame, "\n", 3));
+        }
+
+        [Fact]
+        public void SupportsTwoWayBindingForCheckboxes()
+        {
+            // Arrange/Act
+            var component = CompileToComponent(
+                @"<input @bind(MyValue) type=""checkbox"" />
+                @functions {
+                    public bool MyValue { get; set; } = true;
+                }");
+            var myValueProperty = component.GetType().GetProperty("MyValue");
+
+            // Assert
+            var frames = GetRenderTree(component);
+            Assert.Collection(frames,
+                frame => AssertFrame.Element(frame, "input", 4, 0),
+                frame => AssertFrame.Attribute(frame, "type", "checkbox", 1),
+                frame => AssertFrame.Attribute(frame, "value", "True", 2),
+                frame =>
+                {
+                    AssertFrame.Attribute(frame, "onchange", 3);
+
+                    // Trigger the change event to show it updates the property
+                    ((UIEventHandler)frame.AttributeValue)(new UIChangeEventArgs
+                    {
+                        Value = false
+                    });
+                    Assert.False((bool)myValueProperty.GetValue(component));
+                },
+                frame => AssertFrame.Text(frame, "\n", 4));
+        }
+
+        [Fact]
         public void SupportsChildComponentsViaTemporarySyntax()
         {
             // Arrange/Act
-            var testComponentTypeName = typeof(TestComponent).FullName.Replace('+', '.');
+            var testComponentTypeName = FullTypeName<TestComponent>();
             var component = CompileToComponent($"<c:{testComponentTypeName} />");
             var frames = GetRenderTree(component);
 
             // Assert
             Assert.Collection(frames,
-                frame => AssertFrame.Component<TestComponent>(frame, 0));
+                frame => AssertFrame.Component<TestComponent>(frame, 1, 0));
+        }
+
+        [Fact]
+        public void CanPassParametersToComponents()
+        {
+            // Arrange/Act
+            var testComponentTypeName = FullTypeName<TestComponent>();
+            var testObjectTypeName = FullTypeName<SomeType>();
+            // TODO: Once we have the improved component tooling and can allow syntax
+            //       like StringProperty="My string" or BoolProperty=true, update this
+            //       test to use that syntax.
+            var component = CompileToComponent($"<c:{testComponentTypeName}" +
+                $" IntProperty=@(123)" +
+                $" BoolProperty=@true" +
+                $" StringProperty=@(\"My string\")" +
+                $" ObjectProperty=@(new {testObjectTypeName}()) />");
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(frames,
+                frame => AssertFrame.Component<TestComponent>(frame, 5, 0),
+                frame => AssertFrame.Attribute(frame, "IntProperty", 123, 1),
+                frame => AssertFrame.Attribute(frame, "BoolProperty", true, 2),
+                frame => AssertFrame.Attribute(frame, "StringProperty", "My string", 3),
+                frame =>
+                {
+                    AssertFrame.Attribute(frame, "ObjectProperty", 4);
+                    Assert.IsType<SomeType>(frame.AttributeValue);
+                });
+        }
+
+        [Fact]
+        public void TemporaryComponentSyntaxRejectsParametersExpressedAsPlainHtmlAttributes()
+        {
+            // This is a temporary syntax restriction. Currently you can write:
+            //    <c:MyComponent MyParam=@("My value") />
+            // ... but are *not* allowed to write:
+            //    <c:MyComponent MyParam="My value" />
+            // This is because until we get the improved taghelper-based tooling,
+            // we're using AngleSharp to parse the plain HTML attributes, and it
+            // suffers from limitations:
+            //  * Loses the casing of attribute names (MyParam becomes myparam)
+            //  * Doesn't recognize MyBool=true as an bool (becomes mybool="true"),
+            //    plus equivalent for other primitives like enum values
+            // So to avoid people getting runtime errors, we're currently imposing
+            // the compile-time restriction that component params have to be given
+            // as C# expressions, e.g., MyBool=@true and MyString=@("Hello")
+
+            // Arrange/Act
+            var result = CompileToCSharp(
+                $"Line 1\n" +
+                $"Some text <c:MyComponent MyParam=\"My value\" />");
+
+            // Assert
+            Assert.Collection(result.Diagnostics,
+                item =>
+                {
+                    Assert.Equal(RazorCompilerDiagnostic.DiagnosticType.Error, item.Type);
+                    Assert.StartsWith($"Wrong syntax for 'myparam' on 'c:MyComponent': As a temporary " +
+                        $"limitation, component attributes must be expressed with C# syntax. For " +
+                        $"example, SomeParam=@(\"Some value\") is allowed, but SomeParam=\"Some value\" " +
+                        $"is not.", item.Message);
+                    Assert.Equal(2, item.Line);
+                    Assert.Equal(11, item.Column);
+                });
+        }
+
+        [Fact]
+        public void CanIncludeChildrenInComponents()
+        {
+            // Arrange/Act
+            var testComponentTypeName = FullTypeName<TestComponent>();
+            var component = CompileToComponent($"<c:{testComponentTypeName} MyAttr=@(\"abc\")>" +
+                $"Some text" +
+                $"<some-child a='1'>Nested text</some-child>" +
+                $"</c:{testComponentTypeName}>");
+            var frames = GetRenderTree(component);
+
+            // Assert: component frames are correct
+            Assert.Collection(frames,
+                frame => AssertFrame.Component<TestComponent>(frame, 3, 0),
+                frame => AssertFrame.Attribute(frame, "MyAttr", "abc", 1),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 2));
+
+            // Assert: Captured ChildContent frames are correct
+            var childFrames = GetFrames((RenderFragment)frames[2].AttributeValue);
+            Assert.Collection(childFrames,
+                frame => AssertFrame.Text(frame, "Some text", 3),
+                frame => AssertFrame.Element(frame, "some-child", 3, 4),
+                frame => AssertFrame.Attribute(frame, "a", "1", 5),
+                frame => AssertFrame.Text(frame, "Nested text", 6));
+        }
+
+        [Fact]
+        public void CanNestComponentChildContent()
+        {
+            // Arrange/Act
+            var testComponentTypeName = FullTypeName<TestComponent>();
+            var component = CompileToComponent(
+                $"<c:{testComponentTypeName}>" +
+                    $"<c:{testComponentTypeName}>" +
+                        $"Some text" +
+                    $"</c:{testComponentTypeName}>" +
+                $"</c:{testComponentTypeName}>");
+            var frames = GetRenderTree(component);
+
+            // Assert: outer component frames are correct
+            Assert.Collection(frames,
+                frame => AssertFrame.Component<TestComponent>(frame, 2, 0),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 1));
+
+            // Assert: first level of ChildContent is correct
+            // Note that we don't really need the sequence numbers to continue on from the
+            // sequence numbers at the parent level. All that really matters is that they are
+            // correct relative to each other (i.e., incrementing) within the nesting level.
+            // As an implementation detail, it happens that they do follow on from the parent
+            // level, but we could change that part of the implementation if we wanted.
+            var innerFrames = GetFrames((RenderFragment)frames[1].AttributeValue).ToArray();
+            Assert.Collection(innerFrames,
+                frame => AssertFrame.Component<TestComponent>(frame, 2, 2),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 3));
+
+            // Assert: second level of ChildContent is correct
+            Assert.Collection(GetFrames((RenderFragment)innerFrames[1].AttributeValue),
+                frame => AssertFrame.Text(frame, "Some text", 4));
+        }
+
+        [Fact]
+        public void ComponentsDoNotHaveLayoutAttributeByDefault()
+        {
+            // Arrange/Act
+            var component = CompileToComponent($"Hello");
+
+            // Assert
+            Assert.Null(component.GetType().GetCustomAttribute<LayoutAttribute>());
+        }
+
+        [Fact]
+        public void SupportsLayoutDeclarationsViaTemporarySyntax()
+        {
+            // Arrange/Act
+            var testComponentTypeName = FullTypeName<TestLayout>();
+            var component = CompileToComponent(
+                $"@(Layout<{testComponentTypeName}>())\n" +
+                $"Hello");
+            var frames = GetRenderTree(component);
+
+            // Assert
+            var layoutAttribute = component.GetType().GetCustomAttribute<LayoutAttribute>();
+            Assert.NotNull(layoutAttribute);
+            Assert.Equal(typeof(TestLayout), layoutAttribute.LayoutType);
+            Assert.Collection(frames,
+                frame => AssertFrame.Text(frame, "\nHello"));
+        }
+
+        [Fact]
+        public void SupportsImplementsDeclarationsViaTemporarySyntax()
+        {
+            // Arrange/Act
+            var testInterfaceTypeName = FullTypeName<ITestInterface>();
+            var component = CompileToComponent(
+                $"@(Implements<{testInterfaceTypeName}>())\n" +
+                $"Hello");
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.IsAssignableFrom<ITestInterface>(component);
+            Assert.Collection(frames,
+                frame => AssertFrame.Text(frame, "\nHello"));
+        }
+
+        [Fact]
+        public void SupportsInheritsDirective()
+        {
+            // Arrange/Act
+            var testBaseClassTypeName = FullTypeName<TestBaseClass>();
+            var component = CompileToComponent(
+                $"@inherits {testBaseClassTypeName}" + Environment.NewLine +
+                $"Hello");
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.IsAssignableFrom<TestBaseClass>(component);
+            Assert.Collection(frames,
+                frame => AssertFrame.Text(frame, "Hello"));
+        }
+
+        [Fact]
+        public void SurfacesCSharpCompilationErrors()
+        {
+            // Arrange/Act
+            var result = CompileToAssembly(
+                GetArbitraryPlatformValidDirectoryPath(),
+                "file.cshtml",
+                "@invalidVar",
+                "Test.Base");
+
+            // Assert
+            Assert.Collection(result.Diagnostics,
+                diagnostic => Assert.Contains("'invalidVar'", diagnostic.GetMessage()));
+        }
+
+        [Fact]
+        public void RejectsEndTagWithNoStartTag()
+        {
+            // Arrange/Act
+            var result = CompileToCSharp(
+                "Line1\nLine2\nLine3</mytag>");
+
+            // Assert
+            Assert.Collection(result.Diagnostics,
+                item =>
+                {
+                    Assert.Equal(RazorCompilerDiagnostic.DiagnosticType.Error, item.Type);
+                    Assert.StartsWith("Unexpected closing tag 'mytag' with no matching start tag.", item.Message);
+                });
+        }
+
+        [Fact]
+        public void RejectsEndTagWithDifferentNameToStartTag()
+        {
+            // Arrange/Act
+            var result = CompileToCSharp(
+                $"@{{\n" +
+                $"   var abc = 123;\n" +
+                $"}}\n" +
+                $"<root>\n" +
+                $"    <other />\n" +
+                $"    text\n" +
+                $"    <child>more text</root>\n" +
+                $"</child>\n");
+
+            // Assert
+            Assert.Collection(result.Diagnostics,
+                item =>
+                {
+                    Assert.Equal(RazorCompilerDiagnostic.DiagnosticType.Error, item.Type);
+                    Assert.StartsWith("Mismatching closing tag. Found 'root' but expected 'child'.", item.Message);
+                    Assert.Equal(7, item.Line);
+                    Assert.Equal(21, item.Column);
+                });
+        }
+
+        [Fact]
+        public void SupportsInjectDirective()
+        {
+            // Arrange/Act 1: Compilation
+            var componentType = CompileToComponent(
+                $"@inject {FullTypeName<IMyService1>()} MyService1\n" +
+                $"@inject {FullTypeName<IMyService2>()} MyService2\n" +
+                $"Hello from @MyService1 and @MyService2").GetType();
+
+            // Assert 1: Compiled type has correct properties
+            var propertyFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.NonPublic;
+            var injectableProperties = componentType.GetProperties(propertyFlags)
+                .Where(p => p.GetCustomAttribute<InjectAttribute>() != null);
+            Assert.Collection(injectableProperties.OrderBy(p => p.Name),
+                property =>
+                {
+                    Assert.Equal("MyService1", property.Name);
+                    Assert.Equal(typeof(IMyService1), property.PropertyType);
+                    Assert.False(property.GetMethod.IsPublic);
+                    Assert.False(property.SetMethod.IsPublic);
+                },
+                property =>
+                {
+                    Assert.Equal("MyService2", property.Name);
+                    Assert.Equal(typeof(IMyService2), property.PropertyType);
+                    Assert.False(property.GetMethod.IsPublic);
+                    Assert.False(property.SetMethod.IsPublic);
+                });
+
+            // Arrange/Act 2: DI-supplied component has correct behavior
+            var serviceProvider = new TestServiceProvider();
+            serviceProvider.AddService<IMyService1>(new MyService1Impl());
+            serviceProvider.AddService<IMyService2>(new MyService2Impl());
+            var componentFactory = new ComponentFactory(serviceProvider);
+            var component = componentFactory.InstantiateComponent(componentType);
+            var frames = GetRenderTree(component);
+
+            // Assert 2: Rendered component behaves correctly
+            Assert.Collection(frames,
+                frame => AssertFrame.Text(frame, "Hello from "),
+                frame => AssertFrame.Text(frame, typeof(MyService1Impl).FullName),
+                frame => AssertFrame.Text(frame, " and "),
+                frame => AssertFrame.Text(frame, typeof(MyService2Impl).FullName));
         }
 
         private static RenderTreeFrame[] GetRenderTree(IComponent component)
@@ -420,7 +782,9 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             {
                 compilation.Emit(peStream);
 
-                var diagnostics = compilation.GetDiagnostics();
+                var diagnostics = compilation
+                    .GetDiagnostics()
+                    .Where(d => d.Severity != DiagnosticSeverity.Hidden);
                 return new CompileToAssemblyResult
                 {
                     Diagnostics = diagnostics,
@@ -429,6 +793,13 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 };
             }
         }
+
+        private static CompileToCSharpResult CompileToCSharp(string cshtmlContent)
+            => CompileToCSharp(
+                GetArbitraryPlatformValidDirectoryPath(),
+                "test.cshtml",
+                cshtmlContent,
+                "TestNamespace");
 
         private static CompileToCSharpResult CompileToCSharp(string cshtmlRootPath, string cshtmlRelativePath, string cshtmlContent, string outputNamespace)
         {
@@ -457,6 +828,13 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             }
         }
 
+        private ArrayRange<RenderTreeFrame> GetFrames(RenderFragment fragment)
+        {
+            var builder = new RenderTreeBuilder(new TestRenderer());
+            fragment(builder);
+            return builder.GetFrames();
+        }
+
         private class CompileToCSharpResult
         {
             public string Code { get; set; }
@@ -473,6 +851,10 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
 
         private class TestRenderer : Renderer
         {
+            public TestRenderer() : base(new TestServiceProvider())
+            {
+            }
+
             public RenderTreeFrame[] LatestBatchReferenceFrames { get; private set; }
 
             public void AttachComponent(IComponent component)
@@ -494,5 +876,32 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             {
             }
         }
+
+        public class TestLayout : ILayoutComponent
+        {
+            public RenderFragment Body { get; set; }
+
+            public void Init(RenderHandle renderHandle)
+            {
+            }
+
+            public void SetParameters(ParameterCollection parameters)
+            {
+            }
+        }
+
+        public interface ITestInterface { }
+
+        public class TestBaseClass : BlazorComponent { }
+
+        public class SomeType { }
+
+        public interface IMyService1 { }
+        public interface IMyService2 { }
+        public class MyService1Impl : IMyService1 { }
+        public class MyService2Impl : IMyService2 { }
+
+        private static string FullTypeName<T>()
+            => typeof(T).FullName.Replace('+', '.');
     }
 }

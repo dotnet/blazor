@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Blazor.Server;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Mime;
 
@@ -12,37 +12,71 @@ namespace Microsoft.AspNetCore.Builder
 {
     public static class BlazorAppBuilderExtensions
     {
+        /// <summary>
+        /// Configures the middleware pipeline to work with Blazor.
+        /// </summary>
+        /// <param name="applicationBuilder"></param>
+        /// <param name="clientAssemblyName"
+        ///     >The name of the client assembly relative to the current bin directory.</param>
         public static void UseBlazor(
             this IApplicationBuilder applicationBuilder,
             string clientAssemblyName)
         {
             var binDir = Path.GetDirectoryName(typeof(BlazorConfig).Assembly.Location);
             var clientAssemblyPath = Path.Combine(binDir, $"{clientAssemblyName}.dll");
-            applicationBuilder.UseBlazorInternal(clientAssemblyPath);
+            applicationBuilder.UseBlazor(new BlazorOptions
+            {
+                ClientAssemblyPath = clientAssemblyPath,
+            });
         }
-        
-        // TODO: Change this combination of APIs to make it possible to supply either
-        // an assembly name (resolved to current bin dir) or full assembly path
-        internal static void UseBlazorInternal(
+
+        /// <summary>
+        /// Configures the middleware pipeline to work with Blazor.
+        /// </summary>
+        /// <param name="applicationBuilder"></param>
+        /// <param name="options"></param>
+        public static void UseBlazor(
             this IApplicationBuilder applicationBuilder,
-            string clientAssemblyPath)
+            BlazorOptions options)
         {
-            var config = BlazorConfig.Read(clientAssemblyPath);
+            var config = BlazorConfig.Read(options.ClientAssemblyPath);
             var clientAppBinDir = Path.GetDirectoryName(config.SourceOutputAssemblyPath);
             var clientAppDistDir = Path.Combine(clientAppBinDir, "dist");
-            var distFileProvider = new PhysicalFileProvider(clientAppDistDir);
-
-            applicationBuilder.UseDefaultFiles(new DefaultFilesOptions
+            var distDirStaticFiles = new StaticFileOptions
             {
-                FileProvider = distFileProvider
-            });
-
-            applicationBuilder.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = distFileProvider,
+                FileProvider = new PhysicalFileProvider(clientAppDistDir),
                 ContentTypeProvider = CreateContentTypeProvider(),
+            };
+
+            // First, match the request against files in the client app dist directory
+            applicationBuilder.UseStaticFiles(distDirStaticFiles);
+
+            // Next, match the request against static files in wwwroot
+            if (!string.IsNullOrEmpty(config.WebRootPath))
+            {
+                // In development, we serve the wwwroot files directly from source
+                // (and don't require them to be copied into dist).
+                // TODO: When publishing is implemented, have config.WebRootPath set
+                // to null so that it only serves files that were copied to dist
+                applicationBuilder.UseStaticFiles(new StaticFileOptions
+                {
+                    FileProvider = new PhysicalFileProvider(config.WebRootPath)
+                });
+            }
+
+            // Finally, use SPA fallback routing (serve default page for anything else,
+            // excluding /_framework/*)
+            applicationBuilder.MapWhen(IsNotFrameworkDir, childAppBuilder =>
+            {
+                childAppBuilder.UseSpa(spa =>
+                {
+                    spa.Options.DefaultPageStaticFileOptions = distDirStaticFiles;
+                });
             });
         }
+
+        private static bool IsNotFrameworkDir(HttpContext context)
+            => !context.Request.Path.StartsWithSegments("/_framework");
 
         private static IContentTypeProvider CreateContentTypeProvider()
         {

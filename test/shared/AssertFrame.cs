@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Test.Shared
+namespace Microsoft.AspNetCore.Blazor.Test.Helpers
 {
     internal static class AssertFrame
     {
@@ -53,16 +52,26 @@ namespace Microsoft.AspNetCore.Blazor.Test.Shared
             Assert.Equal(attributeEventHandlerValue, frame.AttributeValue);
         }
 
-        public static void Component<T>(RenderTreeFrame frame, int? sequence = null) where T : IComponent
+        public static void Attribute(RenderTreeFrame frame, string attributeName, object attributeValue, int? sequence = null)
+        {
+            AssertFrame.Attribute(frame, attributeName, sequence);
+            Assert.Equal(attributeValue, frame.AttributeValue);
+        }
+
+        public static void Component<T>(RenderTreeFrame frame, int? subtreeLength = null, int? sequence = null) where T : IComponent
         {
             Assert.Equal(RenderTreeFrameType.Component, frame.FrameType);
             Assert.Equal(typeof(T), frame.ComponentType);
+            if (subtreeLength.HasValue)
+            {
+                Assert.Equal(subtreeLength.Value, frame.ComponentSubtreeLength);
+            }
             AssertFrame.Sequence(frame, sequence);
         }
 
-        public static void ComponentWithInstance<T>(RenderTreeFrame frame, int componentId, int? sequence = null) where T : IComponent
+        public static void ComponentWithInstance<T>(RenderTreeFrame frame, int componentId, int? subtreeLength = null, int? sequence = null) where T : IComponent
         {
-            AssertFrame.Component<T>(frame, sequence);
+            AssertFrame.Component<T>(frame, subtreeLength, sequence);
             Assert.IsType<T>(frame.Component);
             Assert.Equal(componentId, frame.ComponentId);
         }
