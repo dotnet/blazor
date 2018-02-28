@@ -1,0 +1,46 @@
+<Project>
+
+  <PropertyGroup>
+    <PrepareBlazorRuntimeDependsOn>
+      $(PrepareBlazorRuntimeDependsOn);
+    </PrepareBlazorRuntimeDependsOn>
+  </PropertyGroup>
+
+
+  <Target Name="PrepareBlazorRuntime" DependsOnTargets="$(PrepareBlazorRuntimeDependsOn)" AfterTargets="Build">
+    <Message Importance="high" text="Blazor Runtime" />    
+  </Target>
+
+  <Target Name="PrepareBlazorOutput" AfterTargets="PrepareBlazorRuntime">
+    <ItemGroup>
+      <_BlazorRuntimeOutputFolder Include="@(BlazorRuntimeOutputFolder->'$(OutputPath)%(Identity)')" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_BlazorRuntimeAsmjsOutputPath>$(OutputPath)$(BlazorRuntimeAsmjsOutputPath)</_BlazorRuntimeAsmjsOutputPath>
+      <_BlazorRuntimeWasmOutputPath>$(OutputPath)$(BlazorRuntimeWasmOutputPath)</_BlazorRuntimeWasmOutputPath>
+      <_BlazorRuntimeBclOutputPath>$(OutputPath)$(BlazorRuntimeBclOutputPath)</_BlazorRuntimeBclOutputPath>
+    </PropertyGroup>
+    <Message Importance="high" text="Creating directories @(_BlazorRuntimeOutputFolder)" />
+    <Message Importance="high" text="Copying blazor files @(MonoAsmJsFile) to $(_BlazorRuntimeAsmjsOutputPath)" />
+    <Message Importance="high" text="Copying blazor files @(MonoWasmFile) to $(_BlazorRuntimeWasmOutputPath)" />
+    <!-- <MakeDir Directories="@(BlazorRuntimeOutputFolder)" />
+    <Copy SourceFiles="@(MonoAsmjsFile)" DestinationFolder="$(BlazorRuntimeAsmjsOutputPath)" />
+    <Copy SourceFiles="@(MonoWasmFile)" DestinationFolder="$(BlazorRuntimeWasmOutputPath)" /> -->
+  </Target>
+
+  <Target Name="RunLinker" AfterTargets="PrepareBlazorRuntime">
+    <PropertyGroup>
+      <LinkerOutputPath>$(OutputPath)$(BlazorRuntimeBclOutputPath)</LinkerOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <AssembliesToLink 
+        Include="@(ReferenceCopyLocalPaths->'-a %(Identity)')"
+        Condition="%(ReferenceCopyLocalPaths->'Identity.EndsWith('.dll)') == 'True'" />
+      <AssembliesToLink Include="@(MainAssembly->'-a %(FullPath)')" />
+    </ItemGroup>
+    <Message Importance="high" text="Assemblies to link: @(AssembliesToLink, ' ')" />
+    <Message Importance="high" text="$(MonoLinkerPath) $(AdditionalMonoLinkerOptions) -d $(MonoBaseClassLibraryPath) -o $(LinkerOutputPath)" />
+    <!-- <Exec Command="$(MonoLinkerPath) $(AdditionalMonoLinkerOptions) -d $(MonoBaseClassLibraryPath) -o $(LinkerOutputPath) @(AssembliesToLink, ' ')" /> -->
+  </Target>
+
+</Project>

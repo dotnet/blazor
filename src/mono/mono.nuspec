@@ -2,8 +2,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <!-- Required elements-->
-        <id>Blazor.Build.Runtime</id>
-        <version>0.1.0</version>
+        <id>Blazor.MonoRuntime</id>
+        <version>0.3.6</version>
         <description>Blazor mono runtime and tools</description>
         <authors>Microsoft</authors>
 
