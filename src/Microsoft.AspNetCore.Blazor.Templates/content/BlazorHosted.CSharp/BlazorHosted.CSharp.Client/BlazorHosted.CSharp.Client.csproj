@@ -9,4 +9,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.0.5-preview1-10031" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BlazorHosted.CSharp.Shared\BlazorHosted.CSharp.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
