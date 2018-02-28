@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <!-- Required elements-->
+        <id>Blazor.Build.Runtime</id>
+        <version>0.1.0</version>
+        <description>Blazor mono runtime and tools</description>
+        <authors>Microsoft</authors>
+
+        <!-- Optional elements -->
+        <!-- ... -->
+    </metadata>
+    <!-- Optional 'files' node -->
+    <files>
+      <file src=".\dist\optimized\**\*" target="tools\mono"  />
+      <file src=".\tools\illink.exe" target="tools\illink" />
+      <file src=".\tools\Mono.Cecil.dll" target="tools\illink" />
+      <file src=".\tools\Mono.Cecil.Pdb.dll" target="tools\illink" />
+      <file src=".\build\**\*.*" target="build" />
+    </files>
+</package>

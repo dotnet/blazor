@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazor.Build.Runtime" Version="0.1.0" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.Browser.JS\Microsoft.AspNetCore.Blazor.Browser.JS.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.Mono\Microsoft.AspNetCore.Blazor.Mono.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.Razor.Extensions\Microsoft.AspNetCore.Blazor.Razor.Extensions.csproj" />

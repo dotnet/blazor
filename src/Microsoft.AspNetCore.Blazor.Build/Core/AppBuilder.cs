@@ -23,6 +23,8 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core
             var tmpDistDirPath = Path.Combine(outputPath, "tmp");
             var tmpOptimizedPath = Path.Combine(outputPath, "optimized");
 
+            FileUtil.WriteFileProviderToDisk(frameworkFileProvider, Path.Combine(outputPath, "manual"), clean: true);
+
             // Pull all the files on a temporary folder to run the linker on.
             FileUtil.WriteFileProviderToDisk(frameworkFileProvider, Path.Combine(tmpDistDirPath, "_framework"), clean: true);
             RunLinker(assemblyPath, tmpDistDirPath, tmpOptimizedPath);
@@ -90,7 +92,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core
         {
             string[] mainAssemblies = GetMainAssemblies(assemblyPath);
             var frameworkFolder = Path.Combine(srcPath, "_framework", "_bin");
-            var additionalOptions = "-u copy -c link --skip-unresolved true";
+            var additionalOptions = $"-c link --skip-unresolved true";
             return $"{string.Join(' ', mainAssemblies.Select(s => $"-a {s}"))}" +
                 $" {$"-d {frameworkFolder}"}" +
                 " " + additionalOptions +
