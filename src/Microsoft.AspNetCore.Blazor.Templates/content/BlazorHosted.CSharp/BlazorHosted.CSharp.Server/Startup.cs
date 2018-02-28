@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
 
 namespace BlazorHosted.CSharp.Server
 {
@@ -13,6 +14,10 @@ namespace BlazorHosted.CSharp.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc().AddJsonOptions(opts =>
+            {
+                opts.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -22,6 +27,11 @@ namespace BlazorHosted.CSharp.Server
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(name: "default", template: "{controller}/{action}/{id?}");
+            });
 
             app.UseBlazor<Client.Program>();
         }
