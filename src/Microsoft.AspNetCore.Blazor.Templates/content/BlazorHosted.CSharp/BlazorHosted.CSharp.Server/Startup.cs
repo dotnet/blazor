@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BlazorHosted.Server
+namespace BlazorHosted.CSharp.Server
 {
     public class Startup
     {
@@ -23,7 +23,7 @@ namespace BlazorHosted.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseBlazor<BlazorHosted.Program>();
+            app.UseBlazor<Client.Program>();
         }
     }
 }
