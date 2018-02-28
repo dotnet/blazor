@@ -1,7 +1,6 @@
-﻿@using Microsoft.AspNetCore.Blazor.Routing
-<!--
+﻿<!--
     Configuring this stuff here is temporary. Later we'll move the app config
     into Program.cs, and it won't be necessary to specify AppAssembly.
 -->
-<c:Router AppAssembly=@(typeof(BlazorStandalone.CSharp.Program).Assembly)
+<c:Router AppAssembly=@(typeof(Program).Assembly)
           PagesNamespace=@("BlazorStandalone.CSharp.Pages") />
