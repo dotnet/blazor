@@ -25,7 +25,7 @@ else
             @foreach (var forecast in forecasts)
             {
                 <tr>
-                    <td>@forecast.DateFormatted</td>
+                    <td>@forecast.Date.ToShortDateString()</td>
                     <td>@forecast.TemperatureC</td>
                     <td>@forecast.TemperatureF</td>
                     <td>@forecast.Summary</td>
@@ -46,7 +46,7 @@ else
 
     class WeatherForecast
     {
-        public string DateFormatted { get; set; }
+        public DateTime Date { get; set; }
         public int TemperatureC { get; set; }
         public int TemperatureF { get; set; }
         public string Summary { get; set; }
