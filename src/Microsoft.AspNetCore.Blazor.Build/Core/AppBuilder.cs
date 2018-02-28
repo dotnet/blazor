@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core
                 File.Move(entry, Path.Combine(distFrameworkBin, Path.GetFileName(entry)));
             }
 
-            File.Copy(assemblyPath, Path.Combine(distFrameworkBin, Path.GetFileName(assemblyPath)), overwrite: true);
+            //File.Copy(assemblyPath, Path.Combine(distFrameworkBin, Path.GetFileName(assemblyPath)), overwrite: true);
 
             // Write an updated index.html file if present.
             if (!string.IsNullOrEmpty(webRootPath))
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core
             EnsureDirectory(outputPath);
             var arguments = BuildArguments(assemblyPath, srcPath, outputPath);
             var processInfo = new ProcessStartInfo(
-                @"C:\work\Blazor\src\mono\tools\illink.exe",
+                @"dotnet",
                 arguments)
             {
                 RedirectStandardOutput = true
@@ -92,11 +92,12 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core
         {
             string[] mainAssemblies = GetMainAssemblies(assemblyPath);
             var frameworkFolder = Path.Combine(srcPath, "_framework", "_bin");
-            var additionalOptions = $"-c link --skip-unresolved true";
-            return $"{string.Join(' ', mainAssemblies.Select(s => $"-a {s}"))}" +
-                $" {$"-d {frameworkFolder}"}" +
+            var additionalOptions = $"-c link -u skip --skip-unresolved true";
+            return @"C:\work\Blazor\src\mono\tools\bin\illink\illink.dll" +
                 " " + additionalOptions +
-                $" {$"-out {outputPath}"}";
+                $" {$"-d {frameworkFolder}"}" +
+                $" {$"-out {outputPath}"}" +
+                $" {string.Join(' ', mainAssemblies.Select(s => $"-a {s}"))}";
         }
 
         private static string[] GetMainAssemblies(string assemblyPath)
