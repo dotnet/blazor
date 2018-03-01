@@ -44,6 +44,11 @@ function listenForReloadEvent(eventSourceUrl: string, reloadOnConnection: boolea
       }
     }
   });
+
+  // Needed for some versions of Firefox
+  window.addEventListener('beforeunload', () => {
+    source.close();
+  });
 }
 
 function resolveAgainstBaseUri(uri: string) {
