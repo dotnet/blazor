@@ -178,7 +178,11 @@ namespace Microsoft.AspNetCore.Blazor.Build
 
                     case HtmlTokenType.EndOfFile:
                         // Finally, emit any remaining text from the original source file
-                        resultBuilder.Append(htmlTemplate, currentRangeStartPos, htmlTemplate.Length - currentRangeStartPos);
+                        var remainingLength = htmlTemplate.Length - currentRangeStartPos;
+                        if (remainingLength > 0)
+                        {
+                            resultBuilder.Append(htmlTemplate, currentRangeStartPos, remainingLength);
+                        }
                         return resultBuilder.ToString();
                 }
             }
