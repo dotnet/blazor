@@ -11,6 +11,8 @@ namespace Microsoft.AspNetCore.Blazor.Server
         public string SourceMSBuildPath { get; }
         public string SourceOutputAssemblyPath { get; }
         public string WebRootPath { get; }
+        public string DistPath
+            => Path.Combine(Path.GetDirectoryName(SourceOutputAssemblyPath), "dist");
 
         public static BlazorConfig Read(string assemblyPath)
             => new BlazorConfig(assemblyPath);

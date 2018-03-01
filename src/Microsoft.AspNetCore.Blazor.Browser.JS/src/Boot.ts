@@ -1,5 +1,6 @@
 ﻿import { platform } from './Environment';
 import { getAssemblyNameFromUrl } from './Platform/DotNet';
+import { enableLiveReloading } from './LiveReloading';
 import './Rendering/Renderer';
 import './Services/Http';
 import './Services/UriHelper';
@@ -36,6 +37,10 @@ async function boot() {
 
   // Start up the application
   platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
+
+  // TODO: Get the live reloading endpoint from the <script> element, and
+  // only enable it if there is one
+  enableLiveReloading('/_reload');
 }
 
 function getRequiredBootScriptAttribute(elem: HTMLScriptElement, attributeName: string): string {

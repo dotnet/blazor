@@ -42,13 +42,9 @@ namespace Microsoft.AspNetCore.Builder
             // hence all the path manipulation here. We shouldn't be hardcoding 'dist' here either.
             var env = (IHostingEnvironment)applicationBuilder.ApplicationServices.GetService(typeof(IHostingEnvironment));
             var config = BlazorConfig.Read(options.ClientAssemblyPath);
-            var clientAppBinDir = Path.GetDirectoryName(config.SourceOutputAssemblyPath);
-            var clientAppDistDir = Path.Combine(
-                env.ContentRootPath,
-                Path.Combine(clientAppBinDir, "dist"));
             var distDirStaticFiles = new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(clientAppDistDir),
+                FileProvider = new PhysicalFileProvider(config.DistPath),
                 ContentTypeProvider = CreateContentTypeProvider(),
             };
 
@@ -67,6 +63,10 @@ namespace Microsoft.AspNetCore.Builder
                     FileProvider = new PhysicalFileProvider(config.WebRootPath)
                 });
             }
+
+            // Whether or not live reloading is actually enabled depends on the config
+            // For production builds, it won't be (by default)
+            applicationBuilder.UseBlazorLiveReloading(config);
 
             // Finally, use SPA fallback routing (serve default page for anything else,
             // excluding /_framework/*)
