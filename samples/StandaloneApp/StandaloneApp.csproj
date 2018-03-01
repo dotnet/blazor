@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazor.MonoRuntime" Version="0.3.6" />
+    <PackageReference Include="Blazor.MonoRuntime" Version="0.4.7" />
   </ItemGroup>
 
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->

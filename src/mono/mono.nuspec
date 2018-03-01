@@ -3,7 +3,7 @@
     <metadata>
         <!-- Required elements-->
         <id>Blazor.MonoRuntime</id>
-        <version>0.3.6</version>
+        <version>0.4.7</version>
         <description>Blazor mono runtime and tools</description>
         <authors>Microsoft</authors>
 
@@ -13,9 +13,8 @@
     <!-- Optional 'files' node -->
     <files>
       <file src=".\dist\optimized\**\*" target="tools\mono"  />
-      <file src=".\tools\illink.exe" target="tools\illink" />
-      <file src=".\tools\Mono.Cecil.dll" target="tools\illink" />
-      <file src=".\tools\Mono.Cecil.Pdb.dll" target="tools\illink" />
+      <file src=".\tools\binaries\illink\**\*.*" target="tools\illink" />
       <file src=".\build\**\*.*" target="build" />
+      <file src=".\blazor.js" target="tools\blazor\blazor.js" />
     </files>
 </package>
