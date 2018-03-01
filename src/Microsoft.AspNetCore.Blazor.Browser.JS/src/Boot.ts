@@ -38,9 +38,12 @@ async function boot() {
   // Start up the application
   platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
 
-  // TODO: Get the live reloading endpoint from the <script> element, and
-  // only enable it if there is one
-  enableLiveReloading('/_reload');
+  // Enable live reloading only if there's a "reload" attribute on the <script> tag.
+  // In production, this should not be the case.
+  const reloadUri = thisScriptElem.getAttribute('reload');
+  if (reloadUri) {
+    enableLiveReloading(reloadUri);
+  }
 }
 
 function getRequiredBootScriptAttribute(elem: HTMLScriptElement, attributeName: string): string {

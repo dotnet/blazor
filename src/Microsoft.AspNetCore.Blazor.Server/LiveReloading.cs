@@ -30,12 +30,11 @@ namespace Microsoft.AspNetCore.Blazor.Server
             this IApplicationBuilder applicationBuilder,
             BlazorConfig config)
         {
-            // TODO: Determine whether or not to enable the live reloading endpoint
-            // based on the config
-            // TODO: Get EventStream endpoint from config
-
-            CreateFileSystemWatchers(config);
-            AddEventStreamEndpoint(applicationBuilder, "/_reload");
+            if (!string.IsNullOrEmpty(config.ReloadUri))
+            {
+                CreateFileSystemWatchers(config);
+                AddEventStreamEndpoint(applicationBuilder, config.ReloadUri);
+            }
         }
 
         private static void AddEventStreamEndpoint(IApplicationBuilder applicationBuilder, string url)
