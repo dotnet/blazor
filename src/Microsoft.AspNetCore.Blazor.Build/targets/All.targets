@@ -10,7 +10,7 @@
 
     <!-- Enable live reloading only for debug builds -->
     <LiveReloadUri></LiveReloadUri>
-    <LiveReloadUri Condition="'$(Configuration)' == 'Debug'">/_myReload</LiveReloadUri>
+    <LiveReloadUri Condition="'$(Configuration)' == 'Debug'">/_reload</LiveReloadUri>
 
     <!-- The Blazor build code can only find your referenced assemblies if they are in the output directory -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

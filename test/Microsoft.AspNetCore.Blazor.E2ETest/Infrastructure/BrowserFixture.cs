@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure
         public BrowserFixture()
         {
             var opts = new ChromeOptions();
-            opts.AddArgument("--headless");
+            //opts.AddArgument("--headless");
 
             // On Windows/Linux, we don't need to set opts.BinaryLocation
             // But for Travis Mac builds we do

@@ -9,16 +9,17 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures
     public class DevHostServerFixture<TProgram> : WebHostServerFixture
     {
         public string PathBase { get; set; }
+        public string ContentRoot { get; private set; }
 
         protected override IWebHost CreateWebHost()
         {
-            var sampleSitePath = FindSampleOrTestSitePath(
+            ContentRoot = FindSampleOrTestSitePath(
                 typeof(TProgram).Assembly.GetName().Name);
 
             return DevHostServerProgram.BuildWebHost(new string[]
             {
                 "--urls", "http://127.0.0.1:0",
-                "--contentroot", sampleSitePath,
+                "--contentroot", ContentRoot,
                 "--pathbase", PathBase
             });
         }

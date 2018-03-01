@@ -13,7 +13,7 @@ function listenForReloadEvent(eventSourceUrl: string, reloadOnConnection: boolea
 
   // First, connect to the endpoint. If the connection itself is meant to signal a
   // reload, then do that.
-  const source = new EventSource(eventSourceUrl);
+  const source = new EventSource(resolveAgainstBaseUri(eventSourceUrl));
   let sourceDidOpen;
   source.addEventListener('open', e => {
     sourceDidOpen = true;
@@ -44,4 +44,15 @@ function listenForReloadEvent(eventSourceUrl: string, reloadOnConnection: boolea
       }
     }
   });
+}
+
+function resolveAgainstBaseUri(uri: string) {
+  const baseUri = document.baseURI;
+  if (baseUri) {
+    const lastSlashPos = baseUri.lastIndexOf('/');
+    const prefix = baseUri.substr(0, lastSlashPos);
+    return prefix + uri;
+  } else {
+    return uri;
+  }
 }
