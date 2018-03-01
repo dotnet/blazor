@@ -11,39 +11,36 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Blazor.Server
 {
-    internal static class LiveReloading
+    internal class LiveReloadingContext
     {
         // Keep in sync with the const in Microsoft.AspNetCore.Blazor.Build's AppBuilder.cs
-        const string BlazorBuildCompletedSignalFile = "__blazorBuildCompleted";
+        private const string BlazorBuildCompletedSignalFile = "__blazorBuildCompleted";
 
         // If some external automated process is writing multiple files to wwwroot,
         // you probably want to wait until they've all been written before reloading.
         // Pausing by 500 milliseconds is a crude effort - we might need a different
         // mechanism (e.g., waiting until writes have stopped by 500ms).
-        const int WebRootUpdateDelayMilliseconds = 500;
+        private const int WebRootUpdateDelayMilliseconds = 500; // TODO: REMOVE THIS
+        private const string heartbeatMessage = "data: alive\n\n";
+        private const string reloadMessage = "data: reload\n\n";
 
-        // If we don't hold references to them, then on Linux they get disposed
+        // If we don't hold references to them, then on Linux they get disposed.
         // TODO: Review if this is still true
-        readonly static List<FileSystemWatcher> _pinnedWatchers = new List<FileSystemWatcher>();
+        // This static would leak memory if you called UseBlazorLiveReloading continually
+        // throughout the app lifetime, but the intended usage is just during init.
+        private static readonly List<FileSystemWatcher> _pinnedWatchers = new List<FileSystemWatcher>();
 
-        readonly static string heartbeatMessage = $"data: alive\n\n";
-        readonly static string reloadMessage = $"data: reload\n\n";
-        readonly static object _currentReloadListenerLock = new object();
-        static CancellationTokenSource _currentReloadListener
+        private readonly object _currentReloadListenerLock = new object();
+        private CancellationTokenSource _currentReloadListener
             = new CancellationTokenSource();
 
-        public static void UseBlazorLiveReloading(
-            this IApplicationBuilder applicationBuilder,
-            BlazorConfig config)
+        public void Attach(IApplicationBuilder applicationBuilder, BlazorConfig config)
         {
-            if (!string.IsNullOrEmpty(config.ReloadUri))
-            {
-                CreateFileSystemWatchers(config);
-                AddEventStreamEndpoint(applicationBuilder, config.ReloadUri);
-            }
+            CreateFileSystemWatchers(config);
+            AddEventStreamEndpoint(applicationBuilder, config.ReloadUri);
         }
 
-        private static void AddEventStreamEndpoint(IApplicationBuilder applicationBuilder, string url)
+        private void AddEventStreamEndpoint(IApplicationBuilder applicationBuilder, string url)
         {
             applicationBuilder.Use(async (context, next) =>
             {
@@ -80,7 +77,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
             });
         }
 
-        private static void CreateFileSystemWatchers(BlazorConfig config)
+        private void CreateFileSystemWatchers(BlazorConfig config)
         {
             // Watch for the "build completed" signal in the dist dir
             var distFileWatcher = new FileSystemWatcher(config.DistPath);
@@ -109,7 +106,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
             }
         }
 
-        private static void RequestReload(int delayMilliseconds)
+        private void RequestReload(int delayMilliseconds)
         {
             Task.Delay(delayMilliseconds).ContinueWith(_ =>
             {

@@ -50,6 +50,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                 // See that the page reloads and reflects the updated source file
                 new WebDriverWait(Browser, TimeSpan.FromSeconds(30)).Until(
                     driver => driver.FindElement(jsFileOutputSelector).Text == "modified value");
+                WaitUntilLoaded();
             }
             finally
             {
