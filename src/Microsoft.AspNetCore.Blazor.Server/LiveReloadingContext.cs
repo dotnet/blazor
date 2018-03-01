@@ -16,11 +16,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
         // Keep in sync with the const in Microsoft.AspNetCore.Blazor.Build's AppBuilder.cs
         private const string BlazorBuildCompletedSignalFile = "__blazorBuildCompleted";
 
-        // If some external automated process is writing multiple files to wwwroot,
-        // you probably want to wait until they've all been written before reloading.
-        // Pausing by 500 milliseconds is a crude effort - we might need a different
-        // mechanism (e.g., waiting until writes have stopped by 500ms).
-        private const int WebRootUpdateDelayMilliseconds = 500; // TODO: REMOVE THIS
+        // These strings are in the format needed by EventSource
         private const string heartbeatMessage = "data: alive\n\n";
         private const string reloadMessage = "data: reload\n\n";
 
@@ -84,7 +80,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
             distFileWatcher.Deleted += (sender, eventArgs) => {
                 if (eventArgs.Name.Equals(BlazorBuildCompletedSignalFile, StringComparison.Ordinal))
                 {
-                    RequestReload(0);
+                    RequestReload();
                 }
             };
             distFileWatcher.EnableRaisingEvents = true;
@@ -97,27 +93,24 @@ namespace Microsoft.AspNetCore.Blazor.Server
             if (!string.IsNullOrEmpty(config.WebRootPath))
             {
                 var webRootWatcher = new FileSystemWatcher(config.WebRootPath);
-                webRootWatcher.Deleted += (sender, evtArgs) => RequestReload(WebRootUpdateDelayMilliseconds);
-                webRootWatcher.Created += (sender, evtArgs) => RequestReload(WebRootUpdateDelayMilliseconds);
-                webRootWatcher.Changed += (sender, evtArgs) => RequestReload(WebRootUpdateDelayMilliseconds);
-                webRootWatcher.Renamed += (sender, evtArgs) => RequestReload(WebRootUpdateDelayMilliseconds);
+                webRootWatcher.Deleted += (sender, evtArgs) => RequestReload();
+                webRootWatcher.Created += (sender, evtArgs) => RequestReload();
+                webRootWatcher.Changed += (sender, evtArgs) => RequestReload();
+                webRootWatcher.Renamed += (sender, evtArgs) => RequestReload();
                 webRootWatcher.EnableRaisingEvents = true;
                 _pinnedWatchers.Add(webRootWatcher);
             }
         }
 
-        private void RequestReload(int delayMilliseconds)
+        private void RequestReload()
         {
-            Task.Delay(delayMilliseconds).ContinueWith(_ =>
+            lock (_currentReloadListenerLock)
             {
-                lock (_currentReloadListenerLock)
-                {
-                    // Lock just to be sure two threads don't assign different new CTSs, of which
-                    // only one would later get cancelled.
-                    _currentReloadListener.Cancel();
-                    _currentReloadListener = new CancellationTokenSource();
-                }
-            });
+                // Lock just to be sure two threads don't assign different new CTSs, of which
+                // only one would later get cancelled.
+                _currentReloadListener.Cancel();
+                _currentReloadListener = new CancellationTokenSource();
+            }
         }
     }
 }
