@@ -13,8 +13,4 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Mono\Microsoft.AspNetCore.Blazor.Mono.csproj" />
-  </ItemGroup>
-
 </Project>

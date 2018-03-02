@@ -3,7 +3,7 @@
     <metadata>
         <!-- Required elements-->
         <id>Blazor.MonoRuntime</id>
-        <version>0.4.7</version>
+        <version>0.4.8</version>
         <description>Blazor mono runtime and tools</description>
         <authors>Microsoft</authors>
 

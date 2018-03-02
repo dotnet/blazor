@@ -11,24 +11,33 @@ namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
     {
         public static void Command(CommandLineApplication command)
         {
-            var clientAssemblyPath = command.Argument("assembly",
-                "Specifies the assembly for the Blazor application.");
-            var webRootPath = command.Option("--webroot",
-                "Specifies the path to the directory containing static files to be served",
+            var clientPage = command.Option("-hp|--html-page",
+                "Path to the HTML Page containing the Blazor bootstrap script tag.",
                 CommandOptionType.SingleValue);
+
+            var references = command.Option("-r|--reference",
+                "The path from the _bin folder to a given referenced dll file (Typically just the dll name)",
+                CommandOptionType.MultipleValue);
+
+            var outputPath = command.Option("-o|--output",
+                "Path to the output file",
+                CommandOptionType.SingleValue);
+
+            var mainAssemblyPath = command.Argument("assembly",
+                "Path to the assembly containing the entry point of the application.");
 
             command.OnExecute(() =>
             {
-                if (string.IsNullOrEmpty(clientAssemblyPath.Value))
+                if (string.IsNullOrEmpty(mainAssemblyPath.Value) || 
+                    !clientPage.HasValue() || !references.HasValue() || !outputPath.HasValue())
                 {
-                    Console.WriteLine($"ERROR: No value specified for required argument '{clientAssemblyPath.Name}'.");
+                    command.ShowHelp(command.Name);
                     return 1;
                 }
 
                 try
                 {
-                    Console.WriteLine($"Building Blazor app from {clientAssemblyPath.Value}...");
-                    AppBuilder.Execute(clientAssemblyPath.Value, webRootPath.HasValue() ? webRootPath.Value() : null);
+                    AppBuilder.Execute(mainAssemblyPath.Value, clientPage.Value(), references.Values.ToArray(), outputPath.Value());
                     return 0;
                 }
                 catch (Exception ex)

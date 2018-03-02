@@ -1,0 +1,33 @@
+<Project>
+  <PropertyGroup Condition="$(BlazorBuildReferenceFromSource) == ''">
+    <BlazorMonoRuntimeBasePath>$(MSBuildThisFileDirectory)../</BlazorMonoRuntimeBasePath>
+    <MonoLinkerPath>$(BlazorMonoRuntimeBasePath)tools/illink/illink.dll</MonoLinkerPath>
+    <MonoBaseClassLibraryPath>$(BlazorMonoRuntimeBasePath)tools/mono/bcl/</MonoBaseClassLibraryPath>
+    <MonoBaseClassLibraryFacadesPath>$(BlazorMonoRuntimeBasePath)tools/mono/bcl/Facades</MonoBaseClassLibraryFacadesPath>
+    <MonoAsmjsRuntimePath>$(BlazorMonoRuntimeBasePath)tools/mono/asmjs/</MonoAsmjsRuntimePath>
+    <MonoWasmRuntimePath>$(BlazorMonoRuntimeBasePath)tools/mono/wasm/</MonoWasmRuntimePath>
+    <BlazorJsPath>$(BlazorMonoRuntimeBasePath)tools/blazor/</BlazorJsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AdditionalMonoLinkerOptions>-c link -u Save --verbose --skip-unresolved true</AdditionalMonoLinkerOptions>
+    <BlazorRuntimeOutputPath>dist/_framework/</BlazorRuntimeOutputPath>
+    <BlazorRuntimeBclOutputPath>dist/_framework/_bin/</BlazorRuntimeBclOutputPath>
+    <BlazorRuntimeAsmjsOutputPath>dist/_framework/asmjs/</BlazorRuntimeAsmjsOutputPath>
+    <BlazorRuntimeWasmOutputPath>dist/_framework/wasm/</BlazorRuntimeWasmOutputPath>
+    <BlazorJsOutputPath>dist/_framework/</BlazorJsOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <MonoBCLFile Include="$(MonoBaseClassLibraryPath)**/*.dll" />
+    <MonoAsmjsFile Include="$(MonoAsmjsRuntimePath)**/*.*" />
+    <MonoWasmFile Include="$(MonoWasmRuntimePath)**/*.*" />
+    <BlazorJsFile Include="$(BlazorJsPath)/**/*.*" />
+    <MonoBaseClassLibraryFolder Include="$(MonoBaseClassLibraryPath);$(MonoBaseClassLibraryFacadesPath)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <BlazorRuntimeOutputFolder Include="$(BlazorRuntimeBclOutputPath)" />
+    <BlazorRuntimeOutputFolder Include="$(BlazorRuntimeAsmjsOutputPath)" />
+    <BlazorRuntimeOutputFolder Include="$(BlazorRuntimeWasmOutputPath)" />
+  </ItemGroup>
+
+</Project>

@@ -39,4 +39,19 @@
     <Exec Command="dotnet $(MonoLinkerPath) $(AdditionalMonoLinkerOptions) @(FolderLookupPaths, ' ') -o $(LinkerOutputPath) @(AssembliesToLink, ' ')" />
   </Target>
 
+  <Target Name="BuildBlazorApp" AfterTargets="RunLinker" Inputs="$(ProjectDir)**" Outputs="$(ProjectDir)$(OutDir)dist\**">
+    <PropertyGroup>
+      <WebRootName>wwwroot/</WebRootName>
+      <WebRootPath>$(ProjectDir)$(WebRootName)</WebRootPath>
+      <IndexHtml>$(WebRootPath)Index.html</IndexHtml>
+      <WebRootParam Condition="Exists('$(WebRootPath)')">--webroot &quot;$(WebRootPath)&quot;</WebRootParam>
+      <IndexHtmlOutputPath>$(ProjectDir)$(OutputPath)dist/Index.html</IndexHtmlOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <AppBinaries Include="$(OutputPath)$(BlazorRuntimeBclOutputPath)**/*.dll" />
+    </ItemGroup>
+    <!-- TODO: Find the correct time to run this (right after assemblies were written) -->
+    <Exec Condition="Exists('$(IndexHtml)')" Command="$(BlazorBuildExe) build @(MainAssembly) -hp $(IndexHtml) @(AppBinaries->'-r %(FileName)%(Extension)', ' ') -o $(IndexHtmlOutputPath)" />
+  </Target>
+
 </Project>

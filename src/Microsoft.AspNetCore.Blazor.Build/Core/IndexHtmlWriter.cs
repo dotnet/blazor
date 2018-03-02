@@ -11,16 +11,15 @@ using AngleSharp.Html;
 using AngleSharp.Parser.Html;
 using Mono.Cecil;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Core
+namespace Microsoft.AspNetCore.Blazor.Build
 {
     public class IndexHtmlWriter
     {
-        public static void UpdateIndex(string indexPath, string assemblyPath, IEnumerable<string> references, string outputPath)
+        public static void UpdateIndex(string path, string assemblyPath, IEnumerable<string> references, string outputPath)
         {
+            var template = File.ReadAllText(path);
             var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
             var entryPoint = GetAssemblyEntryPoint(assemblyPath);
-
-            var template = File.ReadAllText(indexPath);
             var updatedContent = GetIndexHtmlContents(template, assemblyName, entryPoint, references);
             File.WriteAllText(outputPath, updatedContent);
         }
@@ -57,7 +56,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core
         /// responsible for completing the Blazor boot process.
         /// </para>
         /// </remarks>
-        private static string GetIndexHtmlContents(
+        public static string GetIndexHtmlContents(
             string htmlTemplate,
             string assemblyName,
             string assemblyEntryPoint,
