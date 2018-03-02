@@ -9,7 +9,7 @@
     <BlazorJsPath>$(BlazorMonoRuntimeBasePath)tools/blazor/</BlazorJsPath>
   </PropertyGroup>
   <PropertyGroup>
-    <AdditionalMonoLinkerOptions>-c link -u Save --verbose --skip-unresolved true</AdditionalMonoLinkerOptions>
+    <AdditionalMonoLinkerOptions>-c link -u copy --verbose</AdditionalMonoLinkerOptions>
     <BlazorRuntimeOutputPath>dist/_framework/</BlazorRuntimeOutputPath>
     <BlazorRuntimeBclOutputPath>dist/_framework/_bin/</BlazorRuntimeBclOutputPath>
     <BlazorRuntimeAsmjsOutputPath>dist/_framework/asmjs/</BlazorRuntimeAsmjsOutputPath>
@@ -18,16 +18,11 @@
   </PropertyGroup>
   <ItemGroup>
     <MonoBCLFile Include="$(MonoBaseClassLibraryPath)**/*.dll" />
+    <MonoBCLFacadeFile Include="$(MonoBaseClassLibraryPath)Facades/*.dll" />
     <MonoAsmjsFile Include="$(MonoAsmjsRuntimePath)**/*.*" />
     <MonoWasmFile Include="$(MonoWasmRuntimePath)**/*.*" />
     <BlazorJsFile Include="$(BlazorJsPath)/**/*.*" />
     <MonoBaseClassLibraryFolder Include="$(MonoBaseClassLibraryPath);$(MonoBaseClassLibraryFacadesPath)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <BlazorRuntimeOutputFolder Include="$(BlazorRuntimeBclOutputPath)" />
-    <BlazorRuntimeOutputFolder Include="$(BlazorRuntimeAsmjsOutputPath)" />
-    <BlazorRuntimeOutputFolder Include="$(BlazorRuntimeWasmOutputPath)" />
   </ItemGroup>
 
 </Project>
