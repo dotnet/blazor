@@ -36,8 +36,12 @@
       <FolderLookupPaths Include="@(MonoBaseClassLibraryFolder->'-d %(Identity)')" />
       <AppReferences Include="@(MonoBCLFile);@(MainAssembly->'%(FullPath)');@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" />
       <AppReferences Remove="@(MonoBCLFacadeFile)" />
+      <LinkerDescriptors Include="$(ProjectDir)descriptors/*.xml" />
     </ItemGroup>
-    <Exec Condition="$(BlazorLinkerEnabled) == 'true'" Command="dotnet $(MonoLinkerPath) $(AdditionalMonoLinkerOptions) @(FolderLookupPaths, ' ') -o $(LinkerOutputPath) @(AssembliesToLink, ' ')" />
+    <PropertyGroup>
+      <_AdditionalOptions>$(AdditionalMonoLinkerOptions) @(LinkerDescriptors->'-x %(FullPath)', ' ')</_AdditionalOptions>
+    </PropertyGroup>
+    <Exec Condition="$(BlazorLinkerEnabled) == 'true'" Command="dotnet $(MonoLinkerPath) $(_AdditionalOptions) @(FolderLookupPaths, ' ') -o $(LinkerOutputPath) @(AssembliesToLink, ' ')" />
     <Copy Condition="$(BlazorLinkerEnabled) == ''" SourceFiles="@(AppReferences)" DestinationFolder="$(LinkerOutputPath)" />
   </Target>
 

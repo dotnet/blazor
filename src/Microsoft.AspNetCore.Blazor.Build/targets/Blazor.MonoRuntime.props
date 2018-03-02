@@ -9,7 +9,7 @@
     <BlazorJsPath>$(BlazorMonoRuntimeBasePath)tools/blazor/</BlazorJsPath>
   </PropertyGroup>
   <PropertyGroup>
-    <AdditionalMonoLinkerOptions>-c link -u copy --verbose</AdditionalMonoLinkerOptions>
+    <AdditionalMonoLinkerOptions>-c link -u link --verbose </AdditionalMonoLinkerOptions>
     <BlazorRuntimeOutputPath>dist/_framework/</BlazorRuntimeOutputPath>
     <BlazorRuntimeBclOutputPath>dist/_framework/_bin/</BlazorRuntimeBclOutputPath>
     <BlazorRuntimeAsmjsOutputPath>dist/_framework/asmjs/</BlazorRuntimeAsmjsOutputPath>
