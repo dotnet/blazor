@@ -12,7 +12,7 @@
     <BlazorMonoRuntimeBasePath>$(MSBuildThisFileDirectory)../mono/</BlazorMonoRuntimeBasePath>
     <MonoLinkerPath>$(BlazorMonoRuntimeBasePath)tools/binaries/illink/illink.dll</MonoLinkerPath>
     <MonoBaseClassLibraryPath>$(BlazorMonoRuntimeBasePath)dist/optimized/bcl/</MonoBaseClassLibraryPath>
-    <MonoBaseClassLibraryFacadesPath>$(BlazorMonoRuntimeBasePath)dist/optimized/bcl/Facades</MonoBaseClassLibraryFacadesPath>
+    <MonoBaseClassLibraryFacadesPath>$(BlazorMonoRuntimeBasePath)dist/optimized/bcl/Facades/</MonoBaseClassLibraryFacadesPath>
     <MonoAsmjsRuntimePath>$(BlazorMonoRuntimeBasePath)dist/optimized/asmjs/</MonoAsmjsRuntimePath>
     <MonoWasmRuntimePath>$(BlazorMonoRuntimeBasePath)dist/optimized/wasm/</MonoWasmRuntimePath>
     <BlazorJsPath>$(MSBuildThisFileDirectory)../Microsoft.AspNetCore.Blazor.Browser.JS/dist/blazor.js</BlazorJsPath>

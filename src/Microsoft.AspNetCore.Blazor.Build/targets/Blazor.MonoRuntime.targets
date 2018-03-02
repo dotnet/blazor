@@ -1,64 +1,293 @@
 <Project>
 
+  <Target
+    Name="_BlazorCopyFilesToOutputDirectory"
+    DependsOnTargets="BlazorBuild"
+    AfterTargets="CopyFilesToOutputDirectory">
+
+    <!-- Copy the blazor output files  -->
+    <Copy
+      SourceFiles="@(BlazorItemSpec)"
+      DestinationFiles="@(BlazorItemSpec->'%(TargetOutputPath)')"
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
+      UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)"
+      Condition="'@(BlazorItemSpec)' != '' and '$(CopyBuildOutputToOutputDirectory)' == 'true' and '$(SkipCopyBuildProduct)' != 'true'">
+
+      <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
+    </Copy>
+
+  </Target>
+
   <PropertyGroup>
-    <PrepareBlazorRuntimeDependsOn>
-      $(PrepareBlazorRuntimeDependsOn);
-    </PrepareBlazorRuntimeDependsOn>
+    <BlazorBuildDependsOn>
+      BeforeBlazorBuild;
+      GetBlazorBuildConfiguration;
+      ResolveBinaryOutput;
+      BuildBlazorIndexHtml;
+      AfterBlazorBuild;
+    </BlazorBuildDependsOn>
   </PropertyGroup>
 
+  <Target Name="BeforeBlazorBuild" />
+  <Target Name="BlazorBuild" DependsOnTargets="$(BlazorBuildDependsOn)" AfterTargets="Compile" />
+  <Target Name="AfterBlazorBuild" />
 
-  <Target Name="PrepareBlazorRuntime" DependsOnTargets="$(PrepareBlazorRuntimeDependsOn)" AfterTargets="Build">
-    <Message Importance="high" text="Blazor Runtime" />    
-  </Target>
-
-  <Target Name="PrepareBlazorOutput" AfterTargets="PrepareBlazorRuntime">
-    <ItemGroup>
-      <_BlazorRuntimeOutputFolder Include="@(BlazorRuntimeOutputFolder->'$(OutputPath)%(Identity)')" />
+  <Target Name="GetBlazorBuildConfiguration">
+    <!-- 
+    This task produces all the "final" paths for all the files we need to produce the final output.
+    BlazorIntermediateOutputPath is something like /obj/debug/netstandard2.0/blazor.
+    Inside there we want to produce a folder structure like the following
+    dist/_framework/_bin <- This will contain either the BCL + app assemblies or the result of linking the app.
+    dist/_framework/asmjs <- This will contain the asmjs runtime copied from the nuget package.
+    dist/_framework/wasm <- This will contain the wsm runtime copied from the nuget package.
+    dist/_framework/blazor.js <- This is the blazor.js file copied from the nuget package.
+    dist/Index.html <- This is the optional Index.html file generated from wwwroot/Index.html in case it's present.
+    
+    This task also defines some intermediate paths that we will use:
+    /obj/debug/netstandard2.0/blazor/blazor/linker <- This will be used to create the output from the linker.
+    /obj/debug/netstandard2.0/blazor/blazor/linker.marker.txt <- This will be used to save the output files from
+    the linker and use that as marker to identify whether or not we need to run the linker.
+    -->
+    <ItemGroup Label="Collected items from the build">
+      <BlazorAssembly Include="@(IntermediateAssembly)" />
     </ItemGroup>
-    <PropertyGroup>
-      <_BlazorRuntimeAsmjsOutputPath>$(OutputPath)$(BlazorRuntimeAsmjsOutputPath)</_BlazorRuntimeAsmjsOutputPath>
-      <_BlazorRuntimeWasmOutputPath>$(OutputPath)$(BlazorRuntimeWasmOutputPath)</_BlazorRuntimeWasmOutputPath>
-      <_BlazorRuntimeBclOutputPath>$(OutputPath)$(BlazorRuntimeBclOutputPath)</_BlazorRuntimeBclOutputPath>
-      <_BlazorJsOutputPath>$(OutputPath)$(BlazorJsOutputPath)</_BlazorJsOutputPath>      
-    </PropertyGroup>
-    <Copy SourceFiles="@(MonoAsmjsFile)" DestinationFolder="$(_BlazorRuntimeAsmjsOutputPath)" />
-    <Copy SourceFiles="@(MonoWasmFile)" DestinationFolder="$(_BlazorRuntimeWasmOutputPath)" />
-    <Copy SourceFiles="@(BlazorJsFile)" DestinationFolder="$(_BlazorJsOutputPath)" />
-  </Target>
 
-  <Target Name="RunLinker" AfterTargets="PrepareBlazorRuntime">
-    <PropertyGroup>
-      <LinkerOutputPath>$(OutputPath)$(BlazorRuntimeBclOutputPath)</LinkerOutputPath>
+    <PropertyGroup Label="Build properties">
+      <BlazorShouldRunMonoLinker>$(BlazorLinkOnBuild)</BlazorShouldRunMonoLinker>
     </PropertyGroup>
-    <ItemGroup>
-      <AssembliesToLink Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'-a %(Identity)')" />
-      <AssembliesToLink Include="@(MainAssembly->'-a %(FullPath)')" />
-      <FolderLookupPaths Include="@(MonoBaseClassLibraryFolder->'-d %(Identity)')" />
-      <AppReferences Include="@(MonoBCLFile);@(MainAssembly->'%(FullPath)');@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" />
-      <AppReferences Remove="@(MonoBCLFacadeFile)" />
-      <LinkerDescriptors Include="$(ProjectDir)descriptors/*.xml" />
+
+    <PropertyGroup Label="Blazor HTML inputs">
+      <BlazorWebRootPath>$(ProjectDir)$(BlazorWebRootName)</BlazorWebRootPath>
+      <BlazorIndexHtml>$(BlazorWebRootPath)$(BlazorIndexHtmlName)</BlazorIndexHtml>
+    </PropertyGroup>
+
+    <ItemGroup Label="BlazorItemSpecs">
+      <BlazorItemSpec Include="@(MonoAsmjsFile)">
+        <TargetOutputPath>$(OutputPath)dist/_framework/asmjs/%(FileName)%(Extension)</TargetOutputPath>
+        <Type>AsmJs</Type>
+      </BlazorItemSpec>
+      <BlazorItemSpec Include="@(MonoWasmFile)">
+        <TargetOutputPath>$(OutputPath)dist/_framework/wasm/%(FileName)%(Extension)</TargetOutputPath>
+        <Type>WebAssembly</Type>
+      </BlazorItemSpec>
+      <BlazorItemSpec Include="@(BlazorJsFile)">
+        <TargetOutputPath>$(OutputPath)dist/_framework/%(FileName)%(Extension)</TargetOutputPath>
+        <Type>BlazorRuntime</Type>
+      </BlazorItemSpec>
     </ItemGroup>
-    <PropertyGroup>
-      <_AdditionalOptions>$(AdditionalMonoLinkerOptions) @(LinkerDescriptors->'-x %(FullPath)', ' ')</_AdditionalOptions>
+
+    <PropertyGroup Label="Intermediate output paths">
+
+      <!-- /obj/debug/netstandard2.0/blazor -->
+      <BlazorIntermediateOutputPath>$(IntermediateOutputPath)$(BaseBlazorIntermediateOutputPath)</BlazorIntermediateOutputPath>
+
+      <!-- /obj/debug/netstandard2.0/blazor/dist/_framework/asmjs -->
+      <BlazorIntermediateRuntimeAsmjsOutputPath>$(BlazorIntermediateOutputPath)$(BaseBlazorRuntimeAsmjsOutputPath)</BlazorIntermediateRuntimeAsmjsOutputPath>
+
+      <!-- /obj/debug/netstandard2.0/blazor/dist/_framework/wasm -->
+      <BlazorIntermediateRuntimeWasmOutputPath>$(BlazorIntermediateOutputPath)$(BaseBlazorRuntimeWasmOutputPath)</BlazorIntermediateRuntimeWasmOutputPath>
+
+      <!-- /obj/debug/netstandard2.0/blazor/dist/_framework/_bin -->
+      <BlazorIntermediateRuntimeBinOutputPath>$(BlazorIntermediateOutputPath)$(BaseBlazorRuntimeBinOutputPath)</BlazorIntermediateRuntimeBinOutputPath>
+
+      <!-- /obj/debug/netstandard2.0/blazor/dist/_framework/blazor.js -->
+      <BlazorIntermediateJsOutputPath>$(BlazorIntermediateOutputPath)$(BaseBlazorJsOutputPath)</BlazorIntermediateJsOutputPath>
+
+      <!-- /obj/debug/netstandard2.0/blazor/linker/ -->
+      <BlazorIntermediateLinkerOutputPath>$(BlazorIntermediateOutputPath)linker/</BlazorIntermediateLinkerOutputPath>
+
+      <!-- /obj/debug/netstandard2.0/blazor/linker/ -->
+      <BlazorRelativeIntermediateLinkerOutputPath>blazor/linker/</BlazorRelativeIntermediateLinkerOutputPath>
+      
+      <!-- /obj/debug/netstandard2.0/blazor/linker.marker.txt -->
+      <BlazorIntermediateLinkerResultFilePath>$(BlazorIntermediateOutputPath)linker.marker.txt</BlazorIntermediateLinkerResultFilePath>
+
+      <!-- /obj/debug/netstandard2.0/blazor/dist/Index.html -->
+      <BlazorIndexHtmlOutputPath>$(BlazorIntermediateOutputPath)dist/$(BlazorIndexHtmlName)</BlazorIndexHtmlOutputPath>
+    
+      <GeneratedBlazorLinkerDescriptor>$(IntermediateOutputPath)@(IntermediateAssembly->'%(FileName)').xml</GeneratedBlazorLinkerDescriptor>
     </PropertyGroup>
-    <Exec Condition="$(BlazorLinkerEnabled) == 'true'" Command="dotnet $(MonoLinkerPath) $(_AdditionalOptions) @(FolderLookupPaths, ' ') -o $(LinkerOutputPath) @(AssembliesToLink, ' ')" />
-    <Copy Condition="$(BlazorLinkerEnabled) == ''" SourceFiles="@(AppReferences)" DestinationFolder="$(LinkerOutputPath)" />
+    
+    <Copy SourceFiles="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" DestinationFolder="$(IntermediateOutputPath)">
+      <Output TaskParameter="CopiedFiles" PropertyName="FileWrites" />
+      <Output TaskParameter="CopiedFiles" ItemName="_BlazorLinkerReferencePathInput"/>
+    </Copy>
+  
+    <MakeDir Directories="$(BlazorIntermediateOutputPath)" />
+    
   </Target>
 
-  <Target Name="BuildBlazorApp" AfterTargets="RunLinker" Inputs="$(ProjectDir)**" Outputs="$(ProjectDir)$(OutDir)dist\**">
-    <PropertyGroup>
-      <WebRootName>wwwroot/</WebRootName>
-      <WebRootPath>$(ProjectDir)$(WebRootName)</WebRootPath>
-      <IndexHtml>$(WebRootPath)Index.html</IndexHtml>
-      <WebRootParam Condition="Exists('$(WebRootPath)')">--webroot &quot;$(WebRootPath)&quot;</WebRootParam>
-      <IndexHtmlOutputPath>$(ProjectDir)$(OutputPath)dist/Index.html</IndexHtmlOutputPath>
-    </PropertyGroup>
-    <ItemGroup>
-      <AppBinaries Include="$(OutputPath)$(BlazorRuntimeBclOutputPath)**/*.dll" />
-      <AppBinaries Remove="$(OutputPath)$(BlazorRuntimeBclOutputPath)**/$(AssemblyName).dll" />
+  <Target Name="ResolveBinaryOutput" DependsOnTargets="CollectLinkerOutputs;GetBaseClassLibrary" />
+
+  <Target Name="CollectLinkerDescriptors"
+          Inputs="@(IntermediateAssembly);@(BlazorLinkerDescriptor)"
+          Outputs="$(GeneratedBlazorLinkerDescriptor)"
+          Condition="$(BlazorShouldRunMonoLinker) == 'true'">
+    
+    <ItemGroup Condition="'@(BlazorLinkerDescriptor)' == ''">
+      <PrepareAssemblyLine Include="@(IntermediateAssembly->'%(FileName)')" />
+      <GeneratedDescriptorLine Include="&lt;linker&gt;" />
+      <GeneratedDescriptorLine Include="@(PrepareAssemblyLine->'&lt;assembly fullname=&quot;%(Identity)&quot; /&gt;')" />
+      <GeneratedDescriptorLine Include="&lt;/linker&gt;" />
     </ItemGroup>
-    <!-- TODO: Find the correct time to run this (right after assemblies were written) -->
-    <Exec Condition="Exists('$(IndexHtml)')" Command="$(BlazorBuildExe) build @(MainAssembly) -hp $(IndexHtml) @(AppBinaries->'-r %(FileName)%(Extension)', ' ') -o $(IndexHtmlOutputPath)" />
+
+    <WriteLinesToFile
+      Condition = "'@(BlazorLinkerDescriptor)' == ''"
+      Lines = "@(GeneratedDescriptorLine)"
+      File ="$(GeneratedBlazorLinkerDescriptor)" Overwrite="true" />
+    
+    <ItemGroup Condition = "'@(BlazorLinkerDescriptor)' == ''">
+      <BlazorLinkerDescriptor Include="$(GeneratedBlazorLinkerDescriptor)" />
+      <FileWrites Include="$(GeneratedBlazorLinkerDescriptor)" />
+    </ItemGroup>
+  
+  </Target>    
+    
+  <Target
+    Name="RunMonoLinker"
+    Condition="$(BlazorShouldRunMonoLinker) == 'true'"
+    DependsOnTargets="CollectLinkerDescriptors"
+    Inputs="$(IntermediateAssembly);
+      @(_BlazorLinkerReferencePathInput);
+      @(BlazorLinkerDescriptor)"
+    Outputs="$(BlazorIntermediateLinkerResultFilePath)"
+  >
+    <!-- 
+    At this point we have decided to run the mono linker on the Blazor assembly and its dependencies.
+    The steps to run the mono linker are the following:
+    1) Clear the linker output directory if not clean before hand, as we don't know what the outputs of
+    the linker will be.
+    2) Run the linker on the main assembly, its dependencies and pass in the BCL folders to do the lookup
+    for framework assemblies.
+    3) Once we've run the linker we need to capture the produced output and generate a marker file containing
+    the list of produced files. This file will act as a marker to skip running the linker if nothing changed.
+    4) Add the file we just created to the list of file writes, so that if we turn off the linker or do something
+    else we'll know we have to run the linker again.
+    -->
+    <ItemGroup>
+      <_BlazorAssembliesToLink Include="@(_BlazorLinkerReferencePathInput->'-a %(FullPath)')" />
+      <_BlazorAssembliesToLink Include="@(BlazorAssembly->'-a %(FullPath)')" />
+      <_BlazorFolderLookupPaths Include="@(MonoBaseClassLibraryFolder->'-d %(Identity)')" />
+      <_BlazorAssemblyDescriptorFiles
+        Include="@(BlazorLinkerDescriptor->'-x %(FullPath)')" Condition="'@(BlazorLinkerDescriptor)' != ''" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_BlazorMonoLinkerAdditionalOptions>$(AdditionalMonoLinkerOptions)</_BlazorMonoLinkerAdditionalOptions>
+    </PropertyGroup>
+
+    <!-- Clear the contents of /obj/debug/netstandard2.0/blazor/blazor/linker -->
+    <Delete Files="$(BlazorIntermediateLinkerOutputPath)*.dll" />
+
+    <!-- Run the linker and put the results in /obj/debug/netstandard2.0/blazor/blazor/linker -->
+    <Exec Command="dotnet $(MonoLinkerPath) $(_BlazorMonoLinkerAdditionalOptions) @(_BlazorFolderLookupPaths, ' ') -o $(BlazorRelativeIntermediateLinkerOutputPath) @(_BlazorAssembliesToLink, ' ') @(_BlazorAssemblyDescriptorFiles, ' ')" 
+          WorkingDirectory="$(IntermediateOutputPath)" />
+
+    <!-- Collect the contents of /obj/debug/netstandard2.0/blazor/blazor/linker/ -->
+    <ItemGroup>
+      <_BlazorLinkerOutput Include="$(BlazorIntermediateLinkerOutputPath)*.dll" />
+    </ItemGroup>
+
+    <!-- 
+    Write the list of files in /obj/debug/netstandard2.0/blazor/blazor/linker/ into 
+    /obj/debug/netstandard2.0/blazor/blazor/linker.marker.txt
+    -->
+    <WriteLinesToFile File="$(BlazorIntermediateLinkerResultFilePath)" Lines="@(_BlazorLinkerOutput)" Overwrite="true" />
+
+    <!-- Add /obj/debug/netstandard2.0/blazor/blazor/linker.marker.txt to the list of written files. -->
+    <ItemGroup>
+      <FileWrites Include="$(BlazorIntermediateLinkerResultFilePath)" />
+    </ItemGroup>
   </Target>
 
+  <Target Name="CollectLinkerOutputs" DependsOnTargets="RunMonoLinker">
+    <!--
+    Read the outputs from the linker (from this run or a previous run) and set them in an item group for
+    later use.
+    -->
+    <ReadLinesFromFile File="$(BlazorIntermediateLinkerResultFilePath)">
+      <Output TaskParameter="Lines" ItemName="BlazorBinaryOutput"/>
+      <Output TaskParameter="Lines" ItemName="_OptimizedFiles"/>
+    </ReadLinesFromFile>
+    
+    <ItemGroup>
+      <BlazorItemSpec Include="@(_OptimizedFiles)">
+        <TargetOutputPath>$(OutputPath)dist/_framework/_bin/%(FileName)%(Extension)</TargetOutputPath>
+        <Type>ApplicationAssembly</Type>
+        <PrimaryOutput Condition="'%(FileName)' == @(IntermediateAssembly->'%(FileName)')">true</PrimaryOutput>
+      </BlazorItemSpec>
+    
+      <FileWrites Include="@(_OptimizedFiles)" />
+    
+    </ItemGroup>
+  
+  </Target>
+
+  <Target
+    Name="GetBaseClassLibrary"
+    Condition="'$(BlazorShouldRunMonoLinker)' == 'false'">
+    <!--
+    At this point we have decided not to run the linker and instead to just copy the BCL from
+    the nuget package into the _framework/_bin folder. The only thing we need to do here is
+    collect the list of items that will go into _framework/_bin. This list is composed of:
+    * All the mono BCL files.
+    * The main application assembly.
+    * All the project/package assemblies referenced by the app.
+    * The mono BCL.    
+    -->
+    <ItemGroup>
+      <BlazorBinaryOutput
+        Include="@(MonoBCLFile);
+          @(MonoBCLFacadeFile);
+          @(BlazorAssembly->'%(FullPath)');
+          @(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" />
+      
+      <BlazorItemSpec Include="@(MonoBCLFile)">
+        <TargetOutputPath>$(OutputPath)dist/_framework/_bin/%(RecursiveDir)%(FileName)%(Extension)</TargetOutputPath>
+        <Type>BaseClassLibrary</Type>
+      </BlazorItemSpec>
+      <BlazorItemSpec Include="@(MonoBCLFacadeFile)">
+        <TargetOutputPath>$(OutputPath)dist/_framework/_bin/%(RecursiveDir)%(FileName)%(Extension)</TargetOutputPath>
+        <Type>BaseClassLibrary</Type>
+        <Facade>true</Facade>
+      </BlazorItemSpec>
+      <BlazorItemSpec Include="@(IntermediateAssembly);@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))">
+        <TargetOutputPath>$(OutputPath)dist/_framework/_bin/%(FileName)%(Extension)</TargetOutputPath>
+        <Type>ApplicationAssembly</Type>
+        <PrimaryOutput Condition="'%(FileName)' == @(IntermediateAssembly->'%(FileName)')">true</PrimaryOutput>
+      </BlazorItemSpec>
+
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="BuildBlazorIndexHtml"
+    Inputs="$(BlazorIndexHtml);@(BlazorBinaryOutput)"
+    Outputs="$(BlazorIndexHtmlOutputPath)"
+    Condition="Exists('$(BlazorIndexHtml)')">
+    <ItemGroup>
+      <_AppBinaries Include="@(BlazorBinaryOutput->'%(FileName)%(Extension)')" />
+      <_AppBinaries Remove="@(BlazorAssembly->'%(FileName)%(Extension)')" />
+    </ItemGroup>
+    
+    <RemoveDuplicates Inputs="@(_AppBinaries)">
+      <Output TaskParameter="Filtered" ItemName="_AppBinariesFiltered"/>
+    </RemoveDuplicates>
+    <MakeDir Directories="$([System.IO.Directory]::GetParent('$(BlazorIndexHtmlOutputPath)'))" />
+    <Exec Command="$(BlazorBuildExe) build @(BlazorAssembly) -hp &quot;$(BlazorIndexHtml)&quot; @(_AppBinariesFiltered->'-r %(Identity)', ' ') -o &quot;$(BlazorIndexHtmlOutputPath)&quot;" />           
+    
+    <ItemGroup>
+      <_BlazorIndexOutput Include="$(BlazorIndexHtmlOutputPath)" />
+      <BlazorItemSpec Include="@(_BlazorIndexOutput)">
+        <TargetOutputPath>$(OutputPath)dist/%(FileName)%(Extension)</TargetOutputPath>
+        <Type>EntryPoint</Type>
+      </BlazorItemSpec>
+    </ItemGroup>
+  
+  </Target>
+  
 </Project>
