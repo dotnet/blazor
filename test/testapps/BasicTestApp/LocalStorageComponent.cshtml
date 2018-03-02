@@ -1,0 +1,27 @@
+﻿@using Microsoft.AspNetCore.Blazor.Browser.Storage
+@inject LocalStorage LocalStorage;
+
+<h1>@greeting</h1>
+
+<input type="text" placeholder="enter greeting" @bind(newGreeting) />
+<button @onclick(SetGreeting)>Set greeting</button>
+
+@functions
+{
+
+    string greeting = null;
+
+    string newGreeting = null;
+
+    void SetGreeting()
+    {
+        greeting = newGreeting;
+        LocalStorage.SetItem("greeting", newGreeting);
+        newGreeting = null;
+    }
+
+    protected override void OnInit()
+    {
+        greeting = LocalStorage.GetItem("greeting");
+    }
+}
