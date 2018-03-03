@@ -3,6 +3,7 @@ import { getAssemblyNameFromUrl } from './Platform/DotNet';
 import './Rendering/Renderer';
 import './Services/Http';
 import './Services/UriHelper';
+import './Services/Storage';
 import './GlobalExports';
 
 async function boot() {

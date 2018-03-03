@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Browser.Http;
+using Microsoft.AspNetCore.Blazor.Browser.Storage;
 using Microsoft.AspNetCore.Blazor.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -48,6 +49,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Services
             {
                 BaseAddress = new Uri(uriHelper.GetBaseUriPrefix())
             });
+            serviceCollection.AddSingleton<LocalStorage>();
+            serviceCollection.AddSingleton<SessionStorage>();
         }
     }
 }
