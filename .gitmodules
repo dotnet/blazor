@@ -1,0 +1,3 @@
+[submodule "src/mono/tools/illink"]
+	path = src/mono/tools/illink
+	url = https://github.com/mono/linker.git
