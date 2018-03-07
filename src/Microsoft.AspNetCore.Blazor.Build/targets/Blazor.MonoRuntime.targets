@@ -24,17 +24,13 @@
 
   <PropertyGroup>
     <BlazorBuildDependsOn>
-      BeforeBlazorBuild;
       GetBlazorBuildConfiguration;
       ResolveBinaryOutput;
       BuildBlazorIndexHtml;
-      AfterBlazorBuild;
     </BlazorBuildDependsOn>
   </PropertyGroup>
 
-  <Target Name="BeforeBlazorBuild" />
   <Target Name="BlazorBuild" DependsOnTargets="$(BlazorBuildDependsOn)" AfterTargets="Compile" />
-  <Target Name="AfterBlazorBuild" />
 
   <Target Name="GetBlazorBuildConfiguration">
     <!-- 
@@ -99,9 +95,6 @@
 
       <!-- /obj/debug/netstandard2.0/blazor/linker/ -->
       <BlazorIntermediateLinkerOutputPath>$(BlazorIntermediateOutputPath)linker/</BlazorIntermediateLinkerOutputPath>
-
-      <!-- /obj/debug/netstandard2.0/blazor/linker/ -->
-      <BlazorRelativeIntermediateLinkerOutputPath>blazor/linker/</BlazorRelativeIntermediateLinkerOutputPath>
       
       <!-- /obj/debug/netstandard2.0/blazor/linker.marker.txt -->
       <BlazorIntermediateLinkerResultFilePath>$(BlazorIntermediateOutputPath)linker.marker.txt</BlazorIntermediateLinkerResultFilePath>
@@ -109,14 +102,9 @@
       <!-- /obj/debug/netstandard2.0/blazor/dist/Index.html -->
       <BlazorIndexHtmlOutputPath>$(BlazorIntermediateOutputPath)dist/$(BlazorIndexHtmlName)</BlazorIndexHtmlOutputPath>
     
-      <GeneratedBlazorLinkerDescriptor>$(IntermediateOutputPath)@(IntermediateAssembly->'%(FileName)').xml</GeneratedBlazorLinkerDescriptor>
+      <GeneratedBlazorLinkerDescriptor>$(BlazorIntermediateOutputPath)@(IntermediateAssembly->'%(FileName)').xml</GeneratedBlazorLinkerDescriptor>
     </PropertyGroup>
-    
-    <Copy SourceFiles="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" DestinationFolder="$(IntermediateOutputPath)">
-      <Output TaskParameter="CopiedFiles" PropertyName="FileWrites" />
-      <Output TaskParameter="CopiedFiles" ItemName="_BlazorLinkerReferencePathInput"/>
-    </Copy>
-  
+      
     <MakeDir Directories="$(BlazorIntermediateOutputPath)" />
     
   </Target>
@@ -151,8 +139,8 @@
     Name="RunMonoLinker"
     Condition="$(BlazorShouldRunMonoLinker) == 'true'"
     DependsOnTargets="CollectLinkerDescriptors"
-    Inputs="$(IntermediateAssembly);
-      @(_BlazorLinkerReferencePathInput);
+    Inputs="@(IntermediateAssembly);
+      @(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'));
       @(BlazorLinkerDescriptor)"
     Outputs="$(BlazorIntermediateLinkerResultFilePath)"
   >
@@ -169,7 +157,7 @@
     else we'll know we have to run the linker again.
     -->
     <ItemGroup>
-      <_BlazorAssembliesToLink Include="@(_BlazorLinkerReferencePathInput->'-a %(FullPath)')" />
+      <_BlazorAssembliesToLink Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'-a %(FullPath)')" />
       <_BlazorAssembliesToLink Include="@(BlazorAssembly->'-a %(FullPath)')" />
       <_BlazorFolderLookupPaths Include="@(MonoBaseClassLibraryFolder->'-d %(Identity)')" />
       <_BlazorAssemblyDescriptorFiles
@@ -184,8 +172,7 @@
     <Delete Files="$(BlazorIntermediateLinkerOutputPath)*.dll" />
 
     <!-- Run the linker and put the results in /obj/debug/netstandard2.0/blazor/blazor/linker -->
-    <Exec Command="dotnet $(MonoLinkerPath) $(_BlazorMonoLinkerAdditionalOptions) @(_BlazorFolderLookupPaths, ' ') -o $(BlazorRelativeIntermediateLinkerOutputPath) @(_BlazorAssembliesToLink, ' ') @(_BlazorAssemblyDescriptorFiles, ' ')" 
-          WorkingDirectory="$(IntermediateOutputPath)" />
+    <Exec Command="dotnet $(MonoLinkerPath) $(_BlazorMonoLinkerAdditionalOptions) @(_BlazorFolderLookupPaths, ' ') -o $(BlazorIntermediateLinkerOutputPath) @(_BlazorAssemblyDescriptorFiles, ' ') @(_BlazorAssembliesToLink, ' ')"  />
 
     <!-- Collect the contents of /obj/debug/netstandard2.0/blazor/blazor/linker/ -->
     <ItemGroup>
