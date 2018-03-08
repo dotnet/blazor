@@ -17,12 +17,26 @@
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
       UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
       UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)"
-      Condition="'@(BlazorItemSpec)' != '' and '$(CopyBuildOutputToOutputDirectory)' == 'true' and '$(SkipCopyBuildProduct)' != 'true'">
-
-      <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
+      Condition="'@(BlazorItemSpec)' != '' and '$(CopyBuildOutputToOutputDirectory)' == 'true' and '$(SkipCopyBuildProduct)' != 'true'">    
     </Copy>
 
+    <ItemGroup>
+      <BlazorOutputs Include="$(ProjectDir)$(OutputPath)dist/**/*" />
+    </ItemGroup>
+    
   </Target>
+  
+  <Target Name="_BlazorBuildReport"
+          AfterTargets="_BlazorCopyFilesToOutputDirectory">
+
+    <PropertyGroup>
+      <BlazorBuildStatistics Condition="'$(BlazorBuildStatistics)' == ''">normal</BlazorBuildStatistics>
+      <BlazorBuildStatistics Condition="'$(BlazorBuildStatistics)' == 'true'">high</BlazorBuildStatistics>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="Blazor Build result -> @(BlazorOutputs->Distinct()->Count()) files written to $(ProjectDir)$(OutputPath)dist" />
+    <Message Importance="$(BlazorBuildStatistics)" Text="%(BlazorOutputs.Identity)" />
+    </Target>
 
   <PropertyGroup>
     <BlazorBuildDependsOn>
@@ -64,14 +78,17 @@
       <BlazorItemSpec Include="@(MonoAsmjsFile)">
         <TargetOutputPath>$(ProjectDir)$(OutputPath)$(BaseBlazorRuntimeAsmjsOutputPath)%(FileName)%(Extension)</TargetOutputPath>
         <Type>AsmJs</Type>
+        <IsStatic>true</IsStatic>
       </BlazorItemSpec>
       <BlazorItemSpec Include="@(MonoWasmFile)">
         <TargetOutputPath>$(ProjectDir)$(OutputPath)$(BaseBlazorRuntimeWasmOutputPath)%(FileName)%(Extension)</TargetOutputPath>
         <Type>WebAssembly</Type>
+        <IsStatic>true</IsStatic>
       </BlazorItemSpec>
       <BlazorItemSpec Include="@(BlazorJsFile)">
         <TargetOutputPath>$(ProjectDir)$(OutputPath)$(BaseBlazorJsOutputPath)%(FileName)%(Extension)</TargetOutputPath>
         <Type>BlazorRuntime</Type>
+        <IsStatic>true</IsStatic>
       </BlazorItemSpec>
     </ItemGroup>
 
@@ -209,7 +226,7 @@
         <Type>Assembly</Type>
         <PrimaryOutput Condition="'%(FileName)' == @(IntermediateAssembly->'%(FileName)')">true</PrimaryOutput>
       </BlazorItemSpec>    
-    
+      <FileWrites Include="@(BlazorItemSpec->WithMetadataValue('Type','Assembly')->'%(TargetOutputPath)')" />    
     </ItemGroup>
   
   </Target>
@@ -258,13 +275,14 @@
         <Type>Assembly</Type>
         <PrimaryOutput Condition="'%(FileName)' == @(IntermediateAssembly->'%(FileName)')">true</PrimaryOutput>
       </BlazorItemSpec>
+      <FileWrites Include="@(BlazorItemSpec->WithMetadataValue('Type','Assembly')->'%(TargetOutputPath)')" />
     </ItemGroup>
 
   </Target>
 
   <Target
     Name="BuildBlazorIndexHtml"
-    Inputs="$(BlazorIndexHtml);@(BlazorItemSpec->WithMetadataValue('Type','Assembly')->WithMetadataValue('PrimaryOutput',''))"
+    Inputs="$(BlazorIndexHtml);@(BlazorItemSpec->WithMetadataValue('Type','Assembly'))"
     Outputs="@(BlazorIndexHtmlFileOutput)"
     Condition="Exists('$(BlazorIndexHtml)')">
     <ItemGroup>
@@ -279,6 +297,7 @@
         <TargetOutputPath>$(ProjectDir)$(OutputPath)dist/%(FileName)%(Extension)</TargetOutputPath>
         <Type>EntryPoint</Type>
       </BlazorItemSpec>
+      <FileWrites Include="$(BlazorIndexHtmlOutputPath)" />
     </ItemGroup>
   
   </Target>

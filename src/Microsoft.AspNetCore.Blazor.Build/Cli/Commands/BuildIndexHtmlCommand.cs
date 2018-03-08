@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
 
                 try
                 {
-                    IndexHtmlWriter.UpdateIndex(mainAssemblyPath.Value, clientPage.Value(), references.Values.ToArray(), outputPath.Value());
+                    IndexHtmlWriter.UpdateIndex(clientPage.Value(), mainAssemblyPath.Value, references.Values.ToArray(), outputPath.Value());
                     return 0;
                 }
                 catch (Exception ex)

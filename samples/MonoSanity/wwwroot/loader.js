@@ -67,7 +67,7 @@
     var loadBclAssemblies = [
       'netstandard',
       'mscorlib',
-      //'System',
+      'System',
       'System.Core',
     ];
 
