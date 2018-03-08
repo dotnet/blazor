@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Blazor.Build.Core;
-using Microsoft.Extensions.CommandLineUtils;
 using System;
+using Microsoft.Extensions.CommandLineUtils;
 
 namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
 {
-    internal class BuildCommand
+    internal class BuildIndexHtmlCommand
     {
         public static void Command(CommandLineApplication command)
         {
@@ -37,7 +36,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
 
                 try
                 {
-                    AppBuilder.Execute(mainAssemblyPath.Value, clientPage.Value(), references.Values.ToArray(), outputPath.Value());
+                    IndexHtmlWriter.UpdateIndex(mainAssemblyPath.Value, clientPage.Value(), references.Values.ToArray(), outputPath.Value());
                     return 0;
                 }
                 catch (Exception ex)

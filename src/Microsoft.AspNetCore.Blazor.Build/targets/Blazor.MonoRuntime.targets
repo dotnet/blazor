@@ -91,14 +91,19 @@
     
       <!-- /obj/debug/netstandard2.0/blazor/Descriptor.xml -->
       <GeneratedBlazorLinkerDescriptor>$(BlazorIntermediateOutputPath)Descriptor.xml</GeneratedBlazorLinkerDescriptor>
-    
+
+      <!-- /obj/debug/netstandard2.0/blazor/Descriptor.xml -->
+      <BlazorResolvedAssembliesOutputPath>$(BlazorIntermediateOutputPath)ResolvedAssemblies.txt</BlazorResolvedAssembliesOutputPath>
+
     </PropertyGroup>
     
     <ItemGroup Label="Different outputs used through the build">
       <ProducedLinkerDescriptor Include="$(GeneratedBlazorLinkerDescriptor)" />
       <LinkerMarkerFileOutput Include="$(BlazorIntermediateLinkerResultFilePath)" />
       <BlazorIndexHtmlFileOutput Include="$(BlazorIndexHtmlOutputPath)" />
-    </ItemGroup>
+      <BlazorResolvedAssembliesOutput Include="BlazorResolvedAssembliesOutputPath" />
+    
+  </ItemGroup>
    
     <MakeDir Directories="$(BlazorIntermediateOutputPath)" />    
     
@@ -188,6 +193,7 @@
 
   <Target 
     Name="CollectLinkerOutputs"
+    Condition="'$(BlazorShouldRunMonoLinker)' == 'true'"
     DependsOnTargets="RunMonoLinker">
     <!--
     Read the outputs from the linker (from this run or a previous run) and set them in an item group for
@@ -209,8 +215,29 @@
   </Target>
 
   <Target
+    Name="ResolveRuntimeDependencies"
+    Condition="'$(BlazorShouldRunMonoLinker)' == 'false'"
+    Inputs="@(IntermediateAssembly);
+      @(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'));
+      @(BlazorLinkerDescriptor)"
+    Outputs="@(BlazorResolvedAssembliesOutput)"
+  >
+    <ItemGroup>
+      <_DependenciesParameter Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'--reference &quot;%(FullPath)&quot;')" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_BclParameter>--base-class-library &quot;$(MonoBaseClassLibraryPath)&quot; --base-class-library &quot;$(MonoBaseClassLibraryFacadesPath)&quot;</_BclParameter>
+    </PropertyGroup>
+
+    <Exec Command="$(BlazorBuildExe) resolve-dependencies &quot;@(IntermediateAssembly->'%(FullPath)')&quot; @(_DependenciesParameter, ' ') $(_BclParameter) --output &quot;$(BlazorResolvedAssembliesOutputPath)&quot;" />
+
+  </Target>
+  
+  <Target
     Name="GetBaseClassLibrary"
+    DependsOnTargets="ResolveRuntimeDependencies"
     Condition="'$(BlazorShouldRunMonoLinker)' == 'false'">
+
     <!--
     At this point we have decided not to run the linker and instead to just copy the BCL from
     the nuget package into the _framework/_bin folder. The only thing we need to do here is
@@ -220,25 +247,19 @@
     * All the project/package assemblies referenced by the app.
     * The mono BCL.    
     -->
+
+    <ReadLinesFromFile File="$(BlazorResolvedAssembliesOutputPath)">
+      <Output TaskParameter="Lines" ItemName="_ResolvedAssemblyPaths"/>
+    </ReadLinesFromFile>
+
     <ItemGroup>
-      
-      <BlazorItemSpec Include="@(MonoBCLFile)">
-        <TargetOutputPath>$(ProjectDir)$(OutputPath)$(BaseBlazorRuntimeBinOutputPath)%(RecursiveDir)%(FileName)%(Extension)</TargetOutputPath>
-        <Type>Assembly</Type>
-        <BaseClassLibrary>true</BaseClassLibrary>
-      </BlazorItemSpec>
-      <BlazorItemSpec Include="@(MonoBCLFacadeFile)">
-        <TargetOutputPath>$(ProjectDir)$(OutputPath)$(BaseBlazorRuntimeBinOutputPath)%(RecursiveDir)%(FileName)%(Extension)</TargetOutputPath>
-        <Type>Assembly</Type>
-        <Facade>true</Facade>
-      </BlazorItemSpec>
-      <BlazorItemSpec Include="@(IntermediateAssembly);@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))">
+      <BlazorItemSpec Include="@(_ResolvedAssemblyPaths)">
         <TargetOutputPath>$(ProjectDir)$(OutputPath)$(BaseBlazorRuntimeBinOutputPath)%(FileName)%(Extension)</TargetOutputPath>
         <Type>Assembly</Type>
         <PrimaryOutput Condition="'%(FileName)' == @(IntermediateAssembly->'%(FileName)')">true</PrimaryOutput>
       </BlazorItemSpec>
-
     </ItemGroup>
+
   </Target>
 
   <Target
@@ -247,10 +268,10 @@
     Outputs="@(BlazorIndexHtmlFileOutput)"
     Condition="Exists('$(BlazorIndexHtml)')">
     <ItemGroup>
-      <_AppBinaries Include="@(BlazorItemSpec->WithMetadataValue('Type','Assembly')->WithMetadataValue('PrimaryOutput','')->'%(FileName)%(Extension)')" />
+      <_AppReferences Include="@(BlazorItemSpec->WithMetadataValue('Type','Assembly')->WithMetadataValue('PrimaryOutput','')->'%(FileName)%(Extension)')" />
     </ItemGroup>
     
-    <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) -hp &quot;$(BlazorIndexHtml)&quot; @(_AppBinaries->'-r %(Identity)', ' ') -o &quot;$(BlazorIndexHtmlOutputPath)&quot;" />           
+    <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) -hp &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'-r %(Identity)', ' ') -o &quot;$(BlazorIndexHtmlOutputPath)&quot;" />           
     
     <ItemGroup>
       <_BlazorIndex Include="$(BlazorIndexHtmlOutputPath)" />
