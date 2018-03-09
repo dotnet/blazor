@@ -19,7 +19,7 @@ build_script:
 before_test:
   - choco install googlechrome --ignore-checksum
   - npm install -g selenium-standalone
-  - selenium-standalone install
+  - selenium-standalone install --drivers.chrome.version=2.36 --drivers.chrome.baseURL=https://chromedriver.storage.googleapis.com
   - ps: $SeleniumProcess = Start-Process "selenium-standalone" -ArgumentList "start" -PassThru
 test_script:
   - dotnet test test\AllTests.proj /p:BlazorBuildStatistics=true /bl
