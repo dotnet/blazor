@@ -202,6 +202,30 @@ namespace Microsoft.AspNetCore.Blazor.Components
             => RenderTreeFrame.Attribute(0, "onclick", _ => handler());
 
         /// <summary>
+        /// Handles async click events by invoking the async <paramref name="handler"/>
+        /// </summary>
+        /// <param name="handler">The async handler to be invoked when the event occurs.</param>
+        /// <returns></returns>
+        protected RenderTreeFrame onclickAsync(Func<Task> handler)
+        {
+            return RenderTreeFrame.Attribute(0, "onclick", _ =>
+            {
+                // Run handler and handle any exceptions when any occurs.
+                handler().ContinueWith(task =>
+                {
+                    if (task.Exception == null)
+                    {
+                        StateHasChanged();
+                    }
+                    else
+                    {
+                        HandleException(task.Exception);
+                    }
+                });
+            });
+        }
+
+        /// <summary>
         /// Handles change events by invoking <paramref name="handler"/>.
         /// </summary>
         /// <param name="handler">The handler to be invoked when the event occurs. The handler will receive the new value as a parameter.</param>
