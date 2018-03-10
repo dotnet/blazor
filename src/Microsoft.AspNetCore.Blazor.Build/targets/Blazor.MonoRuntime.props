@@ -20,6 +20,7 @@
     <BlazorLinkOnBuild Condition="'$(BlazorLinkOnBuild)' == ''">false</BlazorLinkOnBuild>
     <BlazorWebRootName>wwwroot/</BlazorWebRootName>
     <BlazorIndexHtmlName>Index.html</BlazorIndexHtmlName>
+    <BlazorOutputIndexHtmlName>index.html</BlazorOutputIndexHtmlName>
   </PropertyGroup>
   
   <ItemGroup>

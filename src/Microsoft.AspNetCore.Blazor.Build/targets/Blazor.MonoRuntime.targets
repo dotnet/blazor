@@ -104,7 +104,7 @@
       <BlazorIntermediateLinkerResultFilePath>$(BlazorIntermediateOutputPath)linker.marker.txt</BlazorIntermediateLinkerResultFilePath>
 
       <!-- /obj/debug/netstandard2.0/blazor/Index.html -->
-      <BlazorIndexHtmlOutputPath>$(BlazorIntermediateOutputPath)$(BlazorIndexHtmlName)</BlazorIndexHtmlOutputPath>
+      <BlazorIndexHtmlOutputPath>$(BlazorIntermediateOutputPath)$(BlazorOutputIndexHtmlName)</BlazorIndexHtmlOutputPath>
     
       <!-- /obj/debug/netstandard2.0/blazor/Descriptor.xml -->
       <GeneratedBlazorLinkerDescriptor>$(BlazorIntermediateOutputPath)Descriptor.xml</GeneratedBlazorLinkerDescriptor>
