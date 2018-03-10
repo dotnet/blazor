@@ -8,11 +8,11 @@
 
   <ItemGroup>
     <AsmJsItemsToCopy Include="$(MonoUnoptimizedDir)asmjs\**" />
-    <AsmJsItemsOutput Include="@(AsmJsItemsToCopy->'$(MonoOptimizedDir)asmjs/%(RecursiveDir)')" />
+    <AsmJsItemsOutput Include="@(AsmJsItemsToCopy->'$(MonoOptimizedDir)asmjs\%(RecursiveDir)')" />
     <WasmItemsToCopy Include="$(MonoUnoptimizedDir)wasm\**" />
-    <WasmItemsOutput Include="@(WasmItemsToCopy->'$(MonoOptimizedDir)wasm/%(RecursiveDir)')" />
+    <WasmItemsOutput Include="@(WasmItemsToCopy->'$(MonoOptimizedDir)wasm\%(RecursiveDir)')" />
     <BclItemsToCopy Include="$(MonoIncomingDir)bcl\**" />
-    <BclItemsOutput Include="@(BclItemsToCopy->'$(MonoOptimizedDir)bcl/%(RecursiveDir)')" />
+    <BclItemsOutput Include="@(BclItemsToCopy->'$(MonoOptimizedDir)bcl\%(RecursiveDir)')" />
   </ItemGroup>
 
   <Target Name="OptimizeMono" DependsOnTargets="OptimizeMonoWasm; OptimizeMonoAsmJs; OptimizeBcl" />

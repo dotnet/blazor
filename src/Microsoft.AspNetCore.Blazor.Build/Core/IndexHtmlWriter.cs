@@ -17,11 +17,44 @@ namespace Microsoft.AspNetCore.Blazor.Build
     {
         public static void UpdateIndex(string path, string assemblyPath, IEnumerable<string> references, string outputPath)
         {
-            var template = File.ReadAllText(path);
+            var template = GetTemplate(path);
+            if (template == null)
+            {
+                return;
+            }
             var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
             var entryPoint = GetAssemblyEntryPoint(assemblyPath);
             var updatedContent = GetIndexHtmlContents(template, assemblyName, entryPoint, references);
-            File.WriteAllText(outputPath, updatedContent);
+            var normalizedOutputPath = Normalize(outputPath);
+            Console.WriteLine("Writing index to: " + normalizedOutputPath);
+            File.WriteAllText(normalizedOutputPath, updatedContent);
+        }
+
+        private static string Normalize(string outputPath) =>
+            Path.Combine(Path.GetDirectoryName(outputPath), Path.GetFileName(outputPath).ToLowerInvariant());
+
+        private static string GetTemplate(string path)
+        {
+            var fileName = Path.GetFileName(path);
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            if (Directory.Exists(Path.GetDirectoryName(path)))
+            {
+                var files = Directory.EnumerateFiles(Path.GetDirectoryName(path))
+                    .OrderBy(f => f);
+                foreach (var file in files)
+                {
+                    if (string.Equals(fileName, Path.GetFileName(file), StringComparison.OrdinalIgnoreCase))
+                    {
+                        return File.ReadAllText(file);
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static string GetAssemblyEntryPoint(string assemblyPath)

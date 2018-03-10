@@ -107,10 +107,10 @@
       <BlazorIndexHtmlOutputPath>$(BlazorIntermediateOutputPath)$(BlazorOutputIndexHtmlName)</BlazorIndexHtmlOutputPath>
     
       <!-- /obj/debug/netstandard2.0/blazor/Descriptor.xml -->
-      <GeneratedBlazorLinkerDescriptor>$(BlazorIntermediateOutputPath)Descriptor.xml</GeneratedBlazorLinkerDescriptor>
+      <GeneratedBlazorLinkerDescriptor>$(BlazorIntermediateOutputPath)linker.descriptor.xml</GeneratedBlazorLinkerDescriptor>
 
       <!-- /obj/debug/netstandard2.0/blazor/Descriptor.xml -->
-      <BlazorResolvedAssembliesOutputPath>$(BlazorIntermediateOutputPath)ResolvedAssemblies.txt</BlazorResolvedAssembliesOutputPath>
+      <BlazorResolvedAssembliesOutputPath>$(BlazorIntermediateOutputPath)resolved.assemblies.txt</BlazorResolvedAssembliesOutputPath>
 
     </PropertyGroup>
     
@@ -283,15 +283,14 @@
   <Target
     Name="BuildBlazorIndexHtml"
     Inputs="$(BlazorIndexHtml);@(BlazorItemSpec->WithMetadataValue('Type','Assembly'))"
-    Outputs="@(BlazorIndexHtmlFileOutput)"
-    Condition="Exists('$(BlazorIndexHtml)')">
+    Outputs="@(BlazorIndexHtmlFileOutput)">
     <ItemGroup>
       <_AppReferences Include="@(BlazorItemSpec->WithMetadataValue('Type','Assembly')->WithMetadataValue('PrimaryOutput','')->'%(FileName)%(Extension)')" />
     </ItemGroup>
     
     <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) -hp &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'-r %(Identity)', ' ') -o &quot;$(BlazorIndexHtmlOutputPath)&quot;" />           
     
-    <ItemGroup>
+    <ItemGroup Condition="Exists('$(BlazorIndexHtmlOutputPath)')">
       <_BlazorIndex Include="$(BlazorIndexHtmlOutputPath)" />
       <BlazorItemSpec Include="@(_BlazorIndex)">
         <TargetOutputPath>$(ProjectDir)$(OutputPath)dist/%(FileName)%(Extension)</TargetOutputPath>
