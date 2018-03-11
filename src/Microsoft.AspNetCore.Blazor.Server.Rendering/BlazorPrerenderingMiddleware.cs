@@ -1,24 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Html;
 using AngleSharp.Parser.Html;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SpaServices;
-using Microsoft.AspNetCore.SpaServices.StaticFiles;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 {
     public class BlazorPrerenderingMiddleware
     {
-        public static void Attach(ISpaBuilder spaBuilder)
+        public static void Attach<T>(ISpaBuilder spaBuilder)
         {
             if (spaBuilder == null)
                 throw new ArgumentNullException(nameof(spaBuilder));
@@ -34,6 +28,9 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 
             applicationBuilder.Use((context, next) =>
             {
+                var renderer = new PreRenderer();
+                var pre = renderer.Render<T>();
+
                 var subpath = context.Request.Path;
                 var fileInfo = fileOptions.FileProvider.GetFileInfo(subpath);
                 if (fileInfo.Exists)
@@ -48,9 +45,9 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
                     {
                         var html = reader.ReadToEnd();
 
-                        var content = Prerender(html);
+                        var content = Prerender(html, pre);
                         context.Response.ContentLength = content.Length;
-                        using (var writer = new StreamWriter(context.Response.Body, Encoding.Default, 4096, leaveOpen: true))
+                        using (var writer = new StreamWriter(context.Response.Body))
                         {
                             writer.Write(content);
                         }
@@ -63,7 +60,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             });
         }
 
-        private static string Prerender(string htmlTemplate)
+        private static string Prerender(string htmlTemplate, string pre)
         {
             // copied from IndexHtmlFileProvider.cs
             var resultBuilder = new StringBuilder();
@@ -71,7 +68,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             // Search for a tag of the form <app></app>, and replace
             // it with the prerendered content
             var tokenizer = new HtmlTokenizer(
-                new TextSource(htmlTemplate), 
+                new TextSource(htmlTemplate),
                 HtmlEntityService.Resolver);
             var currentRangeStartPos = 0;
             var isInBlazorBootTag = false;
@@ -99,7 +96,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 
                                 // Instead of emitting the source text for this special tag, emit a fully-
                                 // configured Blazor boot script tag
-                                AppendScriptTagWithBootConfig(resultBuilder);
+                                AppendScriptTagWithBootConfig(resultBuilder, pre);
 
                                 // Set a flag so we know not to emit anything else until the special
                                 // tag is closed
@@ -130,9 +127,11 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             => string.Equals(tag.Name, "app", StringComparison.Ordinal);
 
         private static void AppendScriptTagWithBootConfig(
-            StringBuilder resultBuilder)
+            StringBuilder resultBuilder, string pre)
         {
-            resultBuilder.AppendLine("<h1>Hello Prerendering</h1>");
+            resultBuilder.AppendLine($@"<app>
+{pre}
+</app>");
         }
     }
 

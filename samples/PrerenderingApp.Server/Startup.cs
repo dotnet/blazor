@@ -26,7 +26,7 @@ namespace PrerenderingApp.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseBlazorPrerendering<Client.Program>();
+            app.UseBlazorPrerendering<Client.Home>();
         }
     }
 }

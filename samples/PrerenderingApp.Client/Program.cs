@@ -23,11 +23,5 @@ namespace PrerenderingApp.Client
         {
             new BrowserRenderer().AddComponent<Home>("app");
         }
-
-        /*static void Server(string[] args)
-        {
-            var renderer = new PreRenderer();//.AddComponent<Home>("app");
-            renderer.DoStuff<Home>();
-        }*/
     }
 }
