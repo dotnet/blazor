@@ -24,6 +24,7 @@
     dist folder at the end of the build when statistics are enabled. -->
     <ItemGroup>
       <_BlazorStatisticsOutput Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
+      <FileWrites Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
     </ItemGroup>
 
   </Target>
@@ -57,8 +58,7 @@
             _IntermediateCopyBlazorApplicationAssemblies
             _TouchBlazorApplicationAssemblies
       _GenerateBlazorIndexHtml
-    _BlazorCopyFilesToOutputDirectory
-    
+    _BlazorCopyFilesToOutputDirectory    
   
     The process for doing builds goes as follows:
     Produce a hash file with the Hash SDK task and write that hash to a marker file only when different than
@@ -67,21 +67,25 @@
     input in future builds for incremental builds.
     
     If we are linking on this build the process is as follows:
-    1) We determine if there are
-
-    We will copy all the static content (wasm ,asmjs, blazorjs) into the dist/_framework folder in 
-    /bin/<<configuration>>/<<targetframework>>.
-
-    When we have to copy the binaries for the application we will have two choices:
-    If the application was linked we will have to collect the previous outputs (linked assemblies + markers) and the
-    previous inputs (linker descriptors + referenced assemblies + intermediate assembly).
+    1) We determine if there are linker descriptors available, if not generate one.
+    2) Collect the list of linker descriptors and create a marker for the linker inputs for incremental builds.
+    3) Run the linker in case the linker inputs marker are newer than the linker marker file.
+    4) Collect the outputs from the linker.
     
-    If the application was not linked, we will have to collect the previous outputs (resolved reference assemblies copied to output) and
-    the previous inputs (list of application references + intermediate assembly).
+    If we are not linking in this build the process is as follows:
+    1) Resolve the assemblies for the application.
+    2) Read the marker file with the resolved assemblies.
+    3) Copy the resolved assemblies to an intermediate folder.
+    4) In case we are switching from linking to not linking, touch the files in the intermediate folder to ensure
+       that updated versions of the files get copied to the output folder.
+
+    Once the binary outputs are resolved:
+    1) Create a marker file with the resolved assemblies and the index html file as inputs.
+    2) If the marker file is newer than the index.html in the output folder, regenerate the
+       index.html
     
-    Once we've chosen what to collect, we will have to produce a hash with the contents of the inputs
-    that we will use as a marker to indicate other tasks further down in the pipeline if any input they require
-    has changed.
+    Once all the outputs are resolved (static content + binary outputs + index.html)
+    Copy all the files to the output folder.
     -->
 
   <PropertyGroup>
@@ -115,11 +119,23 @@
     will be canonicalized to index.html
     
     This task also defines some intermediate paths that we will use:
-    /obj/debug/netstandard2.0/blazor/blazor/linker <- This will be used to create the output from the linker.
-    /obj/debug/netstandard2.0/blazor/blazor/linked.assemblies.txt <- This will be used to save the output files from
+    /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linker <- This will be used to create the output from the linker.
+    /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linked.assemblies.txt <- This will be used to save the output files from
     the linker and use that as marker to identify whether or not we need to run the linker.
-    /obj/debug/netstandard2.0/blazor/blazor/linker.descriptor.xml <- This will be used to generate an XML descriptor
+    /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linker.descriptor.xml <- This will be used to generate an XML descriptor
     for the mono linker.
+    /obj/<<configuration>>/<<targetframework>>/blazor/inputs.basic.cache <- This is the marker file to track the inputs common
+    inputs to the output generation process.
+    /obj/<<configuration>>/<<targetframework>>/blazor/inputs.linkerswitch.cache <- This is the marker file to track the
+    switch from linking to not linking and viceversa.
+    /obj/<<configuration>>/<<targetframework>>/blazor/inputs.linker.cache <- This is the marker file to track the inputs
+    to the linker.
+    /obj/<<configuration>>/<<targetframework>>/blazor/resolvedassemblies/ <- This will be used to store the resolved assemblies
+    before copying them to the output when linking is not enabled.
+    /obj/<<configuration>>/<<targetframework>>/blazor/resolved.assemblies.txt <- This keeps track of all the resolved assemblies.
+    /obj/<<configuration>>/<<targetframework>>/blazor/index.html <- The generated index.html with the updated blazor script tag.
+    /obj/<<configuration>>/<<targetframework>>/blazor/inputs.index.cache <- The marker file that track whether index.html needs to
+    be regenerated.
     -->
 
     <PropertyGroup Label="Build properties">
@@ -324,6 +340,10 @@
       Overwrite="True"
       WriteOnlyWhenDifferent="True" />
   </Target>
+  
+  <ItemGroup>
+    <FileWrites Include="$(BlazorBuildLinkerInputsCache)" />
+  </ItemGroup>
 
   <Target
       Name="_LinkBlazorApplication"
@@ -340,8 +360,7 @@
     for framework assemblies.
     3) Once we've run the linker we need to capture the produced output and generate a marker file containing
     the list of produced files. This file will act as a marker to skip running the linker if nothing changed.
-    4) Add the file we just created to the list of file writes, so that if we turn off the linker or do something
-    else we'll know we have to run the linker again.
+    4) Add the file we just created to the list of file writes, to support incremental compilation.
     -->
     <ItemGroup>
       <_BlazorAssembliesToLink Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'-a &quot;%(FullPath)&quot;')" />
@@ -355,29 +374,31 @@
       <_BlazorLinkerAdditionalOptions>$(AdditionalMonoLinkerOptions)</_BlazorLinkerAdditionalOptions>
     </PropertyGroup>
 
-    <!-- Clear the contents of /obj/debug/netstandard2.0/blazor/blazor/linker -->
+    <!-- Clear the contents of /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linker -->
     <Delete Files="$(BlazorIntermediateLinkerOutputPath)*.dll" />
 
-    <!-- Run the linker and put the results in /obj/debug/netstandard2.0/blazor/blazor/linker -->
+    <!-- Run the linker and put the results in /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linker -->
     <Exec Command="dotnet $(MonoLinkerPath) $(_BlazorLinkerAdditionalOptions) @(_BlazorFolderLookupPaths, ' ') -o $(BlazorIntermediateLinkerOutputPath) @(_BlazorAssemblyDescriptorFiles, ' ') @(_BlazorAssembliesToLink, ' ')"  />
 
-    <!-- Collect the contents of /obj/debug/netstandard2.0/blazor/blazor/linker/ -->
+    <!-- Collect the contents of /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linker/ -->
     <ItemGroup>
       <_BlazorLinkerOutput Include="$(BlazorIntermediateLinkerOutputPath)*.dll" />
     </ItemGroup>
 
     <!-- 
-    Write the list of files in /obj/debug/netstandard2.0/blazor/blazor/linker/ into 
-    /obj/debug/netstandard2.0/blazor/blazor/linked.assemblies.txt
+    Write the list of files in /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linker/ into 
+    /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linked.assemblies.txt
     -->
     <WriteLinesToFile
       File="$(BlazorIntermediateLinkerResultFilePath)"
       Lines="@(_BlazorLinkerOutput)"
       Overwrite="true" />
 
-    <!-- Add /obj/debug/netstandard2.0/blazor/blazor/linked.assemblies.txt to the list of written files. -->
+    <!-- Add /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linked.assemblies.txt to the list of written files. -->
+    <!-- Add /obj/<<configuration>>/<<targetframework>>/blazor/blazor/linker/*.dll to the list of written files. -->
     <ItemGroup>
       <FileWrites Include="$(BlazorIntermediateLinkerResultFilePath)" />
+      <FileWrites Include="@(_BlazorLinkerOutput)" />
     </ItemGroup>
   </Target>
   
@@ -452,6 +473,11 @@
     <ItemGroup>
       <_IntermediateResolvedRuntimeDependencies Include="@(_BlazorResolvedRuntimeDependencies->'$(BlazorIntermediateResolvedApplicationAssembliesOutputPath)%(FileName)%(Extension)')" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <FileWrites Include="$(BlazorResolvedAssembliesOutputPath)" />
+      <FileWrites Include="_IntermediateResolvedRuntimeDependencies" />
+    </ItemGroup>
 
   </Target>
 
@@ -470,10 +496,6 @@
       UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
       UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)" />
     
-    <ItemGroup>
-      <FileWrites Include="@(_IntermediateResolvedRuntimeDependencies)" />
-    </ItemGroup>
-
   </Target>
 
   <Target
@@ -503,6 +525,10 @@
       Lines="@(BlazorIndexHtmlInput)"
       Overwrite="true"
       WriteOnlyWhenDifferent="True" />
+    
+    <ItemGroup>
+      <FileWrites Include="$(BlazorBuildIndexInputsCache)" />
+    </ItemGroup>
 
   </Target>
 
