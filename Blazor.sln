@@ -85,7 +85,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted.CSharp.Client"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted.CSharp.Server", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorHosted.CSharp\BlazorHosted.CSharp.Server\BlazorHosted.CSharp.Server.csproj", "{78ED9932-0912-4F36-8F82-33DE850E7A33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorHosted.CSharp.Shared", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorHosted.CSharp\BlazorHosted.CSharp.Shared\BlazorHosted.CSharp.Shared.csproj", "{F3E02B21-1127-431A-B832-0E53CB72097B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted.CSharp.Shared", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorHosted.CSharp\BlazorHosted.CSharp.Shared\BlazorHosted.CSharp.Shared.csproj", "{F3E02B21-1127-431A-B832-0E53CB72097B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Prerendering", "Prerendering", "{0A6A1E7D-2236-4695-A5B1-0A82EEED0B6C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Server.Rendering", "src\Microsoft.AspNetCore.Blazor.Server.Rendering\Microsoft.AspNetCore.Blazor.Server.Rendering.csproj", "{9C424433-8AA6-452B-BA9E-01ACD2852176}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrerenderingApp.Client", "samples\PrerenderingApp.Client\PrerenderingApp.Client.csproj", "{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrerenderingApp.Server", "samples\PrerenderingApp.Server\PrerenderingApp.Server.csproj", "{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -209,6 +217,18 @@ Global
 		{F3E02B21-1127-431A-B832-0E53CB72097B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3E02B21-1127-431A-B832-0E53CB72097B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3E02B21-1127-431A-B832-0E53CB72097B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -249,6 +269,10 @@ Global
 		{7549444A-9C81-44DE-AD0D-2C55501EAAC7} = {73DA1DFD-79F0-4BA2-B0B6-4F3A21D2C3F8}
 		{78ED9932-0912-4F36-8F82-33DE850E7A33} = {73DA1DFD-79F0-4BA2-B0B6-4F3A21D2C3F8}
 		{F3E02B21-1127-431A-B832-0E53CB72097B} = {73DA1DFD-79F0-4BA2-B0B6-4F3A21D2C3F8}
+		{0A6A1E7D-2236-4695-A5B1-0A82EEED0B6C} = {F5FDD4E5-6A52-4A86-BE5E-5E42CB1DC8DA}
+		{9C424433-8AA6-452B-BA9E-01ACD2852176} = {B867E038-B3CE-43E3-9292-61568C46CDEB}
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D} = {0A6A1E7D-2236-4695-A5B1-0A82EEED0B6C}
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB} = {0A6A1E7D-2236-4695-A5B1-0A82EEED0B6C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {504DA352-6788-4DC0-8705-82167E72A4D3}
