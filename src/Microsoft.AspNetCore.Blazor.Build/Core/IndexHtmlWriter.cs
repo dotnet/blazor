@@ -13,7 +13,7 @@ using Mono.Cecil;
 
 namespace Microsoft.AspNetCore.Blazor.Build
 {
-    public class IndexHtmlWriter
+    internal class IndexHtmlWriter
     {
         public static void UpdateIndex(string path, string assemblyPath, IEnumerable<string> references, string outputPath)
         {

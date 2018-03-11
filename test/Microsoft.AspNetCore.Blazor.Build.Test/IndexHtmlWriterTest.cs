@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using AngleSharp.Parser.Html;
-using Microsoft.AspNetCore.Blazor.Build;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Server.Test
+namespace Microsoft.AspNetCore.Blazor.Build.Test
 {
-    public class IndexHtmlFileProviderTest
+    public class IndexHtmlWriterTest
     {
         [Fact]
         public void InjectsScriptTagReferencingAssemblyAndDependencies()
