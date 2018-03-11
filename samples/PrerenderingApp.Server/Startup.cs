@@ -3,7 +3,10 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Blazor.Server.Rendering;
 
 namespace PrerenderingApp.Server
 {
@@ -23,7 +26,7 @@ namespace PrerenderingApp.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseBlazor<Client.Program>();
+            app.UseBlazorPrerendering<Client.Program>();
         }
     }
 }

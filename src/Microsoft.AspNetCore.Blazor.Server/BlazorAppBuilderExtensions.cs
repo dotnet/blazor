@@ -1,12 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using System.IO;
 using System.Net.Mime;
+using Microsoft.AspNetCore.SpaServices;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -17,14 +19,16 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <typeparam name="TProgram">Any type from the client app project. This is used to identify the client app assembly.</typeparam>
         /// <param name="applicationBuilder"></param>
+        /// <param name="configuration"></param>
         public static void UseBlazor<TProgram>(
-            this IApplicationBuilder applicationBuilder)
+            this IApplicationBuilder applicationBuilder,
+            Action<ISpaBuilder> configuration = null)
         {
             var clientAssemblyInServerBinDir = typeof(TProgram).Assembly;
             applicationBuilder.UseBlazor(new BlazorOptions
             {
                 ClientAssemblyPath = clientAssemblyInServerBinDir.Location,
-            });
+            }, configuration);
         }
 
         /// <summary>
@@ -32,9 +36,11 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="applicationBuilder"></param>
         /// <param name="options"></param>
+        /// <param name="configuration"></param>
         public static void UseBlazor(
             this IApplicationBuilder applicationBuilder,
-            BlazorOptions options)
+            BlazorOptions options,
+            Action<ISpaBuilder> configuration = null)
         {
             var config = BlazorConfig.Read(options.ClientAssemblyPath);
             var clientAppBinDir = Path.GetDirectoryName(config.SourceOutputAssemblyPath);
@@ -68,6 +74,7 @@ namespace Microsoft.AspNetCore.Builder
                 childAppBuilder.UseSpa(spa =>
                 {
                     spa.Options.DefaultPageStaticFileOptions = distDirStaticFiles;
+                    configuration?.Invoke(spa);
                 });
             });
         }
