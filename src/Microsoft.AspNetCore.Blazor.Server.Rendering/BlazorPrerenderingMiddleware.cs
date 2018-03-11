@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Html;
@@ -15,20 +16,6 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 {
     public class BlazorPrerenderingMiddleware
     {
-        private readonly RequestDelegate _next;
-
-        public BlazorPrerenderingMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
-
-        public Task Invoke(HttpContext context)
-        {
-
-
-            return _next(context);
-        }
-
         public static void Attach(ISpaBuilder spaBuilder)
         {
             if (spaBuilder == null)
@@ -51,26 +38,51 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
                 {
                     fileOptions.ContentTypeProvider.TryGetContentType(subpath, out var contentType);
 
+                    context.Response.StatusCode = 200;
+                    context.Response.ContentType = contentType;
+
                     using (var stream = fileInfo.CreateReadStream())
                     using (var reader = new StreamReader(stream))
                     {
                         var html = reader.ReadToEnd();
 
-                        var tokenizer = new HtmlTokenizer(new TextSource(html), HtmlEntityService.Resolver);
-
-
+                        var content = Prerender(html);
+                        context.Response.ContentLength = content.Length;
+                        using (var writer = new StreamWriter(context.Response.Body, Encoding.Default, 4096, leaveOpen: true))
+                        {
+                            writer.Write(content);
+                        }
                     }
-
-                    context.Response.StatusCode = 200;
-                    context.Response.ContentType = contentType;
-                    context.Response.ContentLength = fileInfo.Length;
-                    //stream.CopyTo(context.Response.Body);
 
                     return Task.FromResult(0);
                 }
 
                 return next();
             });
+        }
+
+        private static string Prerender(string html)
+        {
+            var tokenizer = new HtmlTokenizer(new TextSource(html), HtmlEntityService.Resolver);
+
+            while (true)
+            {
+                var token = tokenizer.Get();
+                switch (token.Type)
+                {
+                    case HtmlTokenType.EndOfFile:
+                        return @"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"" />
+    <title>Sample Blazor app</title>
+</head>
+<body>
+    <h1>Hello prerendering</h1>
+</body>
+</html>";
+                }
+            }
         }
     }
 

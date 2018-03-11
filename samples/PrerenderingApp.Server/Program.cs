@@ -20,7 +20,7 @@ namespace PrerenderingApp.Server
             var currentDirectory = Environment.CurrentDirectory;
             var codeBase = Assembly.GetEntryAssembly().CodeBase;
             var location = Assembly.GetEntryAssembly().Location;
-            //AssemblyLoadContext.Default.Resolving += Default_Resolving;
+            AssemblyLoadContext.Default.Resolving += Default_Resolving;
 
             /*var prog = typeof(Client.Program);
             var method = prog.GetMethod("Server", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
