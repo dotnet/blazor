@@ -19,29 +19,28 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
         {
         }
 
-        public void DoStuff<TComponent>()
+        private StringBuilder _sb;
+
+        public string Render<TComponent>()
         {
+            _sb = new StringBuilder();
             var component = InstantiateComponent(typeof(TComponent));
             var componentId = AssignComponentId(component);
             component.SetParameters(ParameterCollection.Empty);
+            return _sb.ToString();
         }
 
         protected override void UpdateDisplay(RenderBatch renderBatch)
         {
-            var sb = new StringBuilder();
-
             foreach (var u in renderBatch.UpdatedComponents)
             {
-                UpdateComponent(sb, renderBatch, u.ComponentId, u.Edits, renderBatch.ReferenceFrames);
-
+                UpdateComponent(renderBatch, u.ComponentId, u.Edits, renderBatch.ReferenceFrames);
             }
 
             foreach (var componentID in renderBatch.DisposedComponentIDs)
             {
                 DisposeComponent(componentID);
             }
-
-            var s = sb.ToString();
         }
 
         private void DisposeComponent(int componentId)
@@ -52,7 +51,6 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
         private IList<int> handledComponents = new List<int>();
 
         private void UpdateComponent(
-            StringBuilder sb,
             RenderBatch renderBatch,
             int componentId,
             ArraySegment<RenderTreeEdit> edits,
@@ -60,11 +58,10 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
         {
             if (handledComponents.Contains(componentId)) return;
             handledComponents.Add(componentId);
-            ApplyEdit(sb, renderBatch, componentId, 0, edits, referenceFrames);
+            ApplyEdit(renderBatch, componentId, 0, edits, referenceFrames);
         }
 
         private void ApplyEdit(
-            StringBuilder sb,
             RenderBatch renderBatch,
             int componentId,
             int childIndex,
@@ -82,7 +79,6 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
                     case RenderTreeEditType.PrependFrame:
                         var frame = referenceFrames.Array[edit.ReferenceFrameIndex];
                         InsertFrame(
-                            sb,
                             renderBatch,
                             componentId,
                             childIndexAtCurrentDepth + edit.SiblingIndex,
@@ -109,7 +105,6 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
         }
 
         private int InsertFrame(
-            StringBuilder sb,
             RenderBatch renderBatch,
             int componentId,
             int childIndex,
@@ -120,17 +115,16 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             switch (frame.FrameType)
             {
                 case RenderTreeFrameType.Element:
-                    InsertElement(sb, renderBatch, componentId, childIndex, frames, frame, frameIndex);
+                    InsertElement(renderBatch, componentId, childIndex, frames, frame, frameIndex);
                     return 1;
                 case RenderTreeFrameType.Text:
-                    InsertText(sb, childIndex, frame);
+                    InsertText(childIndex, frame);
                     return 1;
                 case RenderTreeFrameType.Component:
-                    InsertComponent(sb, renderBatch, childIndex, frame, frames);
+                    InsertComponent(renderBatch, childIndex, frame, frames);
                     return 1;
                 case RenderTreeFrameType.Region:
                     return InsertFrameRange(
-                        sb,
                         renderBatch,
                         componentId,
                         childIndex,
@@ -144,29 +138,26 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
         }
 
         private void InsertComponent(
-            StringBuilder sb,
             RenderBatch renderBatch,
             int childIndex,
             RenderTreeFrame frame,
             ArrayRange<RenderTreeFrame> frames)
         {
-            sb.Append("<blazor-component>");
+            _sb.Append("<blazor-component>");
             var u = renderBatch.UpdatedComponents.Single(c => c.ComponentId == frame.ComponentId);
-            UpdateComponent(sb, renderBatch, u.ComponentId, u.Edits, frames);
-            sb.Append("</blazor-component>");
+            UpdateComponent(renderBatch, u.ComponentId, u.Edits, frames);
+            _sb.Append("</blazor-component>");
         }
 
         private void InsertText(
-            StringBuilder sb,
             int childIndex,
             RenderTreeFrame frame)
         {
             var textContent = frame.TextContent;
-            sb.Append(textContent);
+            _sb.Append(textContent);
         }
 
         private void InsertElement(
-            StringBuilder sb,
             RenderBatch renderBatch,
             int componentId,
             int childIndex,
@@ -175,8 +166,8 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             int frameIndex)
         {
             var tagName = frame.ElementName;
-            sb.Append("<");
-            sb.Append(tagName);
+            _sb.Append("<");
+            _sb.Append(tagName);
 
             var x = frameIndex + frame.ElementSubtreeLength;
 
@@ -185,22 +176,22 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
                 var dframe = frames.Array[di];
                 if (dframe.FrameType == RenderTreeFrameType.Attribute)
                 {
-                    ApplyAttribute(sb, componentId, dframe);
+                    ApplyAttribute(componentId, dframe);
                 }
                 else
                 {
-                    sb.Append(">");
-                    InsertFrameRange(sb, renderBatch, componentId, 0, frames, di, x);
-                    sb.Append("</");
-                    sb.Append(tagName);
+                    _sb.Append(">");
+                    InsertFrameRange(renderBatch, componentId, 0, frames, di, x);
+                    _sb.Append("</");
+                    _sb.Append(tagName);
+                    break;
                 }
             }
 
-            sb.Append(">");
+            _sb.Append(">");
         }
 
         private int InsertFrameRange(
-            StringBuilder sb,
             RenderBatch renderBatch,
             int componentId,
             int childIndex,
@@ -212,7 +203,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             for (var i = di; i < i1; i++)
             {
                 var frame = frames.Array[i];
-                var numAdded = InsertFrame(sb, renderBatch, componentId, childIndex, frames, frame, i);
+                var numAdded = InsertFrame(renderBatch, componentId, childIndex, frames, frame, i);
                 childIndex += numAdded;
 
                 var subTreeLength = frame.ElementSubtreeLength;
@@ -225,15 +216,21 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             return (childIndex - org);
         }
 
-        private void ApplyAttribute(StringBuilder sb, int componentId, RenderTreeFrame dframe)
+        private static readonly string[] IgnoredAttributes = {"onclick", "onchange", "onkeypress"};
+
+        private void ApplyAttribute(int componentId, RenderTreeFrame dframe)
         {
             var attributeName = dframe.AttributeName;
+
+            if (IgnoredAttributes.Contains(attributeName))
+                return;
+
             var value = dframe.AttributeValue;
-            sb.Append(" ");
-            sb.Append(attributeName);
-            sb.Append("=\"");
-            sb.Append(value);
-            sb.Append("\"");
+            _sb.Append(" ");
+            _sb.Append(attributeName);
+            _sb.Append("=\"");
+            _sb.Append(value);
+            _sb.Append("\"");
         }
     }
 }

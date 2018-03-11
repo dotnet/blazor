@@ -1,12 +1,22 @@
-﻿<h1>Hello, world!</h1>
+﻿<h1>Prerendering Sample</h1>
 
-<c:MyInput />
-<c:MyInput />
-<c:MyInput />
+<h3>Input component</h3>
 <c:MyInput />
 
-<br>
-
+<h3>List component</h3>
 <c:MyList />
 
+<h3>Input element</h3>
 <input type="text" />
+
+<div>
+    <h3>Bound inputs</h3>
+    <input type="text" @bind(test)/>
+    <input type="text" @bind(test)/>
+</div>
+
+@functions {
+
+string test = "hello";
+
+}

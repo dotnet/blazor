@@ -4,9 +4,9 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 {
     public static class BlazorPrerenderingSpaBuilderExtensions
     {
-        public static void UseBlazorPrerendering(this ISpaBuilder spa)
+        public static void UseBlazorPrerendering<T>(this ISpaBuilder spa)
         {
-            BlazorPrerenderingMiddleware.Attach(spa);
+            BlazorPrerenderingMiddleware.Attach<T>(spa);
         }
     }
 }

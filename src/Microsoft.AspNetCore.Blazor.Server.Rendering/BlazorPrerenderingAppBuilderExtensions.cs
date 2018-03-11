@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
     {
         public static void UseBlazorPrerendering<T>(this IApplicationBuilder app)
         {
-            app.UseBlazor<T>(c => c.UseBlazorPrerendering());
+            app.UseBlazor<T>(c => c.UseBlazorPrerendering<T>());
         }
     }
 }
