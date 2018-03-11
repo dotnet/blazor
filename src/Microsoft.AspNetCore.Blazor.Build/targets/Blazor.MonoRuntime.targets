@@ -20,21 +20,20 @@
       Condition="'@(BlazorItemOutput)' != '' and '$(CopyBuildOutputToOutputDirectory)' == 'true' and '$(SkipCopyBuildProduct)' != 'true'">
     </Copy>
 
-    <!-- For statistics only. We want to print all the files in the
-    dist folder at the end of the build when statistics are enabled. -->
     <ItemGroup>
-      <_BlazorStatisticsOutput Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
       <FileWrites Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
     </ItemGroup>
-
   </Target>
 
   <Target Name="_BlazorBuildReport"
           AfterTargets="_BlazorCopyFilesToOutputDirectory">
 
+    <ItemGroup>
+      <_BlazorStatisticsOutput Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
+    </ItemGroup>
     <PropertyGroup>
-      <_BlazorStatisticsReportImportance Condition="'$(BlazorBuildStatistics)' == ''">normal</_BlazorStatisticsReportImportance>
-      <_BlazorStatisticsReportImportance Condition="'$(BlazorBuildStatistics)' != ''">high</_BlazorStatisticsReportImportance>
+      <_BlazorStatisticsReportImportance Condition="'$(BlazorOutputStatistics)' == ''">normal</_BlazorStatisticsReportImportance>
+      <_BlazorStatisticsReportImportance Condition="'$(BlazorOutputStatistics)' != ''">high</_BlazorStatisticsReportImportance>
     </PropertyGroup>
 
     <Message Importance="high" Text="Blazor Build result -> @(_BlazorStatisticsOutput->Distinct()->Count()) files in $(ProjectDir)$(OutputPath)dist" />
@@ -61,20 +60,23 @@
     _BlazorCopyFilesToOutputDirectory    
   
     The process for doing builds goes as follows:
-    Produce a hash file with the Hash SDK task and write that hash to a marker file only when different than
-    the existing.
+    Produce a hash file with the Hash SDK task and write that hash to a marker file.
     Produce a marker file that saves whether we are linking or not in this build so that we can take that as
-    input in future builds for incremental builds.
+    input in future builds and do the correct thing for incremental builds.
+    We only produce marker files when the input changes, if the input doesn't change the marker stays the
+    same.
     
     If we are linking on this build the process is as follows:
     1) We determine if there are linker descriptors available, if not generate one.
-    2) Collect the list of linker descriptors and create a marker for the linker inputs for incremental builds.
-    3) Run the linker in case the linker inputs marker are newer than the linker marker file.
+    2) Collect the list of linker descriptors and create a marker for the linker if it doesn't exist or changed
+       from a previous build.
+    3) Run the linker in case the linker inputs marker is newer than the linker result file.
     4) Collect the outputs from the linker.
     
     If we are not linking in this build the process is as follows:
-    1) Resolve the assemblies for the application.
-    2) Read the marker file with the resolved assemblies.
+    1) Resolve the assemblies for the application only if the inputs marker is newer than the resolved assemblies
+       result file.
+    2) Read the result file with the resolved assemblies.
     3) Copy the resolved assemblies to an intermediate folder.
     4) In case we are switching from linking to not linking, touch the files in the intermediate folder to ensure
        that updated versions of the files get copied to the output folder.
@@ -360,8 +362,9 @@
     2) Run the linker on the main assembly, its dependencies and pass in the BCL folders to do the lookup
     for framework assemblies.
     3) Once we've run the linker we need to capture the produced output and generate a marker file containing
-    the list of produced files. This file will act as a marker to skip running the linker if nothing changed.
-    4) Add the file we just created to the list of file writes, to support incremental compilation.
+    the list of produced files. This file will act as a marker to skip running the linker if none of the inputs
+    has changed.
+    4) Add the file we just created to the list of file writes, to support incremental builds.
     -->
     <ItemGroup>
       <_BlazorAssembliesToLink Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'-a &quot;%(FullPath)&quot;')" />

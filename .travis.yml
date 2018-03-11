@@ -29,12 +29,12 @@ install:
   - nvm install 8.9.4
   - nvm use 8.9.4
   - npm install -g selenium-standalone
-  - selenium-standalone install --drivers.chrome.version=2.36 --drivers.chrome.baseURL=https://chromedriver.storage.googleapis.com
+  - selenium-standalone install
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export TEST_CHROME_BINARY=`which google-chrome-stable`; fi
   - export DOTNET_INSTALL_DIR="$PWD/.dotnetcli"
   - curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel Current --version latest --install-dir "$DOTNET_INSTALL_DIR"
   - export PATH="$DOTNET_INSTALL_DIR:$PATH"
 script:
-  - dotnet build Blazor.sln /p:BlazorBuildStatistics=true /bl
+  - dotnet build Blazor.sln /p:BlazorOutputStatistics=true
   - selenium-standalone start &
-  - dotnet test test/AllTests.proj /bl /p:BlazorBuildStatistics=true
+  - dotnet test test/AllTests.proj

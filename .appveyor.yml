@@ -15,13 +15,13 @@ test: 'off'
 deploy: 'off'
 os: Visual Studio 2017 Preview
 build_script:
-  - dotnet build Blazor.sln /p:BlazorBuildStatistics=true /bl
+  - dotnet build Blazor.sln /p:BlazorOutputStatistics=true
 before_test:
   - choco install googlechrome --ignore-checksum
   - npm install -g selenium-standalone
-  - selenium-standalone install --drivers.chrome.version=2.36 --drivers.chrome.baseURL=https://chromedriver.storage.googleapis.com
+  - selenium-standalone install
   - ps: $SeleniumProcess = Start-Process "selenium-standalone" -ArgumentList "start" -PassThru
 test_script:
-  - dotnet test test\AllTests.proj /p:BlazorBuildStatistics=true /bl
+  - dotnet test test\AllTests.proj /p:BlazorOutputStatistics=true
 after_test:
   - ps: Stop-Process -Id $SeleniumProcess.Id
