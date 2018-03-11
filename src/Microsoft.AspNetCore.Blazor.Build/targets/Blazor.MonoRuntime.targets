@@ -339,11 +339,12 @@
       File="$(BlazorBuildLinkerInputsCache)"
       Overwrite="True"
       WriteOnlyWhenDifferent="True" />
-  </Target>
   
   <ItemGroup>
     <FileWrites Include="$(BlazorBuildLinkerInputsCache)" />
   </ItemGroup>
+
+  </Target>
 
   <Target
       Name="_LinkBlazorApplication"
@@ -476,7 +477,7 @@
     
     <ItemGroup>
       <FileWrites Include="$(BlazorResolvedAssembliesOutputPath)" />
-      <FileWrites Include="_IntermediateResolvedRuntimeDependencies" />
+      <FileWrites Include="@(_IntermediateResolvedRuntimeDependencies)" />
     </ItemGroup>
 
   </Target>
