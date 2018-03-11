@@ -19,8 +19,8 @@
     <BlazorJsPath>$(MSBuildThisFileDirectory)../Microsoft.AspNetCore.Blazor.Browser.JS/dist/blazor.js</BlazorJsPath>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)targets\All.props" />
-  <Import Project="$(MSBuildThisFileDirectory)targets\All.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)targets/All.props" />
+  <Import Project="$(MSBuildThisFileDirectory)targets/All.targets" />
   <Import Project="$(MSBuildThisFileDirectory)../mono/mono.targets" />    
 
   <Target Name="ProvisionMono" DependsOnTargets="OptimizeMono" BeforeTargets="BuildBlazorBuildBinary" />

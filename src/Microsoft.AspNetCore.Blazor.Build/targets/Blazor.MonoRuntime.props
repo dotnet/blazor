@@ -17,7 +17,6 @@
     <BaseBlazorRuntimeWasmOutputPath>$(BaseBlazorRuntimeOutputPath)wasm/</BaseBlazorRuntimeWasmOutputPath>
     <BaseBlazorJsOutputPath>$(BaseBlazorRuntimeOutputPath)</BaseBlazorJsOutputPath>
     <BaseBlazorIntermediateOutputPath>blazor/</BaseBlazorIntermediateOutputPath>
-    <BlazorLinkOnBuild Condition="'$(BlazorLinkOnBuild)' == ''">false</BlazorLinkOnBuild>
     <BlazorWebRootName>wwwroot/</BlazorWebRootName>
     <BlazorIndexHtmlName>Index.html</BlazorIndexHtmlName>
     <BlazorOutputIndexHtmlName>$(BlazorIndexHtmlName.ToLowerInvariant())</BlazorOutputIndexHtmlName>

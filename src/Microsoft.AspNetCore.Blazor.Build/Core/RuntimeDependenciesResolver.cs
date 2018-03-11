@@ -15,7 +15,6 @@ namespace Microsoft.AspNetCore.Blazor.Build.Core
             string entryPoint,
             string[] applicationDependencies,
             string[] monoBclDirectories,
-            string[] resolutionOverrides,
             string outputFile)
         {
             var assembly = new AssemblyEntry(entryPoint, AssemblyDefinition.ReadAssembly(entryPoint));

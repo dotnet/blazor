@@ -10,15 +10,15 @@ namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
     {
         public static void Command(CommandLineApplication command)
         {
-            var clientPage = command.Option("-hp|--html-page",
+            var clientPage = command.Option("--html-page",
                 "Path to the HTML Page containing the Blazor bootstrap script tag.",
                 CommandOptionType.SingleValue);
 
-            var references = command.Option("-r|--reference",
+            var references = command.Option("--reference",
                 "The path from the _bin folder to a given referenced dll file (Typically just the dll name)",
                 CommandOptionType.MultipleValue);
 
-            var outputPath = command.Option("-o|--output",
+            var outputPath = command.Option("--output",
                 "Path to the output file",
                 CommandOptionType.SingleValue);
 
