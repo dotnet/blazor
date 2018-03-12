@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Server.Rendering;
+using PrerenderingApp.Client;
 
 namespace PrerenderingApp.Server
 {
@@ -26,9 +27,10 @@ namespace PrerenderingApp.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseBlazorPrerendering<Client.Home>("app", configure =>
+            app.UseBlazorPrerendering<Home>("app", configure =>
             {
                 // add services
+                configure.AddSharedServices();
             });
         }
     }

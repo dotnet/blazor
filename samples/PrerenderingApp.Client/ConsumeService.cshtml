@@ -1,0 +1,14 @@
+﻿@inject Greeter Greeter
+
+<div>
+    <h2>@Greeter.Greet(name)</h2>
+    <div>
+        <input type="text" @bind(name) placeholder="enter name"/>
+    </div>
+</div>
+
+@functions {
+
+    string name = null;
+
+}

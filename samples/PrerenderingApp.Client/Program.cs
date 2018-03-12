@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using Microsoft.AspNetCore.Blazor.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace PrerenderingApp.Client
 {
@@ -21,7 +20,12 @@ namespace PrerenderingApp.Client
     {
         static void Main(string[] args)
         {
-            new BrowserRenderer().AddComponent<Home>("app");
+            var serviceProvider = new BrowserServiceProvider(configure =>
+            {
+                configure.AddSharedServices();
+            });
+
+            new BrowserRenderer(serviceProvider).AddComponent<Home>("app");
         }
     }
 }
