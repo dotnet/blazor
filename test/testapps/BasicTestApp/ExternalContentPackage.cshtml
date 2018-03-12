@@ -1,0 +1,39 @@
+﻿@using TestContentPackage
+
+<h1>Functionality and content from an external package</h1>
+
+<p>
+    NuGet packages can embed .NET code, which can in turn call Blazor's
+    JS interop features if desired. This can be used to distribute new
+    browser APIs as NuGet packages.
+</p>
+
+<p>Click the following button to invoke a JavaScript function.</p>
+
+<button @onclick(ShowJavaScriptPrompt)>Show JavaScript prompt</button>
+
+@if (!string.IsNullOrEmpty(result))
+{
+    <p>Result: <strong>@result</strong></p>
+}
+
+<hr />
+
+<p>
+    Additionally, NuGet packages can contain static resources such as CSS
+    files and images.
+</p>
+
+<div class="special-style">
+    The elegant styling on this &lt;div&gt; comes from the external content package.
+</div>
+
+@functions
+{
+    string result;
+
+    void ShowJavaScriptPrompt()
+    {
+        result = MyPrompt.Show("Hello!");
+    }
+}
