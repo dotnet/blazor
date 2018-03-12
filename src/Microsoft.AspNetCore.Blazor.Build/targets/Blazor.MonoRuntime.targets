@@ -168,6 +168,14 @@
       </BlazorItemOutput>
     </ItemGroup>
 
+    <ItemGroup Label="Static content supplied by NuGet packages">
+      <_BlazorPackageContentOutput Include="@(BlazorPackageContentFile)" Condition="%(SourcePackage) != ''">
+        <TargetOutputPath>$(ProjectDir)$(OutputPath)$(BaseBlazorPackageContentOutputPath)%(SourcePackage)\%(RecursiveDir)\%(Filename)%(Extension)</TargetOutputPath>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </_BlazorPackageContentOutput>
+      <BlazorItemOutput Include="@(_BlazorPackageContentOutput)" />
+    </ItemGroup>
+
     <PropertyGroup Label="Intermediate output paths">
 
       <!-- /obj/<<configuration>>/<<targetframework>>/blazor -->
