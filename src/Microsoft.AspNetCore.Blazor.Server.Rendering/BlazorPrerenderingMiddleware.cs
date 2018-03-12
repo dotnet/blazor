@@ -7,12 +7,13 @@ using AngleSharp.Html;
 using AngleSharp.Parser.Html;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SpaServices;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 {
     public class BlazorPrerenderingMiddleware
     {
-        public static void Attach<T>(ISpaBuilder spaBuilder)
+        public static void Attach<T>(ISpaBuilder spaBuilder, string entryTagName, Action<IServiceCollection> configure)
         {
             if (spaBuilder == null)
                 throw new ArgumentNullException(nameof(spaBuilder));
@@ -26,10 +27,11 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
                 return next();
             });
 
+            var col = new PreServiceProvider(configure);
             applicationBuilder.Use((context, next) =>
             {
-                var renderer = new PreRenderer();
-                var pre = renderer.Render<T>();
+                var renderer = new PreRenderer(col);
+                var content = renderer.Render<T>();
 
                 var subpath = context.Request.Path;
                 var fileInfo = fileOptions.FileProvider.GetFileInfo(subpath);
@@ -45,11 +47,11 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
                     {
                         var html = reader.ReadToEnd();
 
-                        var content = Prerender(html, pre);
-                        context.Response.ContentLength = content.Length;
+                        var responseContent = Prerender(html, entryTagName, content);
+                        context.Response.ContentLength = responseContent.Length;
                         using (var writer = new StreamWriter(context.Response.Body))
                         {
-                            writer.Write(content);
+                            writer.Write(responseContent);
                         }
                     }
 
@@ -60,7 +62,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             });
         }
 
-        private static string Prerender(string htmlTemplate, string pre)
+        private static string Prerender(string htmlTemplate, string entryTagName, string content)
         {
             // copied from IndexHtmlFileProvider.cs
             var resultBuilder = new StringBuilder();
@@ -88,7 +90,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
                         {
                             // Only do anything special if this is a Blazor boot tag
                             var tag = token.AsTag();
-                            if (IsBlazorBootTag(tag))
+                            if (IsEntryTag(tag, entryTagName))
                             {
                                 // First, emit the original source text prior to this special tag, since
                                 // we want that to be unchanged
@@ -96,7 +98,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 
                                 // Instead of emitting the source text for this special tag, emit a fully-
                                 // configured Blazor boot script tag
-                                AppendScriptTagWithBootConfig(resultBuilder, pre);
+                                AppendContent(resultBuilder, entryTagName, content);
 
                                 // Set a flag so we know not to emit anything else until the special
                                 // tag is closed
@@ -123,15 +125,15 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             }
         }
 
-        private static bool IsBlazorBootTag(HtmlTagToken tag)
-            => string.Equals(tag.Name, "app", StringComparison.Ordinal);
+        private static bool IsEntryTag(HtmlTagToken tag, string entryTagName)
+            => string.Equals(tag.Name, entryTagName, StringComparison.Ordinal);
 
-        private static void AppendScriptTagWithBootConfig(
-            StringBuilder resultBuilder, string pre)
+        private static void AppendContent(
+            StringBuilder resultBuilder, string tagName, string content)
         {
-            resultBuilder.AppendLine($@"<app>
-{pre}
-</app>");
+            resultBuilder.AppendLine($@"<{tagName}>
+{content}
+</{tagName}>");
         }
     }
 
