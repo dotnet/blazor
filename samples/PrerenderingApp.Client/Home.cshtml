@@ -11,12 +11,15 @@
 
 <div>
     <h3>Bound inputs</h3>
-    <input type="text" @bind(test)/>
-    <input type="text" @bind(test)/>
+    <input type="text" @bind(test) />
+    <input type="text" @bind(test) />
 </div>
 
-<h3>Consume Service</h3>
+<h3>Consume same service on client and server</h3>
 <c:ConsumeService />
+
+<h3>Consume different service on client and server</h3>
+<c:FetchData />
 
 @functions {
 
