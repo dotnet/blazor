@@ -26,7 +26,10 @@ namespace PrerenderingApp.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseBlazorPrerendering<Client.Home>();
+            app.UseBlazorPrerendering<Client.Home>("app", configure =>
+            {
+                // add services
+            });
         }
     }
 }
