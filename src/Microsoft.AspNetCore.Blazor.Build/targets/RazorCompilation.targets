@@ -22,6 +22,7 @@
     <_BlazorGenerateDeclarationContent Include="@(Content->WithMetadataValue('Extension', '.cshtml'))" />
     <Content Update="@(_BlazorGenerateDeclarationContent)">
       <Generator>MSBuild:BlazorGenerateDeclaration</Generator>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>
 
     <ProjectCapability Include="DotNetCoreRazorConfiguration" />

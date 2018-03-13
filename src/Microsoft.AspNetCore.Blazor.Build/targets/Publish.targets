@@ -1,0 +1,24 @@
+﻿<Project>
+  <PropertyGroup>
+    <!-- Disable unwanted parts of the default publish process -->
+    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <IsWebConfigTransformDisabled>true</IsWebConfigTransformDisabled>
+  </PropertyGroup>
+
+  <Target Name="SetBlazorFilesToPublish" AfterTargets="ComputeRefAssembliesToPublish" BeforeTargets="CopyFilesToPublishDirectory">
+    <ItemGroup>
+      <!--
+        We can't stop the default targets from adding the .dll/.pdb files to ResolvedFileToPublish,
+        but we can remove them here. We only want the .dlls from 'dist', not those from the bin root.
+      -->
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)'=='.dll' OR '%(Extension)'=='.pdb'" />
+
+      <!-- Publish 'dist' files to 'wwwroot' -->
+      <_BlazorFileToPublish Include="$(OutDir)dist\**" />
+      <ResolvedFileToPublish Include="@(_BlazorFileToPublish)">
+        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>
