@@ -4,6 +4,7 @@
     <RazorCompileOnPublish>false</RazorCompileOnPublish>
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <IsWebConfigTransformDisabled>true</IsWebConfigTransformDisabled>
+    <BlazorLinkOnBuild Condition="'$(Configuration)'=='Release' AND '$(BlazorLinkOnBuild)'==''">true</BlazorLinkOnBuild>
   </PropertyGroup>
 
   <Target Name="SetBlazorFilesToPublish" AfterTargets="ComputeRefAssembliesToPublish" BeforeTargets="CopyFilesToPublishDirectory">
