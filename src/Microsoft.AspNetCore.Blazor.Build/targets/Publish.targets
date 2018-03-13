@@ -8,6 +8,9 @@
   </PropertyGroup>
 
   <Target Name="SetBlazorFilesToPublish" AfterTargets="ComputeRefAssembliesToPublish" BeforeTargets="CopyFilesToPublishDirectory">
+    <PropertyGroup>
+      <_AddDefaultWebConfig Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'Web.config'">false</_AddDefaultWebConfig>
+    </PropertyGroup>
     <ItemGroup>
       <!--
         We can't stop the default targets from adding the .dll/.pdb files to ResolvedFileToPublish,
@@ -19,6 +22,13 @@
       <_BlazorFileToPublish Include="$(OutDir)dist\**" />
       <ResolvedFileToPublish Include="@(_BlazorFileToPublish)">
         <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      </ResolvedFileToPublish>
+
+      <!-- If there's no web.config, add one -->
+      <ResolvedFileToPublish
+        Include="$(MSBuildThisFileDirectory)Standalone.Web.config"
+        Condition="'$(_AddDefaultWebConfig)' != 'false'">
+        <RelativePath>Web.config</RelativePath>
       </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
