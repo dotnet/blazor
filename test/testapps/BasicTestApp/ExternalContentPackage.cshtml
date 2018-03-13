@@ -1,4 +1,5 @@
-﻿@using TestContentPackage
+﻿@addTagHelper *, TestContentPackage
+@using TestContentPackage
 
 <h1>Functionality and content from an external package</h1>
 
@@ -20,13 +21,11 @@
 <hr />
 
 <p>
-    Additionally, NuGet packages can contain static resources such as CSS
-    files and images.
+    Additionally, NuGet packages can contain Blazor components, and even
+    static resources such as CSS files and images.
 </p>
 
-<div class="special-style">
-    The elegant styling on this &lt;div&gt; comes from the external content package.
-</div>
+<ComponentFromPackage />
 
 @functions
 {
