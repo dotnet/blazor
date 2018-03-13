@@ -18,10 +18,15 @@
       -->
       <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)'=='.dll' OR '%(Extension)'=='.pdb'" />
 
-      <!-- Publish 'dist' files to 'wwwroot' -->
+      <!-- Output 'wwwroot' content at root -->
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="$([System.String]::new(%(RelativePath)).StartsWith('wwwroot'))">
+        <RelativePath>$([System.String]::new(%(RelativePath)).Substring(8))</RelativePath>
+      </ResolvedFileToPublish>
+
+      <!-- Publish 'dist' files -->
       <_BlazorFileToPublish Include="$(OutDir)dist\**" />
       <ResolvedFileToPublish Include="@(_BlazorFileToPublish)">
-        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       </ResolvedFileToPublish>
 
       <!-- If there's no web.config, add one -->
