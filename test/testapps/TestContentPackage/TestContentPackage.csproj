@@ -3,9 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>library</OutputType>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="**" />
     <Content Include="build\**" PackagePath="build" />
     <Content Include="content\**" PackagePath="content" />
   </ItemGroup>
