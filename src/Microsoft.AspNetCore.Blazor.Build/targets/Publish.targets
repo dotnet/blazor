@@ -23,9 +23,9 @@
       </ContentWithTargetPath>
       
       <!-- Publish all the 'dist' files -->
-      <_BlazorGCTPDIDistFiles Include="$(OutDir)dist\**" />
+      <_BlazorGCTPDIDistFiles Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
       <_BlazorGCTPDI Include="@(_BlazorGCTPDIDistFiles)">
-        <TargetPath>$(BlazorPublishDistDir)%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+        <TargetPath>$(BlazorPublishDistDir)$([MSBuild]::MakeRelative('$(ProjectDir)$(OutDir)dist\', %(Identity)))</TargetPath>
       </_BlazorGCTPDI>
 
       <ContentWithTargetPath Include="@(_BlazorGCTPDI)">
