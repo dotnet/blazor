@@ -34,9 +34,17 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="BlazorWriteStandaloneWebConfig" AfterTargets="CopyFilesToPublishDirectory">
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)Standalone.Web.config"
-          DestinationFiles="$(PublishDir)web.config"
-          Condition="!Exists('$(PublishDir)web.config')" />
+  <Target Name="BlazorCompleteStandalonePublish" AfterTargets="CopyFilesToPublishDirectory">
+    <!-- Add a suitable web.config file if there isn't one already -->
+    <ItemGroup>
+      <_StandaloneWebConfigContent Include="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Standalone.Web.config'))"/>
+    </ItemGroup>
+    <WriteLinesToFile
+      Condition="!Exists('$(PublishDir)web.config')"
+      File="$(PublishDir)web.config"
+      Lines="@(_StandaloneWebConfigContent->Replace('[ServeSubdirectory]','$(AssemblyName)'))" />
+  
+    <!-- Remove the .blazor.config file, since it's irrelevant for standalone publishing -->
+    <Delete Files="$(PublishDir)$(AssemblyName).blazor.config" />
   </Target>
 </Project>
