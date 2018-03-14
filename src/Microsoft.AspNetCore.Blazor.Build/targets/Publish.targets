@@ -1,40 +1,42 @@
 ﻿<Project>
   <PropertyGroup>
     <!-- Disable unwanted parts of the default publish process -->
+    <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <PreserveCompilationContext>false</PreserveCompilationContext> <!-- Don't publish all the ref assemblies -->
+
     <RazorCompileOnPublish>false</RazorCompileOnPublish>
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <IsWebConfigTransformDisabled>true</IsWebConfigTransformDisabled>
     <BlazorLinkOnBuild Condition="'$(Configuration)'=='Release' AND '$(BlazorLinkOnBuild)'==''">true</BlazorLinkOnBuild>
   </PropertyGroup>
 
-  <Target Name="SetBlazorFilesToPublish" AfterTargets="ComputeRefAssembliesToPublish" BeforeTargets="CopyFilesToPublishDirectory">
-    <PropertyGroup>
-      <_AddDefaultWebConfig Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'Web.config'">false</_AddDefaultWebConfig>
-    </PropertyGroup>
+  <Target Name="BlazorGetCopyToPublishDirectoryItems" BeforeTargets="GetCopyToPublishDirectoryItems">
     <ItemGroup>
-      <!--
-        We can't stop the default targets from adding the .dll/.pdb files to ResolvedFileToPublish,
-        but we can remove them here. We only want the .dlls from 'dist', not those from the bin root.
-      -->
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)'=='.dll' OR '%(Extension)'=='.pdb'" />
+      <!-- Don't want to publish the assemblies from the regular 'bin' dir. Instead we publish ones from 'dist'. -->
+      <ResolvedAssembliesToPublish Remove="@(ResolvedAssembliesToPublish)" />
 
-      <!-- Output 'wwwroot' content at root -->
-      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="$([System.String]::new(%(RelativePath)).StartsWith('wwwroot'))">
-        <RelativePath>$([System.String]::new(%(RelativePath)).Substring(8))</RelativePath>
-      </ResolvedFileToPublish>
+      <!-- Move wwwroot files to output root -->
+      <ContentWithTargetPath Update="@(ContentWithTargetPath)" Condition="$([System.String]::new(%(TargetPath)).StartsWith('wwwroot\'))">
+        <TargetPath>$(AssemblyName)\$([System.String]::new(%(TargetPath)).Substring(8))</TargetPath>
+      </ContentWithTargetPath>
+      
+      <!-- Publish all the 'dist' files -->
+      <_BlazorGCTPDIDistFiles Include="$(OutDir)dist\**" />
+      <_BlazorGCTPDI Include="@(_BlazorGCTPDIDistFiles)">
+        <TargetPath>$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+      </_BlazorGCTPDI>
 
-      <!-- Publish 'dist' files -->
-      <_BlazorFileToPublish Include="$(OutDir)dist\**" />
-      <ResolvedFileToPublish Include="@(_BlazorFileToPublish)">
-        <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
-      </ResolvedFileToPublish>
-
-      <!-- If there's no web.config, add one -->
-      <ResolvedFileToPublish
-        Include="$(MSBuildThisFileDirectory)Standalone.Web.config"
-        Condition="'$(_AddDefaultWebConfig)' != 'false'">
-        <RelativePath>Web.config</RelativePath>
-      </ResolvedFileToPublish>
+      <ContentWithTargetPath Include="@(_BlazorGCTPDI)">
+        <TargetPath>%(TargetPath)</TargetPath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ContentWithTargetPath>
     </ItemGroup>
+  </Target>
+
+  <Target Name="BlazorWriteStandaloneWebConfig" AfterTargets="CopyFilesToPublishDirectory">
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)Standalone.Web.config"
+          DestinationFiles="$(PublishDir)web.config"
+          Condition="!Exists('$(PublishDir)web.config')" />
   </Target>
 </Project>
