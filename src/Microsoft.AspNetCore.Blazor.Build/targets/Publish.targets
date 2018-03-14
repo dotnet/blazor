@@ -1,14 +1,15 @@
 ﻿<Project>
   <PropertyGroup>
+    <BlazorLinkOnBuild Condition="'$(Configuration)'=='Release' AND '$(BlazorLinkOnBuild)'==''">true</BlazorLinkOnBuild>
+    <BlazorPublishDistDir>$(AssemblyName)\dist\</BlazorPublishDistDir>
+
     <!-- Disable unwanted parts of the default publish process -->
     <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
-    <PreserveCompilationContext>false</PreserveCompilationContext> <!-- Don't publish all the ref assemblies -->
-
+    <PreserveCompilationContext>false</PreserveCompilationContext>
     <RazorCompileOnPublish>false</RazorCompileOnPublish>
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <IsWebConfigTransformDisabled>true</IsWebConfigTransformDisabled>
-    <BlazorLinkOnBuild Condition="'$(Configuration)'=='Release' AND '$(BlazorLinkOnBuild)'==''">true</BlazorLinkOnBuild>
   </PropertyGroup>
 
   <Target Name="BlazorGetCopyToPublishDirectoryItems" BeforeTargets="GetCopyToPublishDirectoryItems">
@@ -18,13 +19,13 @@
 
       <!-- Move wwwroot files to output root -->
       <ContentWithTargetPath Update="@(ContentWithTargetPath)" Condition="$([System.String]::new(%(TargetPath)).StartsWith('wwwroot\'))">
-        <TargetPath>$(AssemblyName)\$([System.String]::new(%(TargetPath)).Substring(8))</TargetPath>
+        <TargetPath>$(BlazorPublishDistDir)$([System.String]::new(%(TargetPath)).Substring(8))</TargetPath>
       </ContentWithTargetPath>
       
       <!-- Publish all the 'dist' files -->
       <_BlazorGCTPDIDistFiles Include="$(OutDir)dist\**" />
       <_BlazorGCTPDI Include="@(_BlazorGCTPDIDistFiles)">
-        <TargetPath>$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+        <TargetPath>$(BlazorPublishDistDir)%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
       </_BlazorGCTPDI>
 
       <ContentWithTargetPath Include="@(_BlazorGCTPDI)">
@@ -32,8 +33,16 @@
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </ContentWithTargetPath>
     </ItemGroup>
+
+    <!-- Replace the .blazor.config contents with what we need to serve in production -->
+    <PropertyGroup>
+      <_BlazorConfigPath>$(OutDir)$(AssemblyName).blazor.config</_BlazorConfigPath>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_BlazorConfigPath)" Lines="." Overwrite="true" />
+    <WriteLinesToFile File="$(_BlazorConfigPath)" Lines="$(AssemblyName)\" Overwrite="false" />
   </Target>
 
+  <!-- The following target runs only for standalone publishing -->
   <Target Name="BlazorCompleteStandalonePublish" AfterTargets="CopyFilesToPublishDirectory">
     <!-- Add a suitable web.config file if there isn't one already -->
     <ItemGroup>
@@ -42,7 +51,7 @@
     <WriteLinesToFile
       Condition="!Exists('$(PublishDir)web.config')"
       File="$(PublishDir)web.config"
-      Lines="@(_StandaloneWebConfigContent->Replace('[ServeSubdirectory]','$(AssemblyName)'))" />
+      Lines="@(_StandaloneWebConfigContent->Replace('[ServeSubdirectory]','$(BlazorPublishDistDir)'))" />
   
     <!-- Remove the .blazor.config file, since it's irrelevant for standalone publishing -->
     <Delete Files="$(PublishDir)$(AssemblyName).blazor.config" />
