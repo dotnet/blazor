@@ -12,6 +12,19 @@
     <IsWebConfigTransformDisabled>true</IsWebConfigTransformDisabled>
   </PropertyGroup>
 
+  <!-- Ideally, this should have DependsOnTargets="PrepareBlazorOutputs" and then
+       populate _BlazorGCTPDIDistFiles using @(BlazorItemOutput) instead of using
+       the wildcard that publishes whatever's currently on disk. However that
+       doesn't currently work because PrepareBlazorOutputs assumes the build will
+       already have run and hence @(ReferenceCopyLocalPaths) will already be
+       populated. The assumption is correct for regular builds and command-line
+       publishes, but it's *not* correct for VS publishes. Somehow we'd need
+       PrepareBlazorOutputs to also depend on Build or at least ResolveReferences,
+       but that alone doesn't cause @(ReferenceCopyLocalPaths) to be populated,
+       because ResolveReferences specifically behaves differently when
+       '$(BuildingProject)'!='true'. Hackily overriding that flag to true still
+       somehow isn't sufficient, but even if it was it's not a good solution as
+       it might have other side-effects. -->
   <Target Name="BlazorGetCopyToPublishDirectoryItems" BeforeTargets="GetCopyToPublishDirectoryItems">
     <ItemGroup>
       <!-- Don't want to publish the assemblies from the regular 'bin' dir. Instead we publish ones from 'dist'. -->
@@ -23,9 +36,14 @@
       </ContentWithTargetPath>
       
       <!-- Publish all the 'dist' files -->
-      <_BlazorGCTPDIDistFiles Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
+      <!-- By using a wildcard here and just publishing whatever happens to be on disk,
+           we're assuming that a build for this project has already run and the output
+           is up-to-date (which does happen automatically for command-line and VS publish
+           actions, at least by default). This is a workaround for the issue described above.
+           We should not keep doing this permanently. -->
+      <_BlazorGCTPDIDistFiles Include="$(OutDir)dist\**" />
       <_BlazorGCTPDI Include="@(_BlazorGCTPDIDistFiles)">
-        <TargetPath>$(BlazorPublishDistDir)$([MSBuild]::MakeRelative('$(ProjectDir)$(OutDir)dist\', %(Identity)))</TargetPath>
+        <TargetPath>$(BlazorPublishDistDir)%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
       </_BlazorGCTPDI>
 
       <ContentWithTargetPath Include="@(_BlazorGCTPDI)">
