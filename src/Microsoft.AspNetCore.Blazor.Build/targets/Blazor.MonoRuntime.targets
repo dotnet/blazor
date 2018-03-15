@@ -24,6 +24,13 @@
       <FileWrites Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
     </ItemGroup>
   </Target>
+  
+  <Target Name="_BlazorTrackResolveReferencesDidRun" AfterTargets="ResolveReferences">
+    <PropertyGroup>
+      <!-- So we know we can trust @(ReferenceCopyLocalPaths) later -->
+      <_BlazorResolveReferencesDidRun>true</_BlazorResolveReferencesDidRun>
+    </PropertyGroup>  
+  </Target>
 
   <Target Name="_BlazorBuildReport"
           AfterTargets="_BlazorCopyFilesToOutputDirectory">
@@ -237,10 +244,18 @@
   </Target>
 
   <Target Name="_DefineBlazorCommonInputs">
-
-    <ItemGroup>
+    <!-- If ResolveReferences hasn't yet run, we must be inside a VS publish process
+         that doesn't also do a build, so use the stored information. -->
+    <ReadLinesFromFile
+      Condition="'$(_BlazorResolveReferencesDidRun)'!='true'"
+      File="$(BlazorLocalReferencesOutputPath)">
+      <Output TaskParameter="Lines" ItemName="_BlazorDependencyInput"/>
+    </ReadLinesFromFile>
+    <ItemGroup Condition="'$(_BlazorResolveReferencesDidRun)'=='true'">
+      <!-- ... otherwise we can get the fresh info from @(ReferenceCopyLocalPaths) -->
       <_BlazorDependencyInput Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'%(FullPath)')" />
     </ItemGroup>
+
     <ItemGroup>
       <_BlazorCommonInput Include="@(IntermediateAssembly)" />
       <_BlazorCommonInput Include="@(_BlazorDependencyInput)" />
