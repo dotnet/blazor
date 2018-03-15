@@ -128,6 +128,9 @@
     for the mono linker.
     /obj/<<configuration>>/<<targetframework>>/blazor/inputs.basic.cache <- This is the marker file to track the inputs common
     inputs to the output generation process.
+    /obj/<<configuration>>/<<targetframework>>/blazor/inputs.copylocal.txt <- Paths to all the copy-local referenced assemblies found
+    during the build process (i.e., the @(ReferenceCopyLocalPaths) values). We need this because when publishing, the build doesn't
+    necessarily also run so this is the only way we know which assemblies to include in linking/resolveassemblies.
     /obj/<<configuration>>/<<targetframework>>/blazor/inputs.linkerswitch.cache <- This is the marker file to track the
     switch from linking to not linking and viceversa.
     /obj/<<configuration>>/<<targetframework>>/blazor/inputs.linker.cache <- This is the marker file to track the inputs
@@ -187,6 +190,9 @@
       <!-- /obj/<<configuration>>/<<targetframework>>/blazor/inputs.basic.cache -->
       <BlazorBuildCommonInputsCache>$(BlazorIntermediateOutputPath)inputs.basic.cache</BlazorBuildCommonInputsCache>
 
+      <!-- /obj/<<configuration>>/<<targetframework>>/blazor/inputs.copylocal.txt -->
+      <BlazorLocalReferencesOutputPath>$(BlazorIntermediateOutputPath)inputs.copylocal.txt</BlazorLocalReferencesOutputPath>
+      
       <!-- /obj/<<configuration>>/<<targetframework>>/blazor/inputs.linkerswitch.cache -->
       <BlazorBuildLinkerSwitchInputsCache>$(BlazorIntermediateOutputPath)inputs.linkerswitch.cache</BlazorBuildLinkerSwitchInputsCache>
 
@@ -233,8 +239,11 @@
   <Target Name="_DefineBlazorCommonInputs">
 
     <ItemGroup>
+      <_BlazorDependencyInput Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'%(FullPath)')" />
+    </ItemGroup>
+    <ItemGroup>
       <_BlazorCommonInput Include="@(IntermediateAssembly)" />
-      <_BlazorCommonInput Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" />
+      <_BlazorCommonInput Include="@(_BlazorDependencyInput)" />
       <_BlazorCommonInput Include="$(_BlazorShouldLinkApplicationAssemblies)" />
       <_BlazorLinkingOption Condition="_BlazorShouldLinkApplicationAssemblies == ''" Include="false" />
       <_BlazorLinkingOption Condition="_BlazorShouldLinkApplicationAssemblies != ''" Include="true" />
@@ -249,6 +258,12 @@
       File="$(BlazorBuildCommonInputsCache)"
       Overwrite="True"
       WriteOnlyWhenDifferent="True" />
+    
+    <WriteLinesToFile
+      Lines="@(_BlazorDependencyInput)"
+      File="$(BlazorLocalReferencesOutputPath)"
+      Overwrite="True"
+      WriteOnlyWhenDifferent="True" />
 
     <!-- Switch to detect when we switch from linking to not linking and viceversa -->
     <WriteLinesToFile
@@ -260,6 +275,7 @@
     <ItemGroup>
       <FileWrites Include="$(BlazorBuildLinkerSwitchInputsCache)" />
       <FileWrites Include="$(BlazorBuildCommonInputsCache)" />
+      <FileWrites Include="$(BlazorLocalReferencesOutputPath)" />
     </ItemGroup>
 
   </Target>
@@ -337,7 +353,7 @@
 
     <ItemGroup>
       <_BlazorLinkerInput Include="@(IntermediateAssembly)" />
-      <_BlazorLinkerInput Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" />
+      <_BlazorLinkerInput Include="@(_BlazorDependencyInput)" />
       <_BlazorLinkerInput Include="@(BlazorLinkerDescriptor)" />
       <_BlazorLinkerInput Include="$(AdditionalLinkerOptions)" />
     </ItemGroup>
@@ -363,7 +379,7 @@
       Condition="$(_BlazorShouldLinkApplicationAssemblies) != ''"
       Inputs="$(BlazorBuildLinkerInputsCache);
               @(IntermediateAssembly);
-              @(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'));
+              @(_BlazorDependencyInput);
               @(BlazorLinkerDescriptor)"
       Outputs="$(BlazorIntermediateLinkerResultFilePath)"
     >
@@ -380,7 +396,7 @@
     4) Add the file we just created to the list of file writes, to support incremental builds.
     -->
     <ItemGroup>
-      <_BlazorAssembliesToLink Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'-a &quot;%(FullPath)&quot;')" />
+      <_BlazorAssembliesToLink Include="@(_BlazorDependencyInput->'-a &quot;%(Identity)&quot;')" />
       <_BlazorAssembliesToLink Include="@(IntermediateAssembly->'-a &quot;%(FullPath)&quot;')" />
       <_BlazorFolderLookupPaths Include="@(MonoBaseClassLibraryFolder->'-d &quot;%(Identity)&quot;')" />
       <_BlazorAssemblyDescriptorFiles
@@ -469,11 +485,11 @@
     Condition="'$(_BlazorShouldLinkApplicationAssemblies)' == ''"
     Inputs="$(BlazorBuildCommonInputsCache);
             @(IntermediateAssembly);
-            @(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))"
+            @(_BlazorDependencyInput)"
     Outputs="$(BlazorResolvedAssembliesOutputPath)"
   >
     <ItemGroup>
-      <_DependenciesParameter Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll')->'--reference &quot;%(FullPath)&quot;')" />
+      <_DependenciesParameter Include="@(_BlazorDependencyInput->'--reference &quot;%(Identity)&quot;')" />
     </ItemGroup>
     <PropertyGroup>
       <_BclParameter>--base-class-library &quot;$(MonoBaseClassLibraryPath)&quot; --base-class-library &quot;$(MonoBaseClassLibraryFacadesPath)&quot;</_BclParameter>
