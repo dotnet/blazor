@@ -42,6 +42,15 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         }
 
         [Fact]
+        public void CanArriveAtPageWithParameters()
+        {
+            SetUrlViaPushState($"{ServerPathBase}/RouterTest/WithParameters/Name/Dan/LastName/Roth");
+
+            var app = MountTestComponent<TestRouter>();
+            Assert.Equal("Your full name is Dan Roth.", app.FindElement(By.Id("test-info")).Text);
+        }
+
+        [Fact]
         public void CanFollowLinkToOtherPage()
         {
             SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
@@ -52,13 +61,13 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         }
 
         [Fact]
-        public void CanFollowLinkToOtherPageWithBaseRelativeUrl()
+        public void CanFollowLinkToPageWithParameters()
         {
             SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
 
             var app = MountTestComponent<TestRouter>();
-            app.FindElement(By.LinkText("Other with base-relative URL")).Click();
-            Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
+            app.FindElement(By.LinkText("With parameters")).Click();
+            Assert.Equal("Your full name is Steve Sanderson.", app.FindElement(By.Id("test-info")).Text);
         }
 
         [Fact]
