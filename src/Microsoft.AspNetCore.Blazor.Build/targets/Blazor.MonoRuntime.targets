@@ -184,6 +184,9 @@
 
       <!-- Common marker files paths -->
 
+      <!-- /obj/<<configuration>>/<<targetframework>>/blazor/inputs.copylocal.txt -->
+      <BlazorLocalReferencesOutputPath>$(BlazorIntermediateOutputPath)inputs.copylocal.txt</BlazorLocalReferencesOutputPath>
+
       <!-- /obj/<<configuration>>/<<targetframework>>/blazor/inputs.basic.cache -->
       <BlazorBuildCommonInputsCache>$(BlazorIntermediateOutputPath)inputs.basic.cache</BlazorBuildCommonInputsCache>
 
@@ -230,11 +233,26 @@
 
   </Target>
 
-  <Target Name="_DefineBlazorCommonInputs">
+  <Target
+    Name="_ReadBlazorInputs"
+    Condition="'@(ReferenceCopyLocalPaths)' == ''">
 
+  <ReadLinesFromFile File="$(BlazorLocalReferencesOutputPath)">
+    <Output TaskParameter="Lines" ItemName="_BlazorDependencyInput"/>
+  </ReadLinesFromFile>
+
+  </Target>
+
+  <Target Name="_DefineBlazorCommonInputs" DependsOnTargets="_ReadBlazorInputs" >
     <ItemGroup>
-      <_BlazorCommonInput Include="@(IntermediateAssembly)" />
-      <_BlazorCommonInput Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" />
+      <_BlazorDependencyInput
+        Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))"
+        Condition="'@(_BlazorDependencyInput)' == ''" />
+      <_BlazorAssemblyInput Include="@(IntermediateAssembly)" />
+    </ItemGroup>
+    <ItemGroup>
+      <_BlazorCommonInput Include="@(_BlazorAssemblyInput)" />
+      <_BlazorCommonInput Include="@(_BlazorDependencyInput)" />
       <_BlazorCommonInput Include="$(_BlazorShouldLinkApplicationAssemblies)" />
       <_BlazorLinkingOption Condition="_BlazorShouldLinkApplicationAssemblies == ''" Include="false" />
       <_BlazorLinkingOption Condition="_BlazorShouldLinkApplicationAssemblies != ''" Include="true" />
@@ -250,6 +268,12 @@
       Overwrite="True"
       WriteOnlyWhenDifferent="True" />
 
+    <WriteLinesToFile
+      Lines="@(_BlazorDependencyInput)"
+      File="$(BlazorLocalReferencesOutputPath)"
+      Overwrite="True"
+      WriteOnlyWhenDifferent="True" />
+
     <!-- Switch to detect when we switch from linking to not linking and viceversa -->
     <WriteLinesToFile
       Lines="@(_BlazorLinkingOption)"
@@ -260,6 +284,7 @@
     <ItemGroup>
       <FileWrites Include="$(BlazorBuildLinkerSwitchInputsCache)" />
       <FileWrites Include="$(BlazorBuildCommonInputsCache)" />
+      <FileWrites Include="$(BlazorLocalReferencesOutputPath)" />
     </ItemGroup>
 
   </Target>
@@ -336,8 +361,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <_BlazorLinkerInput Include="@(IntermediateAssembly)" />
-      <_BlazorLinkerInput Include="@(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))" />
+      <_BlazorLinkerInput Include="@(_BlazorAssemblyInput)" />
+      <_BlazorLinkerInput Include="@(_BlazorDependencyInput)" />
       <_BlazorLinkerInput Include="@(BlazorLinkerDescriptor)" />
       <_BlazorLinkerInput Include="$(AdditionalLinkerOptions)" />
     </ItemGroup>
@@ -362,8 +387,8 @@
       Name="_LinkBlazorApplication"
       Condition="$(_BlazorShouldLinkApplicationAssemblies) != ''"
       Inputs="$(BlazorBuildLinkerInputsCache);
-              @(IntermediateAssembly);
-              @(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'));
+              @(_BlazorAssemblyInput);
+              @(_BlazorDependencyInput);
               @(BlazorLinkerDescriptor)"
       Outputs="$(BlazorIntermediateLinkerResultFilePath)"
     >
@@ -468,8 +493,8 @@
     Name="_ResolveBlazorApplicationAssemblies"
     Condition="'$(_BlazorShouldLinkApplicationAssemblies)' == ''"
     Inputs="$(BlazorBuildCommonInputsCache);
-            @(IntermediateAssembly);
-            @(ReferenceCopyLocalPaths->WithMetadataValue('Extension','.dll'))"
+            @(_BlazorAssemblyInput);
+            @(_BlazorDependencyInput)"
     Outputs="$(BlazorResolvedAssembliesOutputPath)"
   >
     <ItemGroup>
@@ -564,7 +589,7 @@
       <_CssReferences Include="@(BlazorPackageCssRef->'_content/%(SourcePackage)/%(RecursiveDir)%(FileName)%(Extension)')" />
     </ItemGroup>
 
-    <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) --html-page &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'--reference %(Identity)', ' ') @(_JsReferences->'--js %(Identity)', ' ') @(_CssReferences->'--css %(Identity)', ' ') --output &quot;$(BlazorIndexHtmlOutputPath)&quot;" />
+    <Exec Command="$(BlazorBuildExe) build @(_BlazorAssemblyInput) --html-page &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'--reference %(Identity)', ' ') @(_JsReferences->'--js %(Identity)', ' ') @(_CssReferences->'--css %(Identity)', ' ') --output &quot;$(BlazorIndexHtmlOutputPath)&quot;" />
 
     <ItemGroup Condition="Exists('$(BlazorIndexHtmlOutputPath)')">
       <_BlazorIndex Include="$(BlazorIndexHtmlOutputPath)" />
