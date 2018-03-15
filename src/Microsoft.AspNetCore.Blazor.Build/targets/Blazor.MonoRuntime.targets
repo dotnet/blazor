@@ -580,7 +580,7 @@
       <_CssReferences Include="@(BlazorPackageCssRef->'_content/%(SourcePackage)/%(RecursiveDir)%(FileName)%(Extension)')" />
     </ItemGroup>
 
-    <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) --html-page &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'--reference %(Identity)', ' ') @(_JsReferences->'--js %(Identity)', ' ') @(_CssReferences->'--css %(Identity)', ' ') --output &quot;$(BlazorIndexHtmlOutputPath)&quot;" />
+    <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) --html-page &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'--reference &quot;%(Identity)&quot;', ' ') @(_JsReferences->'--js &quot;%(Identity)&quot;', ' ') @(_CssReferences->'--css &quot;%(Identity)&quot;', ' ') --output &quot;$(BlazorIndexHtmlOutputPath)&quot;" />
 
     <ItemGroup Condition="Exists('$(BlazorIndexHtmlOutputPath)')">
       <_BlazorIndex Include="$(BlazorIndexHtmlOutputPath)" />
