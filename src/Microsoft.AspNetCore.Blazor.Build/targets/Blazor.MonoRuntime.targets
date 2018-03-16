@@ -19,6 +19,10 @@
       UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)"
       Condition="'@(BlazorItemOutput)' != '' and '$(CopyBuildOutputToOutputDirectory)' == 'true' and '$(SkipCopyBuildProduct)' != 'true'">
     </Copy>
+    
+    <!-- In case live reloading is enabled, touch the signal file to trigger a reload -->
+    <WriteLinesToFile File="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" Lines="_" />
+    <Delete Files="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" />
 
     <ItemGroup>
       <FileWrites Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />

@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
 {
     internal class LiveReloadingContext
     {
-        // Keep in sync with the const in Microsoft.AspNetCore.Blazor.Build's AppBuilder.cs
+        // Keep in sync with $(BlazorBuildCompletedSignalPath) in Blazor.MonoRuntime.props
         private const string BlazorBuildCompletedSignalFile = "__blazorBuildCompleted";
 
         // If some external automated process is writing multiple files to wwwroot,
