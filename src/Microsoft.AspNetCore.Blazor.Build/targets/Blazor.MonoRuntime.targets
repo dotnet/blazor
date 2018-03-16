@@ -575,7 +575,7 @@
       <BlazorIndexHtmlInput Include="@(BlazorPackageJsRef->'%(FullPath)')" />
       <BlazorIndexHtmlInput Include="@(BlazorPackageCssRef->'%(FullPath)')" />
       <BlazorIndexHtmlInput Include="@(_BlazorLinkingOption)" />
-      <BlazorIndexHtmlInput Include="$(LiveReloadUri)" />
+      <BlazorIndexHtmlInput Include="$(BlazorLiveReloadUri)" Condition="'$(UseBlazorLiveReloading)'=='true'" />
     </ItemGroup>
 
     <WriteLinesToFile
@@ -602,7 +602,7 @@
     </ItemGroup>
     <PropertyGroup>
       <_LinkerEnabledFlag Condition="'$(_BlazorShouldLinkApplicationAssemblies)' != ''">--linker-enabled</_LinkerEnabledFlag>
-      <_LiveReloadArg Condition="'$(LiveReloadUri)' != ''">--reload-uri "$(LiveReloadUri)"</_LiveReloadArg>
+      <_LiveReloadArg Condition="'$(UseBlazorLiveReloading)'=='true' AND '$(BlazorLiveReloadUri)'!=''">--reload-uri "$(BlazorLiveReloadUri)"</_LiveReloadArg>
     </PropertyGroup>
 
     <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) --html-page &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'--reference &quot;%(Identity)&quot;', ' ') @(_JsReferences->'--js &quot;%(Identity)&quot;', ' ') @(_CssReferences->'--css &quot;%(Identity)&quot;', ' ') $(_LinkerEnabledFlag) $(_LiveReloadArg) --output &quot;$(BlazorIndexHtmlOutputPath)&quot;" />

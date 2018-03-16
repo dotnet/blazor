@@ -8,10 +8,6 @@
   <PropertyGroup>
     <BlazorBuildExe>dotnet &quot;$(MSBuildThisFileDirectory)../tools/Microsoft.AspNetCore.Blazor.Build.dll&quot;</BlazorBuildExe>
 
-    <!-- Enable live reloading only for debug builds -->
-    <LiveReloadUri></LiveReloadUri>
-    <LiveReloadUri Condition="'$(Configuration)' == 'Debug'">/_reload</LiveReloadUri>
-
     <!-- The Blazor build code can only find your referenced assemblies if they are in the output directory -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
@@ -27,7 +23,7 @@
     </PropertyGroup>
     <WriteLinesToFile File="$(BlazorMetadataFilePath)" Lines="$(MSBuildProjectFullPath)" Overwrite="true" Encoding="Unicode"/>
     <WriteLinesToFile File="$(BlazorMetadataFilePath)" Lines="$(OutDir)$(AssemblyName).dll" Overwrite="false" Encoding="Unicode"/>
-    <WriteLinesToFile File="$(BlazorMetadataFilePath)" Lines="reload:$(LiveReloadUri)" Overwrite="false" Encoding="Unicode"/>
+    <WriteLinesToFile File="$(BlazorMetadataFilePath)" Condition="'$(UseBlazorLiveReloading)'=='true'" Lines="reload:$(BlazorLiveReloadUri)" Overwrite="false" Encoding="Unicode"/>
     <ItemGroup>
       <ContentWithTargetPath Include="$(BlazorMetadataFilePath)" TargetPath="$(BlazorMetadataFileName)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
