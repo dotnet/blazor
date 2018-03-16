@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         private RenderFragment _childContent;
         private string _cssClass;
+        private string _activeCssClass;
         private string _hrefAbsolute;
         private IReadOnlyDictionary<string, object> _allAttributes;
 
@@ -49,6 +50,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             // Capture the parameters we want to do special things with, plus all as a dictionary
             parameters.TryGetValue(RenderTreeBuilder.ChildContent, out _childContent);
             parameters.TryGetValue("class", out _cssClass);
+            parameters.TryGetValue("activeClass", out _activeCssClass);
             parameters.TryGetValue("href", out string href);
             _allAttributes = parameters.ToDictionary();
 
@@ -81,7 +83,8 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             builder.OpenElement(0, "a");
 
             // Set "active" class dynamically
-            builder.AddAttribute(0, "class", CombineWithSpace(_cssClass, _isActive ? "active" : null));
+            string activeClass = _activeCssClass ?? string.Empty;
+            builder.AddAttribute(0, "class", CombineWithSpace(_cssClass, _isActive ? activeClass : null));
 
             // Pass through all other attributes unchanged
             foreach (var kvp in _allAttributes.Where(kvp => kvp.Key != "class"))
