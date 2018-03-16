@@ -32,11 +32,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// </summary>
         public Assembly AppAssembly { get; set; }
 
-        /// <summary>
-        /// Gets or sets the component name that will be used if the URI ends with
-        /// a slash.
-        /// </summary>
-        public string DefaultComponentName { get; set; } = "Index";
+        private RouteTable Routes { get; set; }
 
         /// <inheritdoc />
         public void Init(RenderHandle renderHandle)
@@ -51,26 +47,30 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void SetParameters(ParameterCollection parameters)
         {
             parameters.AssignToProperties(this);
+            var types = ResolveTypes(AppAssembly);
+            Routes = RouteTable.Create(types);
             Refresh();
+        }
+
+        private Type [] ResolveTypes(Assembly appAssembly)
+        {
+            return EnumerateAssemblies(appAssembly.GetName()).SelectMany(a => a.ExportedTypes).ToArray();
+
+            IEnumerable<Assembly> EnumerateAssemblies(AssemblyName assemblyName)
+            {
+                var assembly = Assembly.Load(assemblyName);
+                yield return assembly;
+                foreach (var reference in assembly.GetReferencedAssemblies().SelectMany(r => EnumerateAssemblies(r)))
+                {
+                    yield return reference;
+                }
+            }
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
             UriHelper.OnLocationChanged -= OnLocationChanged;
-        }
-
-        protected virtual ComponentMatch MatchComponent(string locationPath)
-        {
-            if (AppAssembly == null)
-            {
-                throw new InvalidOperationException($"No value was specified for {nameof(AppAssembly)}.");
-            }
-
-            locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
-
-            return MatchComponentOnAssemblyOrReferences(AppAssembly, locationPath)
-                ?? throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '{locationPath}'.");
         }
 
         private string StringUntilAny(string str, char[] chars)
@@ -81,63 +81,32 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 : str.Substring(0, firstIndex);
         }
 
-        private ComponentMatch MatchComponentOnAssemblyOrReferences(Assembly assembly, string route)
-            => MatchComponentRoute(assembly, route)
-            ?? assembly.GetReferencedAssemblies()
-                .Select(Assembly.Load)
-                .Select(referencedAssembly => MatchComponentOnAssemblyOrReferences(referencedAssembly, route))
-                .FirstOrDefault();
-
-        private ComponentMatch MatchComponentRoute(Assembly assembly, string route)
-        {
-            foreach (var type in assembly.ExportedTypes.Where(t => typeof(IComponent).IsAssignableFrom(t)))
-            {
-                var routes = type.GetCustomAttributes<RouteAttribute>();
-                foreach (var candidate in routes)
-                {
-                    var parameters = Routing.MatchRoute(candidate.Template, route);
-                    if (parameters != null)
-                    {
-                        return new ComponentMatch(type, parameters);
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        protected virtual void Render(RenderTreeBuilder builder, ComponentMatch match)
+        protected virtual void Render(RenderTreeBuilder builder, Type handler, IDictionary<string,string> parameters)
         {
             builder.OpenComponent(0, typeof(LayoutDisplay));
-            builder.AddAttribute(1, nameof(LayoutDisplay.Page), match.Handler);
-            builder.AddAttribute(2, nameof(LayoutDisplay.PageParameters), match.Parameters);
+            builder.AddAttribute(1, nameof(LayoutDisplay.Page), handler);
+            builder.AddAttribute(2, nameof(LayoutDisplay.PageParameters), parameters);
             builder.CloseComponent();
         }
 
         private void Refresh()
         {
             var locationPath = UriHelper.ToBaseRelativePath(_baseUriPrefix, _locationAbsolute);
-            var matchedComponentType = MatchComponent(locationPath);
-            if (!typeof(IComponent).IsAssignableFrom(matchedComponentType.Handler))
+            locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
+            var context = new RouteContext(locationPath);
+            Routes.Route(context);
+            if (context.Handler == null)
             {
-                throw new InvalidOperationException($"The type {matchedComponentType.Handler.FullName} " +
+                throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '{locationPath}'.");
+            }
+
+            if (!typeof(IComponent).IsAssignableFrom(context.Handler))
+            {
+                throw new InvalidOperationException($"The type {context.Handler.FullName} " +
                     $"does not implement {typeof(IComponent).FullName}.");
             }
 
-            _renderHandle.Render(builder => Render(builder, matchedComponentType));
-        }
-
-        public class ComponentMatch
-        {
-            public ComponentMatch(Type component, IDictionary<string, string> parameters)
-            {
-                Handler = component;
-                Parameters = parameters;
-            }
-
-            public Type Handler { get; set; }
-
-            public IDictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
+            _renderHandle.Render(builder => Render(builder, context.Handler, context.Parameters));
         }
 
         private void OnLocationChanged(object sender, string newAbsoluteUri)

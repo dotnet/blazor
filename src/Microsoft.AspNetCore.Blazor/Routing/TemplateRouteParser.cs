@@ -22,35 +22,18 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     // The things that we support are:
     // * Literal path segments. (Like /Path/To/Some/Page)
     // * Parameter path segments (Like /Customer/{Id}/Orders/{OrderId})
-    internal class Routing
+    internal class TemplateRouteParser
     {
         public static readonly char[] InvalidParameterNameCharacters =
             new char[] { '*', '?', '{', '}', '=', '.', ':' };
 
-        public static IDictionary<string, string> MatchRoute(
-            string routeTemplate,
-            string path)
-        {
-            var cleanTemplate = CleanTemplate(routeTemplate);
-            var template = ParseTemplate(cleanTemplate);
-
-            var match = template.Match(path);
-            if (match.Success)
-            {
-                return match.Parameters;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         internal static RouteTemplate ParseTemplate(string template)
         {
+            template = template.Trim('/');
             if (template == "")
             {
                 // Special case "/";
-                return new RouteTemplate(Array.Empty<TemplateSegment>());
+                return new RouteTemplate("/", Array.Empty<TemplateSegment>());
             }
 
             var segments = template.Split('/');
@@ -122,7 +105,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 }
             }
 
-            return new RouteTemplate(templateSegments);
+            return new RouteTemplate(template, templateSegments);
         }
 
         private static string CleanTemplate(string template)

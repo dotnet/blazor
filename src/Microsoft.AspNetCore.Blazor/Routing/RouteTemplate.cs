@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 
 namespace Microsoft.AspNetCore.Blazor.Routing
 {
@@ -7,42 +8,14 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     {
         public static readonly char[] Separators = new[] { '/' };
 
-        public RouteTemplate(TemplateSegment[] segments)
+        public RouteTemplate(string TemplateText, TemplateSegment[] segments)
         {
+            this.TemplateText = TemplateText;
             Segments = segments;
         }
 
+        public string TemplateText { get; }
+
         public TemplateSegment[] Segments { get; }
-
-        internal TemplateMatch Match(string path)
-        {
-            // This is a simplification. We are assuming there are no paths like /a//b/. A proper routing
-            // implementation would be more sophisticated.
-            var pathSegments = path.Trim('/').Split(Separators, StringSplitOptions.RemoveEmptyEntries);
-            if (Segments.Length != pathSegments.Length)
-            {
-                return TemplateMatch.Fail;
-            }
-
-            var parameters = new Dictionary<string, string>();
-            for (int i = 0; i < Segments.Length; i++)
-            {
-                var segment = Segments[i];
-                var pathSegment = pathSegments[i];
-                if (!segment.Match(pathSegment))
-                {
-                    return TemplateMatch.Fail;
-                }
-                else
-                {
-                    if (segment.IsParameter)
-                    {
-                        parameters[segment.Value] = pathSegment;
-                    }
-                }
-            }
-
-            return TemplateMatch.Succeded(parameters);
-        }
     }
 }
