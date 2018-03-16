@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     // * We are not resolving conflicts.
     // * We are not doing link generation.
     // * We are not supporting route constraints.
-    // The class in here jus takes care of parsing a route and extracting
+    // The class in here just takes care of parsing a route and extracting
     // simple parameters from it.
     // Some differences with ASP.NET Core routes are:
     // * We don't support catch all parameter segments.
