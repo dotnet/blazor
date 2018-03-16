@@ -6,6 +6,9 @@
     <!-- Local alternative to <RunArguments>blazor serve</RunArguments> -->
     <RunCommand>dotnet</RunCommand>
     <RunArguments>run --project ..\..\..\src\Microsoft.AspNetCore.Blazor.Cli serve --pathbase /live/reloading/subdir</RunArguments>
+
+    <!-- For CI, force live reloading on even though it builds in release mode -->
+    <UseBlazorLiveReloading>true</UseBlazorLiveReloading>
   </PropertyGroup>
 
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->
