@@ -54,6 +54,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             Assert.Equal("MyApp.Entrypoint.dll", scriptElem.GetAttribute("main"));
             Assert.Equal("MyNamespace.MyType::MyMethod", scriptElem.GetAttribute("entrypoint"));
             Assert.Equal("System.Abc.dll,MyApp.ClassLib.dll", scriptElem.GetAttribute("references"));
+            Assert.Equal("/my/reload", scriptElem.GetAttribute("reload"));
             Assert.False(scriptElem.HasAttribute("type"));
             Assert.Equal(string.Empty, scriptElem.Attributes["custom1"].Value);
             Assert.Equal("value", scriptElem.Attributes["custom2"].Value);
