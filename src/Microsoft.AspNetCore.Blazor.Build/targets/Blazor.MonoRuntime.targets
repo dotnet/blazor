@@ -20,13 +20,12 @@
       Condition="'@(BlazorItemOutput)' != '' and '$(CopyBuildOutputToOutputDirectory)' == 'true' and '$(SkipCopyBuildProduct)' != 'true'">
     </Copy>
     
-    <!-- In case live reloading is enabled, touch the signal file to trigger a reload -->
-    <WriteLinesToFile File="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" Lines="_" />
-    <Delete Files="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" />
-
     <ItemGroup>
       <FileWrites Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
     </ItemGroup>
+    <PropertyGroup>
+      <_BlazorDidCopyFilesToOutputDirectory>true</_BlazorDidCopyFilesToOutputDirectory>
+    </PropertyGroup>
   </Target>
   
   <Target Name="_BlazorTrackResolveReferencesDidRun" AfterTargets="ResolveReferences">
@@ -51,6 +50,14 @@
     <Message Importance="$(_BlazorStatisticsReportImportance)" Text="%(_BlazorStatisticsOutput.Identity)" />
   </Target>
 
+  <Target Name="_BlazorIssueLiveReloadNotification"
+          AfterTargets="Build"
+          Condition="'$(UseBlazorLiveReloading)'=='true' AND '$(_BlazorDidCopyFilesToOutputDirectory)'=='true'">
+    <!-- Touch the signal file to trigger a reload -->
+    <WriteLinesToFile File="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" Lines="_" />
+    <Delete Files="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" />
+  </Target>
+
   <!-- Preparing blazor files for output:
     PrepareBlazorOutputs
       _PrepareBlazorOutputConfiguration
@@ -69,6 +76,7 @@
             _TouchBlazorApplicationAssemblies
       _GenerateBlazorIndexHtml
     _BlazorCopyFilesToOutputDirectory
+    _BlazorIssueLiveReloadNotification
 
     The process for doing builds goes as follows:
     Produce a hash file with the Hash SDK task and write that hash to a marker file.

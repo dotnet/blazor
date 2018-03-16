@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
         {
             applicationBuilder.Use(async (context, next) =>
             {
-                if (context.Request.Path != url)
+                if (!string.Equals(context.Request.Path, url, StringComparison.Ordinal))
                 {
                     await next();
                 }
@@ -59,6 +59,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
                     {
                         await context.Response.WriteAsync(heartbeatMessage);
                         await context.Response.WriteAsync(Environment.NewLine);
+                        await context.Response.Body.FlushAsync();
                         try
                         {
                             await Task.Delay(5000, reloadOrRequestAbortedToken);
@@ -69,6 +70,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
                             {
                                 await context.Response.WriteAsync(reloadMessage);
                                 await context.Response.WriteAsync(Environment.NewLine);
+                                await context.Response.Body.FlushAsync();
                             }
                             break;
                         }
