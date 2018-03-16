@@ -65,6 +65,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         {
             SetUrlViaPushState($"{ServerPathBase}/RouterTest/");            
 
+            var app = MountTestComponent<TestRouter>();
             app.FindElement(By.LinkText("Other with base-relative URL")).Click();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
         }

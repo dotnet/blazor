@@ -1,22 +1,15 @@
-﻿@page "/counter/{increment}"
+﻿@page "/counter"
 <h1>Counter</h1>
 
 <p>Current count: @currentCount</p>
-<p>Current Increment is @Increment</p>
-<input type="text" @bind(ChangeIncrement) /> <a href="/counter/@ChangeIncrement">Change me!</a>
+
 <button @onclick(IncrementCount)>Click me</button>
 
 @functions {
-
-    public string ChangeIncrement {get; set;} = "1";
-
-    public string Increment { get; set; } = "1";
-
     int currentCount = 0;
 
     void IncrementCount()
     {
-        var ammount = int.Parse(Increment);
-        currentCount = currentCount + ammount;
+        currentCount++;
     }
 }
