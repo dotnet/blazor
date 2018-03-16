@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         [Fact]
         public void CanFollowLinkToPageWithParameters()
         {
-            SetUrlViaPushState($"{ServerPathBase}/RouterTest/WithParameters/Name/Steve/LastName/Sanderson");
+            SetUrlViaPushState($"{ServerPathBase}/RouterTest/Other");
 
             var app = MountTestComponent<TestRouter>();
             app.FindElement(By.LinkText("With parameters")).Click();

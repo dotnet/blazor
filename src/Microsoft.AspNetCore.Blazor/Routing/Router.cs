@@ -52,18 +52,54 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             Refresh();
         }
 
-        private Type [] ResolveTypes(Assembly appAssembly)
+        private Type[] ResolveTypes(Assembly appAssembly)
         {
-            return EnumerateAssemblies(appAssembly.GetName()).SelectMany(a => a.ExportedTypes).ToArray();
+            var comparer = new AssemblyComparer();
+            var blazorAssembly = typeof(Router).Assembly;
 
-            IEnumerable<Assembly> EnumerateAssemblies(AssemblyName assemblyName)
+            return EnumerateAssemblies(
+                    appAssembly.GetName(),
+                    new HashSet<Assembly>(comparer))
+                .SelectMany(a => a.ExportedTypes).ToArray();
+
+            IEnumerable<Assembly> EnumerateAssemblies(AssemblyName assemblyName, HashSet<Assembly> visited)
             {
                 var assembly = Assembly.Load(assemblyName);
-                yield return assembly;
-                foreach (var reference in assembly.GetReferencedAssemblies().SelectMany(r => EnumerateAssemblies(r)))
+                if (visited.Contains(assembly))
                 {
-                    yield return reference;
+                    // Avoid traversing visited assemblies.
+                    yield break;
                 }
+                visited.Add(assembly);
+                var references = assembly.GetReferencedAssemblies();
+                if (references.All(r => r.FullName != blazorAssembly.FullName))
+                {
+                    // Avoid traversing references that don't point to blazor (like netstandard2.0)
+                    yield break;
+                }
+                else
+                {
+                    yield return assembly;
+
+                    // Look at the list of transitive dependencies for more components.
+                    foreach (var reference in references.SelectMany(r => EnumerateAssemblies(r, visited)))
+                    {
+                        yield return reference;
+                    }
+                }
+            }
+        }
+
+        private class AssemblyComparer : IEqualityComparer<Assembly>
+        {
+            public bool Equals(Assembly x, Assembly y)
+            {
+                return string.Equals(x?.FullName, y?.FullName, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode(Assembly obj)
+            {
+                return obj.FullName.GetHashCode();
             }
         }
 
@@ -81,7 +117,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 : str.Substring(0, firstIndex);
         }
 
-        protected virtual void Render(RenderTreeBuilder builder, Type handler, IDictionary<string,string> parameters)
+        protected virtual void Render(RenderTreeBuilder builder, Type handler, IDictionary<string, string> parameters)
         {
             builder.OpenComponent(0, typeof(LayoutDisplay));
             builder.AddAttribute(1, nameof(LayoutDisplay.Page), handler);
