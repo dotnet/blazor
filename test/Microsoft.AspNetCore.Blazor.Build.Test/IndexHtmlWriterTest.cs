@@ -36,7 +36,8 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 assemblyReferences,
                 jsReferences,
                 cssReferences,
-                linkerEnabled: true);
+                linkerEnabled: true,
+                reloadUri: "/my/reload");
 
             // Act & Assert: Start and end is not modified (including formatting)
             Assert.StartsWith(htmlTemplatePrefix, instance);
@@ -68,6 +69,29 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 linkElems.Select(tag => tag.GetAttribute("href")),
                 cssReferences);
         }
+ 
+        [Fact]
+        public void OmitsReloadAttributeIfNoReloadUriSpecified()
+        {
+            // Arrange
+            var htmlTemplate = "<script type='blazor-boot'></script>";
+            var assemblyReferences = new string[] { "System.Abc.dll", "MyApp.ClassLib.dll", };
+
+            // Act
+            var fileContents = IndexHtmlWriter.GetIndexHtmlContents(
+                htmlTemplate,
+                "MyApp.Entrypoint",
+                "MyNamespace.MyType::MyMethod",
+                assemblyReferences,
+                /* js references */ new string[] {},
+                /* js references */ new string[] {},
+                /* reloadUri */ null);
+
+            // Assert
+            var parsedHtml = new HtmlParser().Parse(fileContents);
+            var scriptElem = parsedHtml.QuerySelector("script");
+            Assert.False(scriptElem.HasAttribute("reload"));
+        }
 
         [Fact]
         public void SuppliesHtmlTemplateUnchangedIfNoBootScriptPresent()
@@ -79,7 +103,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             var cssReferences = new string[] { "my/styles.css" };
 
             var content = IndexHtmlWriter.GetIndexHtmlContents(
-                htmlTemplate, "MyApp.Entrypoint", "MyNamespace.MyType::MyMethod", assemblyReferences, jsReferences, cssReferences, linkerEnabled: true);
+                htmlTemplate, "MyApp.Entrypoint", "MyNamespace.MyType::MyMethod", assemblyReferences, jsReferences, cssReferences, linkerEnabled: true, reloadUri: "/my/reload");
 
             // Assert
             Assert.Equal(htmlTemplate, content);
