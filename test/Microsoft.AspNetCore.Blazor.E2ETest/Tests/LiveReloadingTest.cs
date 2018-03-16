@@ -75,10 +75,11 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                 File.WriteAllText(cshtmlFilePath, newContents);
 
                 // Trigger build
+                var buildConfiguration = DetectBuildConfiguration(_serverFixture.ContentRoot);
                 var buildProcess = Process.Start(new ProcessStartInfo
                 {
                     FileName = "dotnet",
-                    Arguments = "build --no-restore --no-dependencies",
+                    Arguments = $"build --no-restore --no-dependencies -c {buildConfiguration}",
                     WorkingDirectory = _serverFixture.ContentRoot
                 });
                 Assert.True(buildProcess.WaitForExit(30 * 1000));
@@ -93,6 +94,18 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                 // Restore original state
                 File.WriteAllText(cshtmlFilePath, origContents);
             }
+        }
+
+        private object DetectBuildConfiguration(string contentRoot)
+        {
+            // We want the test to issue the build with the same configuration that
+            // the project was already built with (otherwise there will be errors because
+            // of having multiple directories under /bin, plus it means we don't need
+            // to restore and rebuild all dependencies so it's faster)
+            var binDirInfo = new DirectoryInfo(Path.Combine(contentRoot, "bin"));
+            var configurationDirs = binDirInfo.GetDirectories();
+            Assert.Single(configurationDirs);
+            return configurationDirs[0].Name;
         }
 
         private void WaitUntilLoaded()
