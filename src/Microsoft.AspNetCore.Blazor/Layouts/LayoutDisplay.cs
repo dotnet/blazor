@@ -23,6 +23,9 @@ namespace Microsoft.AspNetCore.Blazor.Layouts
         /// </summary>
         public Type Page { get; set; }
 
+        /// <summary>
+        /// Gets or sets the parameters to pass to the page.
+        /// </summary>
         public IDictionary<string, string> PageParameters { get; set; }
 
         /// <inheritdoc />

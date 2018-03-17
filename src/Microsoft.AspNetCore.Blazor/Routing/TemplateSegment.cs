@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 
 namespace Microsoft.AspNetCore.Blazor.Routing
 {
@@ -12,9 +15,9 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         // The value of the segment. The exact text to match when is a literal.
         // The parameter name when its a segment
-        public string Value { get; set; }
+        public string Value { get; }
 
-        public bool IsParameter { get; set; }
+        public bool IsParameter { get; }
 
         public bool Match(string pathSegment)
         {

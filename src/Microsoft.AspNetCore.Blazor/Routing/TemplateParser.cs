@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using System;
 
 namespace Microsoft.AspNetCore.Blazor.Routing
 {
-    // Helpers for doing routing for pages.
     // This implementation is temporary, in the future we'll want to have
-    // a more performant/properly design routing set of abstractions.
+    // a more performant/properly designed routing set of abstractions.
     // To be more precise these are some things we are scoping out:
-    // * We are not building a route table/tree.
-    //   * We are just parsing the route on every request, matching it and
-    //     extracting the parameters.
-    // * We are not resolving conflicts.
     // * We are not doing link generation.
     // * We are not supporting route constraints.
     // The class in here just takes care of parsing a route and extracting
@@ -22,7 +18,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     // The things that we support are:
     // * Literal path segments. (Like /Path/To/Some/Page)
     // * Parameter path segments (Like /Customer/{Id}/Orders/{OrderId})
-    internal class TemplateRouteParser
+    internal class TemplateParser
     {
         public static readonly char[] InvalidParameterNameCharacters =
             new char[] { '*', '?', '{', '}', '=', '.', ':' };
@@ -106,11 +102,6 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             }
 
             return new RouteTemplate(template, templateSegments);
-        }
-
-        private static string CleanTemplate(string template)
-        {
-            return template.Trim('/');
         }
     }
 }

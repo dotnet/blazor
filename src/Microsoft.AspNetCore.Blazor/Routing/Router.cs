@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Layouts;
@@ -47,60 +46,9 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void SetParameters(ParameterCollection parameters)
         {
             parameters.AssignToProperties(this);
-            var types = ResolveTypes(AppAssembly);
+            var types = ComponentResolver.ResolveComponents(AppAssembly);
             Routes = RouteTable.Create(types);
             Refresh();
-        }
-
-        private Type[] ResolveTypes(Assembly appAssembly)
-        {
-            var comparer = new AssemblyComparer();
-            var blazorAssembly = typeof(Router).Assembly;
-
-            return EnumerateAssemblies(
-                    appAssembly.GetName(),
-                    new HashSet<Assembly>(comparer))
-                .SelectMany(a => a.ExportedTypes).ToArray();
-
-            IEnumerable<Assembly> EnumerateAssemblies(AssemblyName assemblyName, HashSet<Assembly> visited)
-            {
-                var assembly = Assembly.Load(assemblyName);
-                if (visited.Contains(assembly))
-                {
-                    // Avoid traversing visited assemblies.
-                    yield break;
-                }
-                visited.Add(assembly);
-                var references = assembly.GetReferencedAssemblies();
-                if (references.All(r => r.FullName != blazorAssembly.FullName))
-                {
-                    // Avoid traversing references that don't point to blazor (like netstandard2.0)
-                    yield break;
-                }
-                else
-                {
-                    yield return assembly;
-
-                    // Look at the list of transitive dependencies for more components.
-                    foreach (var reference in references.SelectMany(r => EnumerateAssemblies(r, visited)))
-                    {
-                        yield return reference;
-                    }
-                }
-            }
-        }
-
-        private class AssemblyComparer : IEqualityComparer<Assembly>
-        {
-            public bool Equals(Assembly x, Assembly y)
-            {
-                return string.Equals(x?.FullName, y?.FullName, StringComparison.Ordinal);
-            }
-
-            public int GetHashCode(Assembly obj)
-            {
-                return obj.FullName.GetHashCode();
-            }
         }
 
         /// <inheritdoc />

@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         public RouteEntry[] Routes { get; set; }
 
-        public static RouteTable Create(Type[] types)
+        public static RouteTable Create(IEnumerable<Type> types)
         {
             var routes = new List<RouteEntry>();
             foreach (var type in types)
@@ -26,13 +26,13 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 var routeAttributes = type.GetCustomAttributes<RouteAttribute>(); // Inherit: true?
                 foreach (var routeAttribute in routeAttributes)
                 {
-                    var template = TemplateRouteParser.ParseTemplate(routeAttribute.Template);
+                    var template = TemplateParser.ParseTemplate(routeAttribute.Template);
                     var entry = new RouteEntry(template, type);
                     routes.Add(entry);
                 }
             }
-            return new RouteTable(routes.OrderBy(id => id, RoutePrecedence).ToArray());
 
+            return new RouteTable(routes.OrderBy(id => id, RoutePrecedence).ToArray());
         }
 
         public static IComparer<RouteEntry> RoutePrecedence { get; } = Comparer<RouteEntry>.Create(RouteComparison);
@@ -112,7 +112,6 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 '{x.Template.TemplateText}' in '{x.Handler.FullName}'
 '{y.Template.TemplateText}' in '{y.Handler.FullName}'
 ");
-
             }
         }
 
@@ -125,59 +124,6 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 {
                     return;
                 }
-            }
-        }
-    }
-
-    internal class RouteEntry
-    {
-        public RouteEntry(RouteTemplate template, Type handler)
-        {
-            Template = template;
-            Handler = handler;
-        }
-
-        public RouteTemplate Template { get; set; }
-
-        public Type Handler { get; set; }
-
-        internal void Match(RouteContext context)
-        {
-            if (Template.Segments.Length != context.Segments.Length)
-            {
-                return;
-            }
-
-            // Parameters will be lazily initialized.
-            IDictionary<string, string> parameters = null;
-            for (int i = 0; i < Template.Segments.Length; i++)
-            {
-                var segment = Template.Segments[i];
-                var pathSegment = context.Segments[i];
-                if (!segment.Match(pathSegment))
-                {
-                    return;
-                }
-                else
-                {
-                    if (segment.IsParameter)
-                    {
-                        GetParameters()[segment.Value] = pathSegment;
-                    }
-                }
-            }
-
-            context.Parameters = parameters;
-            context.Handler = Handler;
-
-            IDictionary<string, string> GetParameters()
-            {
-                if (parameters == null)
-                {
-                    parameters = new Dictionary<string, string>();
-                }
-
-                return parameters;
             }
         }
     }
