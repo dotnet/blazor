@@ -28,15 +28,15 @@
     <Exec Command="npm install" />
   </Target>
 
-  <Target Name="RunWebpack" AfterTargets="ResolveReferences" Inputs="@(WebpackInputs)" Outputs="dist\storage.js" DependsOnTargets="EnsureNpmRestored">
-    <RemoveDir Directories="dist" />
+  <Target Name="RunWebpack" AfterTargets="ResolveReferences" Inputs="@(WebpackInputs)" Outputs="content\storage.js" DependsOnTargets="EnsureNpmRestored">
+    <RemoveDir Directories="content" />
     <Exec Command="npm run build" />
   </Target>
 
   <ItemGroup>
     <Content Remove="**" />
     <Content Include="build\**" PackagePath="build" />
-    <Content Include="dist\**" PackagePath="content" />
+    <Content Include="content\**" PackagePath="content" />
   </ItemGroup>
 
 </Project>

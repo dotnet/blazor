@@ -1,19 +1,19 @@
 ﻿<Project>
   <PropertyGroup>
     <!-- Update this to match your package ID exactly -->
-    <_PackageId>Microsoft.AspNetCore.Blazor.Browser.Storage</_PackageId>
-    <_ContentDir>$(MSBuildThisFileDirectory)..\content\</_ContentDir>
+    <_PackageIdStorage>Microsoft.AspNetCore.Blazor.Browser.Storage</_PackageIdStorage>
+    <_ContentDirStorage>$(MSBuildThisFileDirectory)..\content\</_ContentDirStorage>
   </PropertyGroup>
   <ItemGroup>
     <!-- All files under "content" will be included with the Blazor app build output -->
-    <BlazorPackageContentFile Include="$(_ContentDir)**" SourcePackage="$(_PackageId)" />
+    <BlazorPackageContentFile Include="$(_ContentDirStorage)**" SourcePackage="$(_PackageIdStorage)" />
 
     <!-- We'll generate a <script> tag importing each of the following JavaScript files -->
     <!-- Change the "Include" pattern if you don't want to include all .js files. -->
-    <BlazorPackageJsRef Include="$(_ContentDir)**\*.js" SourcePackage="$(_PackageId)" />
+    <BlazorPackageJsRef Include="$(_ContentDirStorage)**\*.js" SourcePackage="$(_PackageIdStorage)" />
 
     <!-- We'll generate a <link> tag importing each of the following CSS files -->
     <!-- Change the "Include" pattern if you don't want to include all .css files. -->
-    <BlazorPackageCssRef Include="$(_ContentDir)**\*.css" SourcePackage="$(_PackageId)" />
+    <BlazorPackageCssRef Include="$(_ContentDirStorage)**\*.css" SourcePackage="$(_PackageIdStorage)" />
   </ItemGroup>
 </Project>

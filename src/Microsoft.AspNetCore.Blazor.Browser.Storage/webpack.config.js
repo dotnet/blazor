@@ -8,5 +8,5 @@ module.exports = {
         rules: [{ test: /\.ts?$/, loader: 'ts-loader' }]
     },
     entry: { 'storage': './src/Storage.ts' },
-    output: { path: path.join(__dirname, '/dist'), filename: '[name].js' }
+    output: { path: path.join(__dirname, '/content'), filename: '[name].js' }
 };
