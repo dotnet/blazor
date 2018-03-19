@@ -43,7 +43,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
@@ -104,7 +104,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
@@ -158,7 +158,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
@@ -208,7 +208,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
@@ -270,7 +270,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
@@ -338,7 +338,7 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Blazor;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
@@ -398,7 +398,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
@@ -460,7 +460,7 @@ namespace Test
     using System.Threading.Tasks;
     [Microsoft.AspNetCore.Blazor.Components.RouteAttribute(""/MyPage"")]
     [Microsoft.AspNetCore.Blazor.Components.RouteAttribute(""/AnotherRoute/{id}"")]
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)

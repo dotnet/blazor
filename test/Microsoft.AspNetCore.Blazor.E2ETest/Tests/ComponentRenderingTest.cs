@@ -82,6 +82,19 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         }
 
         [Fact]
+        public void CanRenderComponentsWithCodeInOtherPartialClasses()
+        {
+            // Initial count is 10
+            var appElement = MountTestComponent<CounterComponentWithSeparateCodeFile>();
+            var countDisplayElement = appElement.FindElement(By.TagName("p"));
+            Assert.Equal("Current count: 10", countDisplayElement.Text);
+
+            // Clicking button increments count
+            appElement.FindElement(By.TagName("button")).Click();
+            Assert.Equal("Current count: 11", countDisplayElement.Text);
+        }
+
+        [Fact]
         public void CanRenderChildComponents()
         {
             var appElement = MountTestComponent<ParentChildComponent>();
