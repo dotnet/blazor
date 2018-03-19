@@ -45,26 +45,26 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             switch (constraint)
             {
                 case "bool":
-                    return new RouteConstraintType<bool>(bool.TryParse);
+                    return new TypeRouteConstraint<bool>(bool.TryParse);
                 case "datetime":
-                    return new RouteConstraintType<DateTime>((string str, out DateTime result)
+                    return new TypeRouteConstraint<DateTime>((string str, out DateTime result)
                         => DateTime.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.None, out result));
                 case "decimal":
-                    return new RouteConstraintType<decimal>((string str, out decimal result)
+                    return new TypeRouteConstraint<decimal>((string str, out decimal result)
                         => decimal.TryParse(str, NumberStyles.Number, CultureInfo.InvariantCulture, out result));
                 case "double":
-                    return new RouteConstraintType<double>((string str, out double result)
+                    return new TypeRouteConstraint<double>((string str, out double result)
                         => double.TryParse(str, NumberStyles.Number, CultureInfo.InvariantCulture, out result));
                 case "float":
-                    return new RouteConstraintType<float>((string str, out float result)
+                    return new TypeRouteConstraint<float>((string str, out float result)
                         => float.TryParse(str, NumberStyles.Number, CultureInfo.InvariantCulture, out result));
                 case "guid":
-                    return new RouteConstraintType<Guid>(Guid.TryParse);
+                    return new TypeRouteConstraint<Guid>(Guid.TryParse);
                 case "int":
-                    return new RouteConstraintType<int>((string str, out int result)
+                    return new TypeRouteConstraint<int>((string str, out int result)
                         => int.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out result));
                 case "long":
-                    return new RouteConstraintType<long>((string str, out long result)
+                    return new TypeRouteConstraint<long>((string str, out long result)
                         => long.TryParse(str, NumberStyles.None, CultureInfo.InvariantCulture, out result));
                 default:
                     return null;
