@@ -6,12 +6,25 @@
     "Standalone"
   ],
   "groupIdentity": "Microsoft.Web.Blazor.Standalone",
+  "guids": [
+    "C1440A24-FC5E-482F-B523-3C6659D6E285",
+    "DB368251-2427-4168-859C-3B7672CF9835"
+  ],
   "identity": "Microsoft.Web.Blazor.Standalone.CSharp",
   "name": "Blazor (standalone)",
   "preferNameDirectory": true,
   "primaryOutputs": [
     {
-      "path": "BlazorStandalone.CSharp.csproj"
+      "condition": "(HostIdentifier == \"dotnetcli\" || HostIdentifier == \"dotnetcli-preview\")", 
+      "path": "BlazorStandalone.CSharp.sln"
+    },
+    {
+      "condition": "(OS == \"Windows_NT\" && HostIdentifier != \"dotnetcli\" && HostIdentifier != \"dotnetcli-preview\")",
+      "path": "BlazorStandalone.CSharp\\BlazorStandalone.CSharp.csproj"
+    },
+    {
+      "condition": "(OS != \"Windows_NT\" && HostIdentifier != \"dotnetcli\" && HostIdentifier != \"dotnetcli-preview\")",
+      "path": "BlazorStandalone.CSharp/BlazorStandalone.CSharp.csproj"
     }
   ],
   "shortName": "blazor",
