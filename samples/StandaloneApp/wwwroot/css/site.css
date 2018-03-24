@@ -1,8 +1,4 @@
-﻿.main-nav li .glyphicon {
-    margin-right: 10px;
-}
-
-/* Highlighting rules for nav menu items */
+﻿/* Highlighting rules for nav menu items */
 .main-nav li a.active,
 .main-nav li a.active:hover,
 .main-nav li a.active:focus {
@@ -19,6 +15,10 @@
     z-index: 1;
 }
 
+.navbar {
+    display: block;
+}
+
 @media (max-width: 767px) {
     /* On small screens, the nav menu spans the full width of the screen. Leave a space for it. */
     body {
@@ -32,58 +32,74 @@
         height: 100%;
         width: calc(25% - 20px);
     }
-    .main-nav .navbar {
-        border-radius: 0px;
-        border-width: 0px;
-        height: 100%;
-    }
-    .main-nav .navbar-header {
-        float: none;
-    }
-    .main-nav .navbar-collapse {
-        border-top: 1px solid #444;
-        padding: 0px;
-    }
-    .main-nav .navbar ul {
-        float: none;
-    }
-    .main-nav .navbar li {
-        float: none;
-        font-size: 15px;
-        margin: 6px;
-    }
-    .main-nav .navbar li a {
-        padding: 10px 16px;
-        border-radius: 4px;
-    }
-    .main-nav .navbar a {
-        /* If a menu item's text is too long, truncate it */
-        width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+
+        .main-nav .navbar {
+            border-radius: 0px;
+            border-width: 0px;
+            height: 100%;
+        }
+
+        .main-nav .navbar-header {
+            float: none;
+        }
+
+        .main-nav .navbar-collapse {
+            border-top: 1px solid #444;
+            padding: 0px;
+        }
+
+        .main-nav .navbar ul {
+            float: none;
+            width: 100%;
+        }
+
+        .main-nav .navbar li {
+            float: none;
+            font-size: 15px;
+            margin: 6px;
+        }
+
+            .main-nav .navbar li a {
+                padding: 10px 16px;
+                border-radius: 4px;
+                display: block;
+            }
+
+        .main-nav .navbar a {
+            /* If a menu item's text is too long, truncate it */
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 }
 
 /* 
     Temporary workaround due to the <blazor-component> wrapper element. The wrapper element
     will be eliminated in a future update, making this workaround unnecessary.
 */
-.navbar-nav > li a {
+.flex-column > li a {
     color: #9d9d9d;
     line-height: 20px;
-    position: relative;
-    display: block;
-}
-.navbar-nav > li a:hover {
-    color: #fff;
-    background-color: transparent;
 }
 
-a:focus:not(:hover) {
-    color: #337ab7;
+    .flex-column > li a:hover {
+        color: #fff;
+        background-color: transparent;
+        text-decoration: none;
+    }
+
+    .flex-column > li a:focus {
+        text-decoration: none;
+    }
+
+.alert-survey {
+    color: #6a6969;
+    background-color: #e8e8e8;
+    border-color: #d3d3d3;
+    margin-top: 25px;
 }
 
-a:hover, a:focus {
-    text-decoration: none;
-}
+    .alert-survey a {
+        font-weight: bold;
+    }
