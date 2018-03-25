@@ -78,18 +78,18 @@
     Temporary workaround due to the <blazor-component> wrapper element. The wrapper element
     will be eliminated in a future update, making this workaround unnecessary.
 */
-.flex-column > li a {
+.navbar-nav > li a {
     color: #9d9d9d;
     line-height: 20px;
 }
 
-    .flex-column > li a:hover {
+    .navbar-nav > li a:hover {
         color: #fff;
         background-color: transparent;
         text-decoration: none;
     }
 
-    .flex-column > li a:focus {
+    .navbar-nav > li a:focus {
         text-decoration: none;
     }
 
