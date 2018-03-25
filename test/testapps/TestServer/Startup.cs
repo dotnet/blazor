@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace TestServer
 {
@@ -17,6 +19,13 @@ namespace TestServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging(builder =>
+            {
+                builder.AddConsole()
+                    .AddAzureWebAppDiagnostics()
+                    .AddDebug()
+                    .SetMinimumLevel(LogLevel.Debug);
+            });
             services.AddMvc();
             services.AddCors(options =>
             {
@@ -26,8 +35,19 @@ namespace TestServer
                         .AllowAnyOrigin()
                         .AllowAnyHeader()
                         .AllowAnyMethod()
+                        .AllowCredentials()
                         .WithExposedHeaders("MyCustomHeader");
                 });
+            });
+
+            services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "X-XSRF-TOKEN";
+                var cookie = options.Cookie;
+                cookie.Name = "XSRF-TOKEN";
+                cookie.HttpOnly = false;
+                cookie.Path = "/";
+                cookie.SameSite = SameSiteMode.None;
             });
         }
 

@@ -1,5 +1,6 @@
 ﻿@using System.Net
 @using System.Net.Http
+@using Microsoft.AspNetCore.Blazor
 @inject HttpClient Http
 
 <h1>HTTP request tester</h1>
@@ -37,6 +38,11 @@
     <button id="add-header" @onclick(AddHeader)>Add</button>
 </p>
 
+<p>
+    <div>With Credentials:</div>
+    <input type="checkbox" @bind(withCredentials) />
+</p>
+
 <button id="send-request" @onclick(DoRequest)>Request</button>
 
 @if (responseStatusCode.HasValue)
@@ -59,6 +65,7 @@
     string method = "GET";
     string requestBody = "";
     List<RequestHeader> requestHeaders = new List<RequestHeader>();
+    bool withCredentials;
 
     HttpStatusCode? responseStatusCode;
     string responseBody;
@@ -87,7 +94,7 @@
                 }
             }
 
-            var response = await Http.SendAsync(requestMessage);
+            var response = await Http.SendAsync(requestMessage, withCredentials);
             responseStatusCode = response.StatusCode;
             responseBody = await response.Content.ReadAsStringAsync();
             var allHeaders = response.Headers.Concat(response.Content?.Headers

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,6 +31,23 @@ namespace TestServer.Controllers
                 var plainTextBodyContent = await reader.ReadToEndAsync();
                 return $"You posted: {plainTextBodyContent}";
             }
+        }
+
+        [HttpPost("xhrf")]
+        [ValidateAntiForgeryToken]
+        public async Task<string> PostAntiForgery()
+        {
+            using (var reader = new StreamReader(Request.Body))
+            {
+                var plainTextBodyContent = await reader.ReadToEndAsync();
+                return $"You posted: {plainTextBodyContent}";
+            }
+        }
+
+        [HttpGet("xhrf")]
+        public string GetAntiForgery([FromServices] IAntiforgery antiforgery)
+        {
+            return antiforgery.GetAndStoreTokens(HttpContext).RequestToken;
         }
 
         // PUT api/person

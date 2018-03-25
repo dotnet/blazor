@@ -21,7 +21,15 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         static int _nextRequestId = 0;
         static IDictionary<int, TaskCompletionSource<HttpResponseMessage>> _pendingRequests
             = new Dictionary<int, TaskCompletionSource<HttpResponseMessage>>();
+        private readonly bool _withCredentials;
 
+        public BrowserHttpMessageHandler()
+        { }
+
+        public BrowserHttpMessageHandler(bool withCredentials)
+        {
+            _withCredentials = withCredentials;
+        }
         /// <inheritdoc />
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
@@ -36,13 +44,20 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 _pendingRequests.Add(id, tcs);
             }
 
+            var withCredendtials = _withCredentials;
+            if (request.Properties.TryGetValue("WithCredentials", out object requestWithCredentials))
+            {
+                withCredendtials = (bool)requestWithCredentials;
+            }
+
             RegisteredFunction.Invoke<object>(
                 $"{typeof(BrowserHttpMessageHandler).FullName}.Send",
                 id,
                 request.Method.Method,
                 request.RequestUri,
                 request.Content == null ? null : await GetContentAsString(request.Content),
-                SerializeHeadersAsJson(request));
+                SerializeHeadersAsJson(request),
+                withCredendtials);
 
             return await tcs.Task;
         }
