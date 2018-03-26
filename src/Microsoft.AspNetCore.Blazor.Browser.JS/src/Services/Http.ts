@@ -7,6 +7,12 @@ const httpClientTypeName = 'BrowserHttpMessageHandler';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
 let receiveResponseMethod: MethodHandle;
 
+enum RequestCredentials {
+    include = 'include',
+    omit = 'omit',
+    sameOrigin = 'same-origin'
+}
+
 registerFunction(`${httpClientFullTypeName}.Send`, (id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: boolean | null) => {
     sendAsync(id, method, requestUri, body, headersJson, credentials);
 });
@@ -19,7 +25,7 @@ async function sendAsync(id: number, method: string, requestUri: string, body: s
             method: method,
             body: body || undefined,
             headers: headersJson ? (JSON.parse(headersJson) as string[][]) : undefined,
-            credentials: credentials ? "include" : undefined
+            credentials: credentials ? RequestCredentials.include : undefined
         });
         responseText = await response.text();
     } catch (ex) {
