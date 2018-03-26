@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using BasicTestApp;
 using BasicTestApp.RouterTest;
 using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure;
@@ -30,6 +31,17 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
 
             var app = MountTestComponent<TestRouter>();
             Assert.Equal("This is the default page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Default (matches all)");
+        }
+
+        [Fact]
+        public void CanArriveAtPageWithParameters()
+        {
+            SetUrlViaPushState($"{ServerPathBase}/RouterTest/WithParameters/Name/Dan/LastName/Roth");
+
+            var app = MountTestComponent<TestRouter>();
+            Assert.Equal("Your full name is Dan Roth.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks();
         }
 
         [Fact]
@@ -39,6 +51,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
 
             var app = MountTestComponent<TestRouter>();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
         }
 
         [Fact]
@@ -49,16 +62,29 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var app = MountTestComponent<TestRouter>();
             app.FindElement(By.LinkText("Other")).Click();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
         }
 
         [Fact]
         public void CanFollowLinkToOtherPageWithBaseRelativeUrl()
         {
-            SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
+            SetUrlViaPushState($"{ServerPathBase}/RouterTest/");            
 
             var app = MountTestComponent<TestRouter>();
-            app.FindElement(By.LinkText("Other with base-relative URL")).Click();
+            app.FindElement(By.LinkText("Other with base-relative URL (matches all)")).Click();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
+        }
+
+        [Fact]
+        public void CanFollowLinkToPageWithParameters()
+        {
+            SetUrlViaPushState($"{ServerPathBase}/RouterTest/Other");
+
+            var app = MountTestComponent<TestRouter>();
+            app.FindElement(By.LinkText("With parameters")).Click();
+            Assert.Equal("Your full name is Steve Sanderson.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("With parameters");
         }
 
         [Fact]
@@ -67,8 +93,9 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             SetUrlViaPushState($"{ServerPathBase}/RouterTest/Other");
 
             var app = MountTestComponent<TestRouter>();
-            app.FindElement(By.LinkText("Default")).Click();
+            app.FindElement(By.LinkText("Default (matches all)")).Click();
             Assert.Equal("This is the default page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Default (matches all)");
         }
 
         [Fact]
@@ -79,6 +106,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var app = MountTestComponent<TestRouter>();
             app.FindElement(By.LinkText("Other with query")).Click();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Other", "Other with query");
         }
 
         [Fact]
@@ -89,6 +117,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var app = MountTestComponent<TestRouter>();
             app.FindElement(By.LinkText("Default with query")).Click();
             Assert.Equal("This is the default page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Default with query");
         }
 
         [Fact]
@@ -99,6 +128,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var app = MountTestComponent<TestRouter>();
             app.FindElement(By.LinkText("Other with hash")).Click();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Other", "Other with hash");
         }
 
         [Fact]
@@ -109,6 +139,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var app = MountTestComponent<TestRouter>();
             app.FindElement(By.LinkText("Default with hash")).Click();
             Assert.Equal("This is the default page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Default with hash");
         }
 
         [Fact]
@@ -119,6 +150,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var app = MountTestComponent<TestRouter>();
             app.FindElement(By.TagName("button")).Click();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
         }
 
         public void Dispose()
@@ -133,6 +165,13 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var jsExecutor = (IJavaScriptExecutor)Browser;
             var absoluteUri = new Uri(_server.RootUri, relativeUri);
             jsExecutor.ExecuteScript($"Blazor.navigateTo('{absoluteUri.ToString()}')");
+        }
+
+        private void AssertHighlightedLinks(params string[] linkTexts)
+        {
+            var actual = Browser.FindElements(By.CssSelector("a.active"));
+            var actualTexts = actual.Select(x => x.Text);
+            Assert.Equal(linkTexts, actualTexts);
         }
     }
 }
