@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Blazor.Browser.Interop;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -21,14 +22,18 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         static int _nextRequestId = 0;
         static IDictionary<int, TaskCompletionSource<HttpResponseMessage>> _pendingRequests
             = new Dictionary<int, TaskCompletionSource<HttpResponseMessage>>();
-        private readonly bool _withCredentials;
+        private readonly RequestCredentials? _requestCredentials = null;
 
         public BrowserHttpMessageHandler()
         { }
 
-        public BrowserHttpMessageHandler(bool withCredentials)
+        /// <summary>
+        /// Initialize a new instance of <see cref="BrowserHttpMessageHandler"/>
+        /// </summary>
+        /// <param name="requestCredentials">Default</param>
+        public BrowserHttpMessageHandler(RequestCredentials requestCredentials)
         {
-            _withCredentials = withCredentials;
+            _requestCredentials = requestCredentials;
         }
         /// <inheritdoc />
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -44,11 +49,13 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 _pendingRequests.Add(id, tcs);
             }
 
-            var withCredendtials = _withCredentials;
-            if (request.Properties.TryGetValue("WithCredentials", out object requestWithCredentials))
+            var requestCredendtials = _requestCredentials;
+            if (request.Properties.TryGetValue("RequestCredentials", out object requestCredentials))
             {
-                withCredendtials = (bool)requestWithCredentials;
+                requestCredendtials = (RequestCredentials)requestCredentials;
             }
+
+            var requestCredendtialsValue = requestCredendtials.HasValue? GetDescription(requestCredendtials.Value) : null;
 
             RegisteredFunction.Invoke<object>(
                 $"{typeof(BrowserHttpMessageHandler).FullName}.Send",
@@ -57,9 +64,20 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 request.RequestUri,
                 request.Content == null ? null : await GetContentAsString(request.Content),
                 SerializeHeadersAsJson(request),
-                withCredendtials);
+                requestCredendtialsValue);
 
             return await tcs.Task;
+        }
+
+        private static string GetDescription(Enum value)
+        {
+            // variables  
+            var enumType = value.GetType();
+            var field = enumType.GetField(value.ToString());
+            var attributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
+
+            // return  
+            return attributes.Length == 0 ? value.ToString() : ((DescriptionAttribute)attributes[0]).Description;
         }
 
         private string SerializeHeadersAsJson(HttpRequestMessage request)

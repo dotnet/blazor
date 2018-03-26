@@ -39,8 +39,13 @@
 </p>
 
 <p>
-    <div>With Credentials:</div>
-    <input type="checkbox" @bind(withCredentials) />
+    <div>Request credentials:</div>
+    <select id="request-method" value=@requestCredentials @onchange(value => { requestCredentials = (string)value; })>
+        <option value=""></option>
+        <option value="SameOrigin">same-origin</option>
+        <option value="Omit">omit</option>
+        <option value="Include">include</option>
+    </select>
 </p>
 
 <button id="send-request" @onclick(DoRequest)>Request</button>
@@ -65,7 +70,7 @@
     string method = "GET";
     string requestBody = "";
     List<RequestHeader> requestHeaders = new List<RequestHeader>();
-    bool withCredentials;
+    string requestCredentials = "";
 
     HttpStatusCode? responseStatusCode;
     string responseBody;
@@ -94,7 +99,9 @@
                 }
             }
 
-            var response = await Http.SendAsync(requestMessage, withCredentials);
+            var cred = !string.IsNullOrEmpty(requestCredentials) ? (RequestCredentials?)Enum.Parse(typeof(RequestCredentials), requestCredentials) : null;
+
+            var response = await Http.SendAsync(requestMessage, cred);
             responseStatusCode = response.StatusCode;
             responseBody = await response.Content.ReadAsStringAsync();
             var allHeaders = response.Headers.Concat(response.Content?.Headers

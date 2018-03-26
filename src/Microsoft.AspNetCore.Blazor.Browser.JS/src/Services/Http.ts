@@ -7,17 +7,11 @@ const httpClientTypeName = 'BrowserHttpMessageHandler';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
 let receiveResponseMethod: MethodHandle;
 
-enum RequestCredentials {
-    include = 'include',
-    omit = 'omit',
-    sameOrigin = 'same-origin'
-}
-
-registerFunction(`${httpClientFullTypeName}.Send`, (id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: boolean | null) => {
+registerFunction(`${httpClientFullTypeName}.Send`, (id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: "omit" | "same-origin" | "include" | undefined) => {
     sendAsync(id, method, requestUri, body, headersJson, credentials);
 });
 
-async function sendAsync(id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: boolean | null) {
+async function sendAsync(id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: "omit" | "same-origin" | "include" | undefined) {
     let response: Response;
     let responseText: string;
     try {
@@ -25,7 +19,7 @@ async function sendAsync(id: number, method: string, requestUri: string, body: s
             method: method,
             body: body || undefined,
             headers: headersJson ? (JSON.parse(headersJson) as string[][]) : undefined,
-            credentials: credentials ? RequestCredentials.include : undefined
+            credentials: credentials
         });
         responseText = await response.text();
     } catch (ex) {
