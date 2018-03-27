@@ -7,11 +7,11 @@ const httpClientTypeName = 'BrowserHttpMessageHandler';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
 let receiveResponseMethod: MethodHandle;
 
-registerFunction(`${httpClientFullTypeName}.Send`, (id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: "omit" | "same-origin" | "include" | undefined) => {
+registerFunction(`${httpClientFullTypeName}.Send`, (id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: 'omit' | 'same-origin' | 'include' | undefined) => {
     sendAsync(id, method, requestUri, body, headersJson, credentials);
 });
 
-async function sendAsync(id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: "omit" | "same-origin" | "include" | undefined) {
+async function sendAsync(id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, credentials: 'omit' | 'same-origin' | 'include' | undefined) {
     let response: Response;
     let responseText: string;
     try {
