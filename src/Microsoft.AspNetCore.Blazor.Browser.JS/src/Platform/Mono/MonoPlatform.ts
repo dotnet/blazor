@@ -31,7 +31,7 @@ export const monoPlatform: Platform = {
 
   findMethod: function findMethod(assemblyName: string, namespace: string, className: string, methodName: string): MethodHandle {
         var assemblyHandle: number | undefined = registeredAssembly[assemblyName];
-        if (assemblyHandle) {
+        if (!assemblyHandle) {
             assemblyHandle = assembly_load(assemblyName);
             if (!assemblyHandle) {
                 throw new Error(`Could not find assembly "${assemblyName}"`);
@@ -39,7 +39,7 @@ export const monoPlatform: Platform = {
             registeredAssembly[assemblyName] = assemblyHandle;
         }
         var typeHandle: number | undefined = registeredClass["${namespace}.${className}"];
-        if (typeHandle) {
+        if (!typeHandle) {
             typeHandle = find_class(assemblyHandle as number, namespace, className);
             if (!typeHandle) {
                 throw new Error(`Could not find type "${className}" in namespace "${namespace}" in assembly "${assemblyName}"`);
@@ -47,7 +47,7 @@ export const monoPlatform: Platform = {
             registeredClass["${namespace}.${className}"] = typeHandle;
         }
         var methodHandle = registeredMethod["${namespace}.${className}.${methodHandle}"]
-        if (methodHandle)
+        if (!methodHandle)
         {
             methodHandle = find_method(typeHandle as number, methodName, -1);
             if (!methodHandle) {
