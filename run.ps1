@@ -103,7 +103,7 @@ function Get-KoreBuild {
             Get-RemoteFile $remotePath $tmpfile $ToolsSourceSuffix
             if (Get-Command -Name 'Expand-Archive' -ErrorAction Ignore) {
                 # Use built-in commands where possible as they are cross-plat compatible
-                Expand-Archive -Path $tmpfile -DestinationPath $korebuildPath
+                Microsoft.PowerShell.Archive\Expand-Archive -Path $tmpfile -DestinationPath $korebuildPath
             }
             else {
                 # Fallback to old approach for old installations of PowerShell
