@@ -78,6 +78,46 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)), person.BirthInstant);
         }
 
+        [Fact]
+        public void CanSerializeStructToJson()
+        {
+            // Arrange
+            var commandResult = new CommandResult
+            {
+                Message = "Test",
+                ContainsError = true,
+                ErrorId = 1
+            };
+            
+            // Act
+            var result = JsonUtil.Serialize(commandResult);
+            
+            // Assert
+            Assert.Equal("{\"Message\":\"Test\",\"ContainsError\":true,\"ErrorId\":1}", result);
+        }
+
+        [Fact]
+        public void CanDeserializeStructFromJson()
+        {
+            // Arrange
+            var json = "{\"Message\":\"Test\",\"ContainsError\":true,\"ErrorId\":1}";
+
+            //Act
+            var commandResult = JsonUtil.Deserialize<CommandResult>(json);
+
+            // Assert
+            Assert.Equal("Test", commandResult.Message);
+            Assert.True(commandResult.ContainsError);
+            Assert.Equal(1, commandResult.ErrorId);
+        }
+
+        struct CommandResult
+        {
+            public string Message { get; set; }
+            public bool ContainsError { get; set; }
+            public int? ErrorId { get; set; }
+        }
+
         class Person
         {
             public int Id { get; set; }
