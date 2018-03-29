@@ -30,7 +30,7 @@ export const monoPlatform: Platform = {
 
   findMethod: function findMethod(assemblyName: string, namespace: string, className: string, methodName: string): MethodHandle {
 
-    var assemblyHandle: number | undefined = registeredAssemblies[assemblyName];
+    const assemblyHandle: number | undefined = registeredAssemblies[assemblyName];
     if (!assemblyHandle) {
       assemblyHandle = assembly_load(assemblyName);
       if (!assemblyHandle) {
@@ -38,7 +38,7 @@ export const monoPlatform: Platform = {
       }
       registeredAssemblies[assemblyName] = assemblyHandle;
     }
-    var typeHandle: number | undefined = registeredClasses["[${assemblyName}]${namespace}.${className}"];
+    const typeHandle: number | undefined = registeredClasses["[${assemblyName}]${namespace}.${className}"];
     if (!typeHandle) {
       typeHandle = find_class(assemblyHandle as number, namespace, className);
       if (!typeHandle) {
@@ -46,7 +46,7 @@ export const monoPlatform: Platform = {
       }
       registeredClasses["[${assemblyName}]${namespace}.${className}"] = typeHandle;
     }
-    var methodHandle = registeredMethods["[${assemblyName}]${namespace}.${className}.${methodName}"]
+    const methodHandle = registeredMethods["[${assemblyName}]${namespace}.${className}.${methodName}"]
     if (!methodHandle) {
       methodHandle = find_method(typeHandle as number, methodName, -1);
       if (!methodHandle) {
