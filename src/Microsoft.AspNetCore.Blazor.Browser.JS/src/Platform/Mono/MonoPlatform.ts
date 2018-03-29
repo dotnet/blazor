@@ -1,4 +1,8 @@
-﻿import { MethodHandle, System_Object, System_String, System_Array, Pointer, Platform } from '../Platform';
+﻿const registeredAssembly: { [identifier: string]: number | undefined } = {};
+const registeredClass: { [identifier: string]: number | undefined } = {};
+const registeredMethod: { [identifier: string]: any | undefined } = {};
+
+import { MethodHandle, System_Object, System_String, System_Array, Pointer, Platform } from '../Platform';
 import { getAssemblyNameFromUrl } from '../DotNet';
 import { getRegisteredFunction } from '../../Interop/RegisteredFunction';
 
@@ -26,23 +30,32 @@ export const monoPlatform: Platform = {
   },
 
   findMethod: function findMethod(assemblyName: string, namespace: string, className: string, methodName: string): MethodHandle {
-    // TODO: Cache the assembly_load outputs?
-    const assemblyHandle = assembly_load(assemblyName);
-    if (!assemblyHandle) {
-      throw new Error(`Could not find assembly "${assemblyName}"`);
-    }
-
-    const typeHandle = find_class(assemblyHandle, namespace, className);
-    if (!typeHandle) {
-      throw new Error(`Could not find type "${className}" in namespace "${namespace}" in assembly "${assemblyName}"`);
-    }
-
-    const methodHandle = find_method(typeHandle, methodName, -1);
-    if (!methodHandle) {
-      throw new Error(`Could not find method "${methodName}" on type "${namespace}.${className}"`);
-    }
-
-    return methodHandle;
+        var assemblyHandle: number | undefined = registeredAssembly[assemblyName];
+        if (!assemblyHandle) {
+            assemblyHandle = assembly_load(assemblyName);
+            if (!assemblyHandle) {
+                throw new Error(`Could not find assembly "${assemblyName}"`);
+            }
+            registeredAssembly[assemblyName] = assemblyHandle;
+        }
+        var typeHandle: number | undefined = registeredClass["${namespace}.${className}"];
+        if (!typeHandle) {
+            typeHandle = find_class(assemblyHandle as number, namespace, className);
+            if (!typeHandle) {
+                throw new Error(`Could not find type "${className}" in namespace "${namespace}" in assembly "${assemblyName}"`);
+            }
+            registeredClass["${namespace}.${className}"] = typeHandle;
+        }
+        var methodHandle = registeredMethod["${namespace}.${className}.${methodHandle}"]
+        if (!methodHandle)
+        {
+            methodHandle = find_method(typeHandle as number, methodName, -1);
+            if (!methodHandle) {
+                throw new Error(`Could not find method "${methodName}" on type "${namespace}.${className}"`);
+            }
+            registeredMethod["${namespace}.${className}.${methodHandle}"] = methodHandle;
+        }
+        return methodHandle;
   },
 
   callEntryPoint: function callEntryPoint(assemblyName: string, entrypointMethod: string, args: System_Object[]): void {
