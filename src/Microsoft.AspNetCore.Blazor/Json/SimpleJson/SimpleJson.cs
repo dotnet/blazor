@@ -66,7 +66,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Xml;
 using SimpleJson.Reflection;
 
 // ReSharper disable LoopCanBeConvertedToQuery
