@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void CanSerializeStructToJson()
         {
             // Arrange
-            var commandResult = new CommandResult
+            var commandResult = new SimpleError
             {
                 Message = "Test",
                 ContainsError = true,
@@ -103,15 +103,15 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var json = "{\"Message\":\"Test\",\"ContainsError\":true,\"ErrorId\":1}";
 
             //Act
-            var commandResult = JsonUtil.Deserialize<CommandResult>(json);
+            var simpleError = JsonUtil.Deserialize<SimpleError>(json);
 
             // Assert
-            Assert.Equal("Test", commandResult.Message);
-            Assert.True(commandResult.ContainsError);
-            Assert.Equal(1, commandResult.ErrorId);
+            Assert.Equal("Test", simpleError.Message);
+            Assert.True(simpleError.ContainsError);
+            Assert.Equal(1, simpleError.ErrorId);
         }
 
-        struct CommandResult
+        struct SimpleError
         {
             public string Message { get; set; }
             public bool ContainsError { get; set; }
