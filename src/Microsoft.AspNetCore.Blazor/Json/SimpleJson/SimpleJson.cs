@@ -554,7 +554,7 @@ namespace SimpleJson
         /// The object.
         /// </param>
         /// <returns>
-        /// Returns true if successfull otherwise false.
+        /// Returns true if successful otherwise false.
         /// </returns>
         [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate", Justification="Need to support .NET 2")]
         public static bool TryDeserializeObject(string json, out object obj)
@@ -1260,7 +1260,7 @@ namespace SimpleJson
 
         public PocoJsonSerializerStrategy()
         {
-            ConstructorCache = new ReflectionUtils.ThreadSafeDictionary<Type, ReflectionUtils.ConstructorDelegate>(ContructorDelegateFactory);
+            ConstructorCache = new ReflectionUtils.ThreadSafeDictionary<Type, ReflectionUtils.ConstructorDelegate>(ConstructorDelegateFactory);
             GetCache = new ReflectionUtils.ThreadSafeDictionary<Type, IDictionary<string, ReflectionUtils.GetDelegate>>(GetterValueFactory);
             SetCache = new ReflectionUtils.ThreadSafeDictionary<Type, IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>>(SetterValueFactory);
         }
@@ -1270,11 +1270,11 @@ namespace SimpleJson
             return clrPropertyName;
         }
 
-        internal virtual ReflectionUtils.ConstructorDelegate ContructorDelegateFactory(Type key)
+        internal virtual ReflectionUtils.ConstructorDelegate ConstructorDelegateFactory(Type key)
         {
             // We need List<T>(int) constructor so that DeserializeObject method will work for generating IList-declared values
             var needsCapacityArgument = key.IsArray || key.IsConstructedGenericType && key.GetGenericTypeDefinition() == typeof(List<>);
-            return ReflectionUtils.GetContructor(key, needsCapacityArgument ? ArrayConstructorParameterTypes : EmptyTypes);
+            return ReflectionUtils.GetConstructor(key, needsCapacityArgument ? ArrayConstructorParameterTypes : EmptyTypes);
         }
 
         internal virtual IDictionary<string, ReflectionUtils.GetDelegate> GetterValueFactory(Type type)
@@ -1349,6 +1349,8 @@ namespace SimpleJson
             {
                 if (str.Length != 0) // We know it can't be null now.
                 {
+                    if (type == typeof(TimeSpan) || (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(TimeSpan)))
+                        return TimeSpan.ParseExact(str, "c", CultureInfo.InvariantCulture);
                     if (type == typeof(DateTime) || (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type) == typeof(DateTime)))
                         return DateTime.TryParseExact(str, Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var result)
                             ? result : DateTime.Parse(str, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
@@ -1456,7 +1458,7 @@ namespace SimpleJson
                             foreach (object o in jsonObject)
                                 list[i++] = DeserializeObject(o, type.GetElementType());
                         }
-                        else if (ReflectionUtils.IsTypeGenericeCollectionInterface(type) || ReflectionUtils.IsAssignableFrom(typeof(IList), type))
+                        else if (ReflectionUtils.IsTypeGenericCollectionInterface(type) || ReflectionUtils.IsAssignableFrom(typeof(IList), type))
                         {
                             Type innerType = ReflectionUtils.GetGenericListElementType(type);
                             list = (IList)(ConstructorCache[type] ?? ConstructorCache[typeof(List<>).MakeGenericType(innerType)])(jsonObject.Count);
@@ -1490,6 +1492,8 @@ namespace SimpleJson
                 output = ((Guid)input).ToString("D");
             else if (input is Uri)
                 output = input.ToString();
+            else if (input is TimeSpan)
+                output = ((TimeSpan)input).ToString("c");
             else
             {
                 Enum inputEnum = input as Enum;
@@ -1694,7 +1698,7 @@ namespace SimpleJson
                 return GetTypeInfo(type).IsGenericType;
             }
 
-            public static bool IsTypeGenericeCollectionInterface(Type type)
+            public static bool IsTypeGenericCollectionInterface(Type type)
             {
                 if (!IsTypeGeneric(type))
                     return false;
@@ -1821,7 +1825,7 @@ namespace SimpleJson
 #endif
             }
 
-            public static ConstructorDelegate GetContructor(ConstructorInfo constructorInfo)
+            public static ConstructorDelegate GetConstructor(ConstructorInfo constructorInfo)
             {
 #if SIMPLE_JSON_NO_LINQ_EXPRESSION
                 return GetConstructorByReflection(constructorInfo);
@@ -1830,7 +1834,7 @@ namespace SimpleJson
 #endif
             }
 
-            public static ConstructorDelegate GetContructor(Type type, params Type[] argsType)
+            public static ConstructorDelegate GetConstructor(Type type, params Type[] argsType)
             {
 #if SIMPLE_JSON_NO_LINQ_EXPRESSION
                 return GetConstructorByReflection(type, argsType);
@@ -1847,6 +1851,14 @@ namespace SimpleJson
             public static ConstructorDelegate GetConstructorByReflection(Type type, params Type[] argsType)
             {
                 ConstructorInfo constructorInfo = GetConstructorInfo(type, argsType);
+
+                if (constructorInfo == null && argsType.Length == 0 && type.IsValueType)
+                {
+                    // If it's a struct, then parameterless constructors are implicit
+                    // We can always call Activator.CreateInstance in lieu of a zero-arg constructor
+                    return args => Activator.CreateInstance(type);
+                }
+
                 return constructorInfo == null ? null : GetConstructorByReflection(constructorInfo);
             }
 
