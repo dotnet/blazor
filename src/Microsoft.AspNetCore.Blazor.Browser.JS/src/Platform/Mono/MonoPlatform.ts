@@ -30,29 +30,29 @@ export const monoPlatform: Platform = {
 
   findMethod: function findMethod(assemblyName: string, namespace: string, className: string, methodName: string): MethodHandle {
 
-    var assemblyHandle: number | undefined = registeredAssemblies[assemblyName];
+    let assemblyHandle: number | undefined = registeredAssemblies[`[${assemblyName}]`];
     if (!assemblyHandle) {
       assemblyHandle = assembly_load(assemblyName);
       if (!assemblyHandle) {
         throw new Error(`Could not find assembly "${assemblyName}"`);
       }
-      registeredAssemblies[assemblyName] = assemblyHandle;
+      registeredAssemblies[`[${assemblyName}]`] = assemblyHandle;
     }
-    var typeHandle: number | undefined = registeredClasses["[${assemblyName}]${namespace}.${className}"];
+    let typeHandle: number | undefined = registeredClasses[`[${assemblyName}]${namespace}.${className}`];
     if (!typeHandle) {
       typeHandle = find_class(assemblyHandle as number, namespace, className);
       if (!typeHandle) {
         throw new Error(`Could not find type "${className}" in namespace "${namespace}" in assembly "${assemblyName}"`);
       }
-      registeredClasses["[${assemblyName}]${namespace}.${className}"] = typeHandle;
+      registeredClasses[`[${assemblyName}]${namespace}.${className}`] = typeHandle;
     }
-    var methodHandle = registeredMethods["[${assemblyName}]${namespace}.${className}.${methodName}"]
+    let methodHandle = registeredMethods[`[${assemblyName}]${namespace}.${className}.${methodName}`]
     if (!methodHandle) {
       methodHandle = find_method(typeHandle as number, methodName, -1);
       if (!methodHandle) {
         throw new Error(`Could not find method "${methodName}" on type "${namespace}.${className}"`);
       }
-      registeredMethods["[${assemblyName}]${namespace}.${className}.${methodName}"] = methodHandle;
+      registeredMethods[`[${assemblyName}]${namespace}.${className}.${methodName}`] = methodHandle;
     }
     return methodHandle;
   },
