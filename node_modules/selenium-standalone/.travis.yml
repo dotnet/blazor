@@ -1,0 +1,23 @@
+sudo: false
+
+language: java
+
+jdk:
+  - oraclejdk8
+
+env:
+  - TRAVIS_NODE_VERSION="stable"
+  - TRAVIS_NODE_VERSION=5
+  - TRAVIS_NODE_VERSION=4
+  - TRAVIS_NODE_VERSION=0.12
+  
+branches:
+  only:
+    - "master"
+
+before_install:
+  - nvm install $TRAVIS_NODE_VERSION
+
+install: "npm install"
+
+script: "npm test"

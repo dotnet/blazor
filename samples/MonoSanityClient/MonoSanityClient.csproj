@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor" TreatAsLocalProperty="BlazorLinkOnBuild">
+<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="BlazorLinkOnBuild">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>

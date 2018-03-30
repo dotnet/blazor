@@ -1,0 +1,5 @@
+{
+  "hub": "http://bar",
+  "port": 123,
+  "host": "foo"
+}
