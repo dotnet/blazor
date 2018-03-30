@@ -1,28 +1,24 @@
 ﻿const reconnectionPollIntervalMs = 250;
 
 export function enableLiveReloading(eventSourceUrl: string) {
-  listenForReloadEvent(eventSourceUrl, /* reloadOnConnection */ false);
+  listenForReloadEvent(eventSourceUrl);
 }
 
-function listenForReloadEvent(eventSourceUrl: string, reloadOnConnection: boolean) {
+function listenForReloadEvent(eventSourceUrl: string) {
   const EventSource = window['EventSource'];
   if (!EventSource) {
     console.log('Browser does not support EventSource, so live reloading will be disabled.');
     return;
   }
 
-  // First, connect to the endpoint. If the connection itself is meant to signal a
-  // reload, then do that.
+  // First, connect to the endpoint
   const source = new EventSource(resolveAgainstBaseUri(eventSourceUrl));
   let sourceDidOpen;
   source.addEventListener('open', e => {
     sourceDidOpen = true;
-    if (reloadOnConnection) {
-      location.reload();
-    }
   });
 
-  // If we're directly notified that we should reload, then do so.
+  // If we're notified that we should reload, then do so.
   source.addEventListener('message', e => {
     if (e.data === 'reload') {
       location.reload();
@@ -30,18 +26,10 @@ function listenForReloadEvent(eventSourceUrl: string, reloadOnConnection: boolea
   });
 
   // If the server disconnects (e.g., because the app is being recycled), then
-  // we want to wait until it reappears then reload. Implement that by polling
-  // the event source endpoint.
-  // We *don't* want to rely on any built-in browser logic for reconnecting
-  // eventsource, because browsers are inconsistent.
+  // stop listening.
   source.addEventListener('error', e => {
-    if (source.readyState === 0) {
-      if (sourceDidOpen || reloadOnConnection) {
-        source.close();
-        setTimeout(() => {
-          listenForReloadEvent(eventSourceUrl, /* reloadOnConnection */ true);
-        }, reconnectionPollIntervalMs);
-      }
+    if (source.readyState === 0 && sourceDidOpen) {
+      source.close();
     }
   });
 
