@@ -111,10 +111,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
             // Set class attribute only if there's a value
             string classAttrValue = CombineWithSpace(_cssClass, _isActive ? ActiveClass : null);
-            if (!string.IsNullOrEmpty(classAttrValue))
-            {
-                builder.AddAttribute(0, "class", classAttrValue);
-            }
+            builder.AddAttribute(0, "class", classAttrValue);
 
             // Pass through all other attributes unchanged
             foreach (var kvp in _allAttributes.Where(kvp => kvp.Key != "class"))
