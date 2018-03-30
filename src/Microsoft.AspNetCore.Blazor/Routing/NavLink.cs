@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         {
             builder.OpenElement(0, "a");
 
-            // Set class attribute only if there's a value
+            // Set class attribute
             string classAttrValue = CombineWithSpace(_cssClass, _isActive ? ActiveClass : null);
             builder.AddAttribute(0, "class", classAttrValue);
 
