@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         }
 
         [Fact]
-        public void CanBindTextArea_InitiallyPopuplated()
+        public void CanBindTextArea_InitiallyPopulated()
         {
             var target = Browser.FindElement(By.Id("textarea-initially-populated"));
             var boundValue = Browser.FindElement(By.Id("textarea-initially-populated-value"));
