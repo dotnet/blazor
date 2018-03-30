@@ -19,7 +19,7 @@
       UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)"
       Condition="'@(BlazorItemOutput)' != '' and '$(CopyBuildOutputToOutputDirectory)' == 'true' and '$(SkipCopyBuildProduct)' != 'true'">
     </Copy>
-    
+
     <ItemGroup>
       <FileWrites Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
     </ItemGroup>
@@ -610,7 +610,7 @@
     </ItemGroup>
     <PropertyGroup>
       <_LinkerEnabledFlag Condition="'$(_BlazorShouldLinkApplicationAssemblies)' != ''">--linker-enabled</_LinkerEnabledFlag>
-      <_LiveReloadArg Condition="'$(UseBlazorLiveReloading)'=='true' AND '$(BlazorLiveReloadUri)'!=''">--reload-uri "$(BlazorLiveReloadUri)"</_LiveReloadArg>
+      <_LiveReloadArg Condition="'$(UseBlazorLiveReloading)' == 'true' AND '$(BlazorLiveReloadUri)' != ''">--reload-uri "$(BlazorLiveReloadUri)"</_LiveReloadArg>
     </PropertyGroup>
 
     <Exec Command="$(BlazorBuildExe) build @(IntermediateAssembly) --html-page &quot;$(BlazorIndexHtml)&quot; @(_AppReferences->'--reference &quot;%(Identity)&quot;', ' ') @(_JsReferences->'--js &quot;%(Identity)&quot;', ' ') @(_CssReferences->'--css &quot;%(Identity)&quot;', ' ') $(_LinkerEnabledFlag) $(_LiveReloadArg) --output &quot;$(BlazorIndexHtmlOutputPath)&quot;" />

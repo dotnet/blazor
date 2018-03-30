@@ -25,7 +25,6 @@ namespace Microsoft.AspNetCore.Blazor.Server
         private const string reloadMessage = "data: reload\n\n";
 
         // If we don't hold references to them, then on Linux they get disposed.
-        // TODO: Review if this is still true
         // This static would leak memory if you called UseBlazorLiveReloading continually
         // throughout the app lifetime, but the intended usage is just during init.
         private static readonly List<FileSystemWatcher> _pinnedWatchers = new List<FileSystemWatcher>();
