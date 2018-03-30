@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.WebSockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,8 +23,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
         // Pausing by 500 milliseconds is a crude effort - we might need a different
         // mechanism (e.g., waiting until writes have stopped by 500ms).
         private const int WebRootUpdateDelayMilliseconds = 500;
-        private const string heartbeatMessage = "data: alive\n\n";
-        private const string reloadMessage = "data: reload\n\n";
+        private static byte[] _reloadMessage = Encoding.UTF8.GetBytes("reload");
 
         // If we don't hold references to them, then on Linux they get disposed.
         // This static would leak memory if you called UseBlazorLiveReloading continually
@@ -36,46 +37,61 @@ namespace Microsoft.AspNetCore.Blazor.Server
         public void Attach(IApplicationBuilder applicationBuilder, BlazorConfig config)
         {
             CreateFileSystemWatchers(config);
-            AddEventStreamEndpoint(applicationBuilder, config.ReloadUri);
+            AddWebSocketsEndpoint(applicationBuilder, config.ReloadUri);
         }
 
-        private void AddEventStreamEndpoint(IApplicationBuilder applicationBuilder, string url)
+        private void AddWebSocketsEndpoint(IApplicationBuilder applicationBuilder, string url)
         {
-            applicationBuilder.Use(async (context, next) =>
+            applicationBuilder.UseWebSockets();
+            applicationBuilder.Use((context, next) =>
             {
                 if (!string.Equals(context.Request.Path, url, StringComparison.Ordinal))
                 {
-                    await next();
+                    return next();
                 }
-                else
+
+                if (!context.WebSockets.IsWebSocketRequest)
                 {
-                    context.Response.ContentType = "text/event-stream";
-                    var reloadToken = _currentReloadListener.Token;
-                    var reloadOrRequestAbortedToken = CancellationTokenSource
-                        .CreateLinkedTokenSource(reloadToken, context.RequestAborted)
-                        .Token;
-                    while (!context.RequestAborted.IsCancellationRequested)
-                    {
-                        await context.Response.WriteAsync(heartbeatMessage);
-                        await context.Response.WriteAsync(Environment.NewLine);
-                        await context.Response.Body.FlushAsync();
-                        try
-                        {
-                            await Task.Delay(5000, reloadOrRequestAbortedToken);
-                        }
-                        catch (TaskCanceledException)
-                        {
-                            if (reloadToken.IsCancellationRequested)
-                            {
-                                await context.Response.WriteAsync(reloadMessage);
-                                await context.Response.WriteAsync(Environment.NewLine);
-                                await context.Response.Body.FlushAsync();
-                            }
-                            break;
-                        }
-                    }
+                    context.Response.StatusCode = 400;
+                    return context.Response.WriteAsync("This endpoint only accepts WebSockets connections.");
                 }
+
+                return HandleWebSocketRequest(
+                    context.WebSockets.AcceptWebSocketAsync(),
+                    context.RequestAborted);
             });
+        }
+
+        private async Task HandleWebSocketRequest(Task<WebSocket> webSocketTask, CancellationToken requestAbortedToken)
+        {
+            var webSocket = await webSocketTask;
+            var reloadToken = _currentReloadListener.Token;
+
+            // Wait until either we get a signal to trigger a reload, or the client disconnects
+            // In either case we're done after that. It's the client's job to reload and start
+            // a new live reloading context.
+            try
+            {
+                var reloadOrRequestAbortedToken = CancellationTokenSource
+                    .CreateLinkedTokenSource(reloadToken, requestAbortedToken)
+                    .Token;
+                await Task.Delay(-1, reloadOrRequestAbortedToken);
+            }
+            catch (TaskCanceledException)
+            {
+                if (reloadToken.IsCancellationRequested)
+                {
+                    await webSocket.SendAsync(
+                        _reloadMessage,
+                        WebSocketMessageType.Text,
+                        true,
+                        requestAbortedToken);
+                    await webSocket.CloseAsync(
+                        WebSocketCloseStatus.NormalClosure,
+                        "Requested reload",
+                        requestAbortedToken);
+                }
+            }
         }
 
         private void CreateFileSystemWatchers(BlazorConfig config)
