@@ -50,9 +50,16 @@
     <Message Importance="$(_BlazorStatisticsReportImportance)" Text="%(_BlazorStatisticsOutput.Identity)" />
   </Target>
 
+  <!--
+    We only issue the reload notification from here if you're *not* building inside VS.
+    If you are building inside VS, then it's possible you're building an arbitrary collection
+    of projects of which this is just one, and it's important to wait until all projects in
+    the build are completed before reloading, so the notification is instead triggered by the
+    VS extension that can see when a complete build process is finished.
+  -->
   <Target Name="_BlazorIssueLiveReloadNotification"
           AfterTargets="Build"
-          Condition="'$(UseBlazorLiveReloading)'=='true' AND '$(_BlazorDidCopyFilesToOutputDirectory)'=='true'">
+          Condition="'$(UseBlazorLiveReloading)'=='true' AND '$(_BlazorDidCopyFilesToOutputDirectory)'=='true' AND '$(BuildingInsideVisualStudio)'!='true'">
     <!-- Touch the signal file to trigger a reload -->
     <WriteLinesToFile File="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" Lines="_" />
     <Delete Files="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" />
