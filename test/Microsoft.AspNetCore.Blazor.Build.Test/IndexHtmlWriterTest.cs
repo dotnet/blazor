@@ -86,6 +86,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 assemblyReferences,
                 /* js references */ new string[] {},
                 /* js references */ new string[] {},
+                /* linkerEnabled */ true,
                 /* reloadUri */ null);
 
             // Assert
