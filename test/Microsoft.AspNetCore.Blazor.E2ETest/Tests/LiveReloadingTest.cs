@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                     Arguments = $"build --no-restore --no-dependencies -c {buildConfiguration}",
                     WorkingDirectory = _serverFixture.ContentRoot
                 });
-                Assert.True(buildProcess.WaitForExit(30 * 1000));
+                Assert.True(buildProcess.WaitForExit(60 * 1000));
                 Assert.Equal(0, buildProcess.ExitCode);
 
                 // See that the page reloads and reflects the updated source file
