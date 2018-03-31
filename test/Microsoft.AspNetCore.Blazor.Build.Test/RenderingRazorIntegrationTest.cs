@@ -181,6 +181,20 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
+        public void SupportsAttributesWithInterpolatedTernaryExpressionValues()
+        {
+            // Arrange/Act
+            var component = CompileToComponent(
+                "@{ var myValue = \"world\"; }"
+                + "<elem attr=\"Hello, @(true ? myValue : \"nothing\")!\" />");
+
+            // Assert
+            Assert.Collection(GetRenderTree(component),
+                frame => AssertFrame.Element(frame, "elem", 2, 0),
+                frame => AssertFrame.Attribute(frame, "attr", "Hello, world!", 1));
+        }
+
+        [Fact]
         public void SupportsHyphenedAttributesWithCSharpExpressionValues()
         {
             // Arrange/Act
@@ -364,7 +378,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         {
             // Arrange/Act
             var component = CompileToComponent(
-                @"<input @bind(MyValue) />
+                @"<input bind=""MyValue"" />
                 @functions {
                     public string MyValue { get; set; } = ""Initial value"";
                 }");
@@ -394,7 +408,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         {
             // Arrange/Act
             var component = CompileToComponent(
-                @"<input @bind(MyDate) />
+                @"<input bind=""MyDate"" />
                 @functions {
                     public DateTime MyDate { get; set; } = new DateTime(2018, 3, 4, 1, 2, 3);
                 }");
@@ -426,10 +440,10 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             // Arrange/Act
             var testDateFormat = "ddd yyyy-MM-dd";
             var component = CompileToComponent(
-                @"<input @bind(MyDate, """ + testDateFormat + @""") />
-                @functions {
-                    public DateTime MyDate { get; set; } = new DateTime(2018, 3, 4);
-                }");
+                $@"<input bind=""@MyDate"" format-value=""{testDateFormat}"" />
+                @functions {{
+                    public DateTime MyDate {{ get; set; }} = new DateTime(2018, 3, 4);
+                }}");
             var myDateProperty = component.GetType().GetProperty("MyDate");
 
             // Assert
@@ -456,7 +470,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         {
             // Arrange/Act
             var component = CompileToComponent(
-                @"<input @bind(MyValue) />
+                @"<input bind=""MyValue"" />
                 @functions {
                     public bool MyValue { get; set; } = true;
                 }");
@@ -487,7 +501,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             // Arrange/Act
             var myEnumType = FullTypeName<MyEnum>();
             var component = CompileToComponent(
-                $@"<input @bind(MyValue) />
+                $@"<input bind=""MyValue"" />
                 @functions {{
                     public {myEnumType} MyValue {{ get; set; }} = {myEnumType}.{nameof(MyEnum.FirstValue)};
                 }}");
