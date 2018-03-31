@@ -14,7 +14,7 @@ registerFunction(`${httpClientFullTypeName}.Send`, (id: number, method: string, 
 async function sendAsync(id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, fetchArgs: RequestInit | null) {
     let response: Response;
     let responseText: string;
-    console.log(`fetchArgs: ${fetchArgs}`)
+
     const requestInit = fetchArgs || {};
     requestInit.method = method;
     requestInit.body = body || undefined;

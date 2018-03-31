@@ -44,14 +44,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
 
             request.Properties.TryGetValue(FetchArgs, out object fetchArgs);
 
-            if (fetchArgs != null)
-            {
-                Console.WriteLine($"request properties: {JsonUtil.Serialize(fetchArgs)}");
-            }
-            else
-            {
-                Console.WriteLine("no request properties");
-            }
             RegisteredFunction.Invoke<object>(
                 $"{typeof(BrowserHttpMessageHandler).FullName}.Send",
                 id,
