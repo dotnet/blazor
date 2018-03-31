@@ -22,19 +22,12 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         static int _nextRequestId = 0;
         static IDictionary<int, TaskCompletionSource<HttpResponseMessage>> _pendingRequests
             = new Dictionary<int, TaskCompletionSource<HttpResponseMessage>>();
-        private readonly RequestCredentials? _requestCredentials = null;
+
+        public const string FetchArgs = "BrowserHttpMessageHandler.FetchArgs";
 
         public BrowserHttpMessageHandler()
         { }
 
-        /// <summary>
-        /// Initialize a new instance of <see cref="BrowserHttpMessageHandler"/>
-        /// </summary>
-        /// <param name="requestCredentials">Default</param>
-        public BrowserHttpMessageHandler(RequestCredentials requestCredentials)
-        {
-            _requestCredentials = requestCredentials;
-        }
         /// <inheritdoc />
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
@@ -49,14 +42,16 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 _pendingRequests.Add(id, tcs);
             }
 
-            var requestCredendtials = _requestCredentials;
-            if (request.Properties.TryGetValue("RequestCredentials", out object requestCredentials))
+            request.Properties.TryGetValue(FetchArgs, out object fetchArgs);
+
+            if (fetchArgs != null)
             {
-                requestCredendtials = (RequestCredentials)requestCredentials;
+                Console.WriteLine($"request properties: {JsonUtil.Serialize(fetchArgs)}");
             }
-
-            var requestCredendtialsValue = requestCredendtials.HasValue? GetDescription(requestCredendtials.Value) : null;
-
+            else
+            {
+                Console.WriteLine("no request properties");
+            }
             RegisteredFunction.Invoke<object>(
                 $"{typeof(BrowserHttpMessageHandler).FullName}.Send",
                 id,
@@ -64,7 +59,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 request.RequestUri,
                 request.Content == null ? null : await GetContentAsString(request.Content),
                 SerializeHeadersAsJson(request),
-                requestCredendtialsValue);
+                fetchArgs);
 
             return await tcs.Task;
         }

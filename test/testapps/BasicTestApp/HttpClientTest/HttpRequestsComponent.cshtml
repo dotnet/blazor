@@ -1,6 +1,6 @@
 ﻿@using System.Net
 @using System.Net.Http
-@using Microsoft.AspNetCore.Blazor
+@using Microsoft.AspNetCore.Blazor.Browser.Http
 @inject HttpClient Http
 
 <h1>HTTP request tester</h1>
@@ -42,9 +42,9 @@
     <div>Request credentials:</div>
     <select id="request-method" value=@requestCredentials @onchange(value => { requestCredentials = (string)value; })>
         <option value=""></option>
-        <option value="SameOrigin">same-origin</option>
-        <option value="Omit">omit</option>
-        <option value="Include">include</option>
+        <option value="same-origin">same-origin</option>
+        <option value="omit">omit</option>
+        <option value="include">include</option>
     </select>
 </p>
 
@@ -99,9 +99,15 @@
                 }
             }
 
-            var cred = !string.IsNullOrEmpty(requestCredentials) ? (RequestCredentials?)Enum.Parse(typeof(RequestCredentials), requestCredentials) : null;
+            if (!string.IsNullOrEmpty(requestCredentials))
+            {
+                requestMessage.Properties[BrowserHttpMessageHandler.FetchArgs] = new
+                {
+                    credentials = requestCredentials
+                };
+            }
 
-            var response = await Http.SendAsync(requestMessage, cred);
+            var response = await Http.SendAsync(requestMessage);
             responseStatusCode = response.StatusCode;
             responseBody = await response.Content.ReadAsStringAsync();
             var allHeaders = response.Headers.Concat(response.Content?.Headers
