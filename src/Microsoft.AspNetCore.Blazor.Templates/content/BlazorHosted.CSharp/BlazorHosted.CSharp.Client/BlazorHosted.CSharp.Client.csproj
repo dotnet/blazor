@@ -15,4 +15,18 @@
     <ProjectReference Include="..\BlazorHosted.CSharp.Shared\BlazorHosted.CSharp.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <BlazorGenerate Remove="Shared\TopNav.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Shared\TopNav.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <BlazorGenerate Remove="Shared\SideNav.cshtml" />
+  </ItemGroup>
+
 </Project>

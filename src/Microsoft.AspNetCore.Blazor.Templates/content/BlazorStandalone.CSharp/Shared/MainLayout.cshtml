@@ -1,9 +1,10 @@
 ﻿@implements ILayoutComponent
 
 <div class='container-fluid'>
+    <TopNav />
     <div class='row'>
         <div class='col-sm-3'>
-            <NavMenu />
+            <SideNav />
         </div>
         <div class='col-sm-9'>
             @Body
@@ -12,5 +13,5 @@
 </div>
 
 @functions {
-    public RenderFragment Body { get; set; }
+public RenderFragment Body { get; set; }
 }
