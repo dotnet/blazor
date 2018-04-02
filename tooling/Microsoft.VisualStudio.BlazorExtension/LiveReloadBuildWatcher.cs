@@ -68,10 +68,18 @@ namespace Microsoft.VisualStudio.BlazorExtension
                         var project = await access.GetProjectAsync(configuredProject);
 
                         // Now we can evaluate MSBuild properties
-                        var signalFileFullPath = project.GetPropertyValue("BlazorBuildCompletedSignalFullPath");
-                        if (!string.IsNullOrEmpty(signalFileFullPath))
+                        var projectDir = project.GetPropertyValue("ProjectDir");
+                        var outputPath = project.GetPropertyValue("OutputPath");
+                        var signalFilePath = project.GetPropertyValue("BlazorBuildCompletedSignalPath");
+                        if (!string.IsNullOrEmpty(projectDir)
+                            && !string.IsNullOrEmpty(outputPath)
+                            && !string.IsNullOrEmpty(signalFilePath))
                         {
-                            _signalFilePathsToNotify.Add(signalFileFullPath);
+                            var fullPath = Path.Combine(
+                                projectDir,
+                                outputPath,
+                                signalFilePath);
+                            _signalFilePathsToNotify.Add(fullPath);
                         }
                     }
                 });

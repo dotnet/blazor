@@ -22,7 +22,7 @@
     <BlazorWebRootName>wwwroot/</BlazorWebRootName>
     <BlazorIndexHtmlName>Index.html</BlazorIndexHtmlName>
     <BlazorOutputIndexHtmlName>$(BlazorIndexHtmlName.ToLowerInvariant())</BlazorOutputIndexHtmlName>
-    <BlazorBuildCompletedSignalFullPath>$(ProjectDir)$(OutputPath)$(BaseBlazorDistPath)__blazorBuildCompleted</BlazorBuildCompletedSignalFullPath>
+    <BlazorBuildCompletedSignalPath>$(BaseBlazorDistPath)__blazorBuildCompleted</BlazorBuildCompletedSignalPath>
   </PropertyGroup>
 
   <ItemGroup>
