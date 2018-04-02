@@ -64,9 +64,14 @@ namespace Microsoft.AspNetCore.Builder
                 });
             }
 
-            // Whether or not live reloading is actually enabled depends on the config
-            // For production builds, it won't be (by default)
-            applicationBuilder.UseBlazorLiveReloading(config);
+            // Definitely don't open a listener for live reloading in production, even if the
+            // client app was compiled with live reloading enabled
+            if (env.IsDevelopment())
+            {
+                // Whether or not live reloading is actually enabled depends on the client config
+                // For release builds, it won't be (by default)
+                applicationBuilder.UseBlazorLiveReloading(config);
+            }
 
             // Finally, use SPA fallback routing (serve default page for anything else,
             // excluding /_framework/*)

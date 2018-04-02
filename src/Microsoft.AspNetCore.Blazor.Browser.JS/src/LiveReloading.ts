@@ -11,7 +11,23 @@ function listenForReloadEvent(endpointUri: string) {
   }
 
   // First, connect to the endpoint
-  const source = new WebSocket(toAbsoluteWebSocketUri(endpointUri));
+  const websocketUri = toAbsoluteWebSocketUri(endpointUri);
+  const source = new WebSocket(websocketUri);
+  let allowConnectionFailedErrorReporting = true;
+
+  source.onopen = e => {
+    allowConnectionFailedErrorReporting = false;
+  };
+
+  source.onerror = e => {
+    if (allowConnectionFailedErrorReporting) {
+      allowConnectionFailedErrorReporting = false;
+      console.error(`The client app was compiled with live reloading enabled, but could not open `
+        + ` a WebSocket connection to the server at ${websocketUri}\n`
+        + `To fix this inconsistency, either run the server in development mode, or compile the `
+        + `client app in Release configuration.`);
+    }
+  };
 
   // If we're notified that we should reload, then do so
   source.onmessage = e => {
