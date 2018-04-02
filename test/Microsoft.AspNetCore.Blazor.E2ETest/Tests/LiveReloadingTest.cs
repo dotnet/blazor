@@ -27,6 +27,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             : base(browserFixture, serverFixture)
         {
             _serverFixture = serverFixture;
+            serverFixture.Environment = "Development"; // Otherwise the server won't accept live reloading connections
             serverFixture.PathBase = ServerPathBase;
             Navigate(ServerPathBase);
             WaitUntilLoaded();
