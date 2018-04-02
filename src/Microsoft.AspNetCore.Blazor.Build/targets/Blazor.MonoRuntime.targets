@@ -61,8 +61,8 @@
           AfterTargets="Build"
           Condition="'$(UseBlazorLiveReloading)'=='true' AND '$(_BlazorDidCopyFilesToOutputDirectory)'=='true' AND '$(BuildingInsideVisualStudio)'!='true'">
     <!-- Touch the signal file to trigger a reload -->
-    <WriteLinesToFile File="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" Lines="_" />
-    <Delete Files="$(ProjectDir)$(OutputPath)$(BlazorBuildCompletedSignalPath)" />
+    <WriteLinesToFile File="$(BlazorBuildCompletedSignalFullPath)" Lines="_" />
+    <Delete Files="$(BlazorBuildCompletedSignalFullPath)" />
   </Target>
 
   <!-- Preparing blazor files for output:
