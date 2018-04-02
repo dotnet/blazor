@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Web;Microsoft.NET.Sdk.Razor/2.1.0-preview2-30230">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworkOverride)' == ''">netstandard2.0</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworkOverride)' != ''">TargetFrameworkOverride</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
