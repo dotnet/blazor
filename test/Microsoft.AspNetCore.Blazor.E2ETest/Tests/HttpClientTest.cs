@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -95,6 +98,15 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal("OK", _responseStatus.Text);
             Assert.Contains("Content-Type: application/json", _responseHeaders.Text);
             Assert.Equal("{\"id\":123,\"name\":\"Bert\"}", _responseBody.Text);
+        }
+
+        [Fact]
+        public void CanSetRequestReferer()
+        {
+            SetValue("request-referrer", "/test-referrer");
+            IssueRequest("GET", "/api/person/referrer");
+            Assert.Equal("OK", _responseStatus.Text);
+            Assert.EndsWith("/test-referrer", _responseBody.Text);
         }
 
         private void IssueRequest(string requestMethod, string relativeUri, string requestBody = null)

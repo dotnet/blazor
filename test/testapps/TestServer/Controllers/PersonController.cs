@@ -33,21 +33,10 @@ namespace TestServer.Controllers
             }
         }
 
-        [HttpPost("xhrf")]
-        [ValidateAntiForgeryToken]
-        public async Task<string> PostAntiForgery()
+        [HttpGet("referrer")]
+        public string GetReferer()
         {
-            using (var reader = new StreamReader(Request.Body))
-            {
-                var plainTextBodyContent = await reader.ReadToEndAsync();
-                return $"You posted: {plainTextBodyContent}";
-            }
-        }
-
-        [HttpGet("xhrf")]
-        public string GetAntiForgery([FromServices] IAntiforgery antiforgery)
-        {
-            return antiforgery.GetAndStoreTokens(HttpContext).RequestToken;
+            return $"The referrer is: {Request.Headers["Referer"].ToString()}";
         }
 
         // PUT api/person

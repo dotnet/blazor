@@ -39,13 +39,8 @@
 </p>
 
 <p>
-    <div>Request credentials:</div>
-    <select id="request-method" value=@requestCredentials @onchange(value => { requestCredentials = (string)value; })>
-        <option value=""></option>
-        <option value="same-origin">same-origin</option>
-        <option value="omit">omit</option>
-        <option value="include">include</option>
-    </select>
+    <div>Request referrer:</div>
+    <input id="request-referrer" type="text" value=@requestReferrer @onchange(value => { requestReferrer = (string)value; }) />
 </p>
 
 <button id="send-request" @onclick(DoRequest)>Request</button>
@@ -70,7 +65,7 @@
     string method = "GET";
     string requestBody = "";
     List<RequestHeader> requestHeaders = new List<RequestHeader>();
-    string requestCredentials = "";
+    string requestReferrer = "";
 
     HttpStatusCode? responseStatusCode;
     string responseBody;
@@ -99,11 +94,11 @@
                 }
             }
 
-            if (!string.IsNullOrEmpty(requestCredentials))
+            if (!string.IsNullOrEmpty(requestReferrer))
             {
                 requestMessage.Properties[BrowserHttpMessageHandler.FetchArgs] = new
                 {
-                    credentials = requestCredentials
+                    referrer = requestReferrer
                 };
             }
 

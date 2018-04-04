@@ -25,9 +25,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
 
         public const string FetchArgs = "BrowserHttpMessageHandler.FetchArgs";
 
-        public BrowserHttpMessageHandler()
-        { }
-
         /// <inheritdoc />
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
@@ -42,7 +39,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 _pendingRequests.Add(id, tcs);
             }
 
-            request.Properties.TryGetValue(FetchArgs, out object fetchArgs);
+            request.Properties.TryGetValue(FetchArgs, out var fetchArgs);
 
             RegisteredFunction.Invoke<object>(
                 $"{typeof(BrowserHttpMessageHandler).FullName}.Send",
@@ -54,17 +51,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 fetchArgs);
 
             return await tcs.Task;
-        }
-
-        private static string GetDescription(Enum value)
-        {
-            // variables  
-            var enumType = value.GetType();
-            var field = enumType.GetField(value.ToString());
-            var attributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
-
-            // return  
-            return attributes.Length == 0 ? value.ToString() : ((DescriptionAttribute)attributes[0]).Description;
         }
 
         private string SerializeHeadersAsJson(HttpRequestMessage request)

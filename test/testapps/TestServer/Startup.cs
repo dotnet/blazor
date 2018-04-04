@@ -19,13 +19,6 @@ namespace TestServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(builder =>
-            {
-                builder.AddConsole()
-                    .AddAzureWebAppDiagnostics()
-                    .AddDebug()
-                    .SetMinimumLevel(LogLevel.Debug);
-            });
             services.AddMvc();
             services.AddCors(options =>
             {
@@ -38,16 +31,6 @@ namespace TestServer
                         .AllowCredentials()
                         .WithExposedHeaders("MyCustomHeader");
                 });
-            });
-
-            services.AddAntiforgery(options =>
-            {
-                options.HeaderName = "X-XSRF-TOKEN";
-                var cookie = options.Cookie;
-                cookie.Name = "XSRF-TOKEN";
-                cookie.HttpOnly = false;
-                cookie.Path = "/";
-                cookie.SameSite = SameSiteMode.None;
             });
         }
 
