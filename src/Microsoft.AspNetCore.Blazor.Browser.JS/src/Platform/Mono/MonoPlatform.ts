@@ -1,4 +1,4 @@
-﻿import { MethodHandle, System_Object, System_String, System_Array, Pointer, Platform } from '../Platform';
+﻿import { OnNext, OnError, OnComplete, MethodHandle, System_Object, System_String, System_Array, Pointer, Platform } from '../Platform';
 import { getAssemblyNameFromUrl } from '../DotNet';
 import { getRegisteredFunction } from '../../Interop/RegisteredFunction';
 
@@ -14,7 +14,10 @@ let mono_string_get_utf8: (managedString: System_String) => Mono.Utf8Ptr;
 let mono_string: (jsString: string) => System_String;
 
 export const monoPlatform: Platform = {
-  start: function start(loadAssemblyUrls: string[]) {
+  start: function start(loadAssemblyUrls: string[],
+    onNext: OnNext, onError: OnError, onComplete: OnComplete
+  ) {
+
     return new Promise<void>((resolve, reject) => {
       // mono.js assumes the existence of this
       window['Browser'] = {
@@ -22,7 +25,8 @@ export const monoPlatform: Platform = {
         asyncLoad: asyncLoad
       };
       // Emscripten works by expecting the module config to be a global
-      window['Module'] = createEmscriptenModuleInstance(loadAssemblyUrls, resolve, reject);
+      window['Module'] = createEmscriptenModuleInstance(loadAssemblyUrls,
+        onNext, onError, onComplete);
 
       addScriptTagsToDocument();
     });
@@ -183,7 +187,8 @@ function addScriptTagsToDocument() {
   document.write(`<script defer src="${monoRuntimeScriptUrl}"></script>`);
 }
 
-function createEmscriptenModuleInstance(loadAssemblyUrls: string[], onReady: () => void, onError: (reason?: any) => void) {
+function createEmscriptenModuleInstance(loadAssemblyUrls: string[],
+  onNext: OnNext, onError: OnError, onComplete: OnComplete) {
   const module = {} as typeof Module;
   const wasmBinaryFile = '_framework/wasm/mono.wasm';
   const asmjsCodeFile = '_framework/asmjs/mono.asm.js';
@@ -213,15 +218,24 @@ function createEmscriptenModuleInstance(loadAssemblyUrls: string[], onReady: () 
 
     Module.FS_createPath('/', 'appBinDir', true, true);
     loadAssemblyUrls.forEach(url =>
-      FS.createPreloadedFile('appBinDir', `${getAssemblyNameFromUrl(url)}.dll`, url, true, false, undefined, onError));
+      FS.createPreloadedFile(
+        'appBinDir',
+        `${getAssemblyNameFromUrl(url)}.dll`,
+        url, true, false,
+        function () {
+          onNext(url);
+        },
+        function (reason?: string) {
+          onError(reason);
+        })
+    );
   });
 
   module.postRun.push(() => {
     const load_runtime = Module.cwrap('mono_wasm_load_runtime', null, ['string']);
     load_runtime('appBinDir');
-    onReady();
+    onComplete();
   });
-
   return module;
 }
 
