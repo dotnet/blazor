@@ -4,6 +4,7 @@
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -29,11 +30,36 @@ namespace Microsoft.VisualStudio.BlazorExtension
 
             foreach (var fullPath in _signalFilePathsToNotify)
             {
-                File.WriteAllText(fullPath, string.Empty);
-                File.Delete(fullPath);
+                try
+                {
+                    File.WriteAllText(fullPath, string.Empty);
+                    File.Delete(fullPath);
+                }
+                catch (Exception ex)
+                {
+                    AttemptLogError($"Blazor live reloading was unable to write to the signal " +
+                        $"file at {fullPath}. To disable live reloading, set the property " +
+                        $"'UseBlazorLiveReloading' to 'false' in your project file." +
+                        $"\nThe exception was: {ex.Message}\n{ex.StackTrace}");
+                }
             }
 
             return VSConstants.S_OK;
+        }
+
+        private void AttemptLogError(string message)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var outputWindow = (IVsOutputWindow)Package.GetGlobalService(typeof(SVsOutputWindow));
+            if (outputWindow != null)
+            {
+                outputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out var pane);
+                if (pane != null)
+                {
+                    pane.OutputString(message);
+                    pane.Activate();
+                }
+            }
         }
 
         public int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
