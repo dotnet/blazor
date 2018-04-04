@@ -6,4 +6,3 @@ launchSettings.json
 artifacts/
 msbuild.binlog
 .vscode/
-src/Microsoft.AspNetCore.Blazor.Browser.JS/package-lock.json
