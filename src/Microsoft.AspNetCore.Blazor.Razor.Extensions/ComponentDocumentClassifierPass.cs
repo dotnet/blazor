@@ -66,6 +66,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             @class.ClassName = computedClass;
             @class.Modifiers.Clear();
             @class.Modifiers.Add("public");
+            @class.Modifiers.Add("partial");
 
             method.ReturnType = "void";
             method.MethodName = BlazorApi.BlazorComponent.BuildRenderTree;

@@ -57,7 +57,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -142,7 +142,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -211,7 +211,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -290,7 +290,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -385,7 +385,7 @@ using Microsoft.AspNetCore.Blazor;
 
 #line default
 #line hidden
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
@@ -468,7 +468,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public partial class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
