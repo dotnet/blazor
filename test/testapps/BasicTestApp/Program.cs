@@ -3,6 +3,8 @@
 
 using Microsoft.AspNetCore.Blazor.Browser.Interop;
 using Microsoft.AspNetCore.Blazor.Browser.Rendering;
+using Microsoft.AspNetCore.Blazor.Browser.Services;
+using Microsoft.AspNetCore.Blazor.Browser.Storage;
 using Microsoft.AspNetCore.Blazor.Components;
 using System;
 
@@ -18,8 +20,13 @@ namespace BasicTestApp
 
         public static void MountTestComponent(string componentTypeName)
         {
+            var serviceProvider = new BrowserServiceProvider(configure =>
+            {
+                configure.AddStorage();
+            });
+
             var componentType = Type.GetType(componentTypeName);
-            new BrowserRenderer().AddComponent(componentType, "app");
+            new BrowserRenderer(serviceProvider).AddComponent(componentType, "app");
         }
     }
 }

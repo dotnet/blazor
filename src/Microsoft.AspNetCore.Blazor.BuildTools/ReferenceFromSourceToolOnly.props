@@ -1,0 +1,5 @@
+﻿<Project>
+  <PropertyGroup>
+    <BlazorBuildToolsExe>dotnet &quot;$(MSBuildThisFileDirectory)tools/Microsoft.AspNetCore.Blazor.BuildTools.dll&quot;</BlazorBuildToolsExe>
+  </PropertyGroup>
+</Project>

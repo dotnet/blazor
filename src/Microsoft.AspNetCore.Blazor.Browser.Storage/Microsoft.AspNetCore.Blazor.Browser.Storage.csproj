@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>library</OutputType>
+    <IsPackable>true</IsPackable>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <DefaultItemExcludes>${DefaultItemExcludes};node_modules\**</DefaultItemExcludes>
+
+    <!-- VS's FastUpToDateCheck doesn't consider .ts file changes, so it's necessary to disable it to get incremental builds to work correctly (albeit not as fast as if FastUpToDateCheck did work for them) -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WebpackInputs Include="**\*.ts" Exclude="node_modules\**" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\ReferenceFromSourceToolOnly.props" />
+
+  <Target Name="EnsureNpmRestored" Condition="!Exists('node_modules')">
+    <Exec Command="$(BlazorBuildToolsExe) checknodejs -v 8.3.0" />
+    <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
+    <Exec Command="npm install" />
+  </Target>
+
+  <Target Name="RunWebpack" AfterTargets="ResolveReferences" Inputs="@(WebpackInputs)" Outputs="content\storage.js" DependsOnTargets="EnsureNpmRestored">
+    <RemoveDir Directories="content" />
+    <Exec Command="npm run build" />
+  </Target>
+
+  <ItemGroup>
+    <Content Remove="**" />
+    <Content Include="build\**" PackagePath="build" />
+    <Content Include="content\**" PackagePath="content" />
+  </ItemGroup>
+
+</Project>

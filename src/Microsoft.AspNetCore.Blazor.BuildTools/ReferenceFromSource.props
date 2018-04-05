@@ -1,7 +1,5 @@
 ﻿<Project>
-  <PropertyGroup>
-    <BlazorBuildToolsExe>dotnet &quot;$(MSBuildThisFileDirectory)tools/Microsoft.AspNetCore.Blazor.BuildTools.dll&quot;</BlazorBuildToolsExe>
-  </PropertyGroup>
+  <Import Project="ReferenceFromSourceToolOnly.props"/>
 
   <ItemGroup>
     <!-- Ensures BuildTools itself is built before the consuming project, but without
