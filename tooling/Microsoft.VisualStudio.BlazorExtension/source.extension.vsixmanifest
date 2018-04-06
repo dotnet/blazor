@@ -8,8 +8,8 @@
         <PackageId>Microsoft.VisualStudio.BlazorExtension</PackageId>
         <GettingStartedGuide>https://go.microsoft.com/fwlink/?linkid=870449</GettingStartedGuide>
         <ReleaseNotes>https://go.microsoft.com/fwlink/?linkid=870448</ReleaseNotes>
-        <Icon>Content\WebConfiguration.png</Icon>
-        <PreviewImage>Content\WebConfiguration.png</PreviewImage>
+        <Icon>Content\icon.png</Icon>
+        <PreviewImage>Content\previewImage.png</PreviewImage>
     </Metadata>
     <Installation AllUsers="true">
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0.27512, 16.0)" />
