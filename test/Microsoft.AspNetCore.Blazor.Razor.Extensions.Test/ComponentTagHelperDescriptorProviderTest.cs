@@ -306,5 +306,24 @@ namespace Test
             Assert.False(attribute.IsStringProperty);
             Assert.True(attribute.IsDelegateProperty());
         }
+
+        [Fact]
+        public void Execute_TryParseBindAttribute_ExpectedResult()
+        {
+            var bindLoweringPass = new BindLoweringPass();
+
+            var tryParseBindAttributeMethod = typeof(BindLoweringPass).GetMethod(("TryParseBindAttribute"), System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+            Assert.True((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "bind", "", "" }));
+            Assert.True((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "bind-first", "", "" }));
+            Assert.True((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "bind-first-second", "", "" }));
+            Assert.False((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "", "", "" }));
+            Assert.False((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "-bind", "", "" }));
+            Assert.False((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "name", "", "" }));
+            Assert.False((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "bind-", "", "" }));
+            Assert.False((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "bind-first-", "", "" }));
+            Assert.False((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "bind-first-second-", "", "" }));
+            Assert.False((bool)tryParseBindAttributeMethod.Invoke(bindLoweringPass, new string[] { "bind-first-second-third", "", "" }));
+        }
     }
 }
