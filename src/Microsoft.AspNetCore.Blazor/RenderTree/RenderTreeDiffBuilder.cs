@@ -597,9 +597,15 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         private static void InitializeNewAttributeFrame(ref DiffContext diffContext, ref RenderTreeFrame newFrame)
         {
-            if (newFrame.AttributeValue is UIEventHandler)
+            if (newFrame.AttributeValue is MulticastDelegate @delegate &&
+                @delegate.Method != null)
             {
-                diffContext.Renderer.AssignEventHandlerId(ref newFrame);
+                var parameters = @delegate.Method.GetParameters();
+                if (parameters.Length == 1 && 
+                    typeof(UIEventArgs).IsAssignableFrom(parameters[0].ParameterType))
+                {
+                    diffContext.Renderer.AssignEventHandlerId(ref newFrame);
+                }
             }
         }
 
