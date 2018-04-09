@@ -20,13 +20,7 @@ namespace TestServer
             services.AddMvc();
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", builder =>
-                {
-                    builder
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .WithExposedHeaders("MyCustomHeader");
-                });
+                options.AddPolicy("AllowAll", _ => { /* Controlled below */ });
             });
         }
 
@@ -39,7 +33,6 @@ namespace TestServer
             }
 
             AllowCorsForAnyLocalhostPort(app);
-
             app.UseMvc();
         }
 
@@ -57,6 +50,9 @@ namespace TestServer
                     {
                         context.Response.Headers.Add("Access-Control-Allow-Origin", origin);
                         context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+                        context.Response.Headers.Add("Access-Control-Allow-Headers", "*");
+                        context.Response.Headers.Add("Access-Control-Allow-Methods", "HEAD,GET,PUT,POST,DELETE,OPTIONS");
+                        context.Response.Headers.Add("Access-Control-Expose-Headers", "MyCustomHeader");
                     }
                 }
                 return next();
