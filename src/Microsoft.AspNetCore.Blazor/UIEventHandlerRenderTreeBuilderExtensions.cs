@@ -6,6 +6,35 @@ using Microsoft.AspNetCore.Blazor.RenderTree;
 
 namespace Microsoft.AspNetCore.Blazor
 {
+    /// <summary>
+    /// Extensions methods on <see cref="RenderTreeBuilder"/> for event handlers.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// These methods enable method-group to delegate conversion for delegates and methods that accept
+    /// types derived from <see cref="UIEventArgs"/>.
+    /// </para>
+    /// <para>
+    /// This enhances the programming experience for using event handlers with the render tree builder
+    /// in components written in pure C#. These extension methods make it possible to write code like:
+    /// <code>
+    /// builder.AddAttribute(0, "onkeypress", MyKeyPressHandler);
+    /// </code>
+    /// Where <c>void MyKeyPressHandler(UIKeyboardEventArgs e)</c> is a method defined in the same class.
+    /// In this example, the author knows that the <c>onclick</c> event is associated with the
+    /// <see cref="UIKeyboardEventArgs"/> event args type. The component author is responsible for 
+    /// providing a delegate that matches the expected event args type, an error will result in a failure
+    /// at runtime.
+    /// </para>
+    /// <para>
+    /// When a component is authored in Razor (.cshtml), the Razor code generator will maintain a mapping
+    /// between event names and event arg types that can be used to generate more strongly typed code.
+    /// Generated code for the same case will look like:
+    /// <code>
+    /// builder.AddAttribute(0, "onkeypress", BindMethods.GetEventHandlerValue&lt;UIKeyboardEventArgs&gt;(MyKeyPressHandler));
+    /// </code>
+    /// </para>
+    /// </remarks>
     public static class UIEventHandlerRenderTreeBuilderExtensions
     {
         /// <summary>

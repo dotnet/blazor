@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
                     // Don't add anything for false bool value.
                 }
-                else if (value is MulticastDelegate eventHandler)
+                else if (value is MulticastDelegate)
                 {
                     Append(RenderTreeFrame.Attribute(sequence, name, value));
                 }
