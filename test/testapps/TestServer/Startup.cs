@@ -50,11 +50,12 @@ namespace TestServer
                     {
                         context.Response.Headers.Add("Access-Control-Allow-Origin", origin);
                         context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
-                        context.Response.Headers.Add("Access-Control-Allow-Headers", "*");
                         context.Response.Headers.Add("Access-Control-Allow-Methods", "HEAD,GET,PUT,POST,DELETE,OPTIONS");
-                        context.Response.Headers.Add("Access-Control-Expose-Headers", "MyCustomHeader");
+                        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type,TestHeader,another-header");
+                        context.Response.Headers.Add("Access-Control-Expose-Headers", "MyCustomHeader,TestHeader,another-header");
                     }
                 }
+
                 return next();
             });
         }

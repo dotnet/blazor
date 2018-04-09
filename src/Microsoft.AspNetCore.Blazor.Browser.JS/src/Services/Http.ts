@@ -15,9 +15,7 @@ async function sendAsync(id: number, method: string, requestUri: string, body: s
   let response: Response;
   let responseText: string;
 
-  // By default, include same-origin cookies, because web developers have always expected this
-  // It can be overridden by specify a fetchArgs value
-  const requestInit: RequestInit = fetchArgs || { credentials: 'same-origin' };
+  const requestInit: RequestInit = fetchArgs || {};
   requestInit.method = method;
   requestInit.body = body || undefined;
 
