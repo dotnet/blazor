@@ -115,6 +115,8 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             var id = ++_lastEventHandlerId;
 
             // The attribute value might be a more specialized type like UIKeyboardEventHandler.
+            // In that case, it won't be a UIEventHandler, and it will go down the MulticastDelegate
+            // code path (MulticastDelegate is any delegate).
             //
             // In order to dispatch the event, we need a UIEventHandler, so we're going weakly
             // typed here. The user will get a cast exception if they map the wrong type of

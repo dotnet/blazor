@@ -170,7 +170,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             var component = new EventComponent
             {
-                Handler = args => { receivedArgs = args; }
+                OnTest = args => { receivedArgs = args; }
             };
             var componentId = renderer.AssignComponentId(component);
             component.TriggerRender();
@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             var component = new EventComponent
             {
-                MouseHandler = args => { receivedArgs = args; }
+                OnClick = args => { receivedArgs = args; }
             };
             var componentId = renderer.AssignComponentId(component);
             component.TriggerRender();
@@ -237,7 +237,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 .ReferenceFrames
                 .Single(frame => frame.FrameType == RenderTreeFrameType.Component);
             var nestedComponent = (EventComponent)nestedComponentFrame.Component;
-            nestedComponent.Handler = args => { receivedArgs = args; };
+            nestedComponent.OnTest = args => { receivedArgs = args; };
             var nestedComponentId = nestedComponentFrame.ComponentId;
             nestedComponent.TriggerRender();
 
@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var component = new TestComponent(builder =>
             {
                 builder.OpenElement(0, "mybutton");
-                builder.AddAttribute(1, "my click event", handler);
+                builder.AddAttribute(1, "onclick", handler);
                 builder.CloseElement();
             });
 
@@ -504,7 +504,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var renderer = new TestRenderer();
             var eventCount = 0;
             UIEventHandler origEventHandler = args => { eventCount++; };
-            var component = new EventComponent { Handler = origEventHandler };
+            var component = new EventComponent { OnTest = origEventHandler };
             var componentId = renderer.AssignComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
@@ -520,7 +520,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Now change the attribute value
             var newEventCount = 0;
-            component.Handler = args => { newEventCount++; };
+            component.OnTest = args => { newEventCount++; };
             component.TriggerRender();
 
             // Act/Assert 2: Can no longer fire the original event, but can fire the new event
@@ -541,7 +541,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var renderer = new TestRenderer();
             var eventCount = 0;
             UIEventHandler origEventHandler = args => { eventCount++; };
-            var component = new EventComponent { Handler = origEventHandler };
+            var component = new EventComponent { OnTest = origEventHandler };
             var componentId = renderer.AssignComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
@@ -556,7 +556,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(1, eventCount);
 
             // Now remove the event attribute
-            component.Handler = null;
+            component.OnTest = null;
             component.TriggerRender();
 
             // Act/Assert 2: Can no longer fire the original event
@@ -579,7 +579,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 IncludeChild = true,
                 ChildParameters = new Dictionary<string, object>
                 {
-                    { nameof(EventComponent.Handler), origEventHandler }
+                    { nameof(EventComponent.OnTest), origEventHandler }
                 }
             };
             var rootComponentId = renderer.AssignComponentId(component);
@@ -623,7 +623,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var renderer = new TestRenderer();
             var eventCount = 0;
             UIEventHandler origEventHandler = args => { eventCount++; };
-            var component = new EventComponent { Handler = origEventHandler };
+            var component = new EventComponent { OnTest = origEventHandler };
             var componentId = renderer.AssignComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
@@ -662,7 +662,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 builder.AddContent(0, "Child event count: " + eventCount);
                 builder.OpenComponent<EventComponent>(1);
-                builder.AddAttribute(2, nameof(EventComponent.Handler), args =>
+                builder.AddAttribute(2, nameof(EventComponent.OnTest), args =>
                 {
                     eventCount++;
                     rootComponent.TriggerRender();
@@ -850,7 +850,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 if (shouldRenderChild)
                 {
                     builder.OpenComponent<RendersSelfAfterEventComponent>(1);
-                    builder.AddAttribute(2, nameof(RendersSelfAfterEventComponent.OnClick), (Action)(() =>
+                    builder.AddAttribute(2, "onclick", (Action<object>)((object obj) =>
                     {
                         // First we queue (1) a re-render of the root component, then the child component
                         // will queue (2) its own re-render. But by the time (1) completes, the child will
@@ -871,7 +871,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 .ComponentId;
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
-                .Where(f => f.FrameType == RenderTreeFrameType.Attribute)
+                .Where(f => f.FrameType == RenderTreeFrameType.Attribute && f.AttributeName == "onclick")
                 .Single(f => f.AttributeEventHandlerId != 0)
                 .AttributeEventHandlerId;
 
@@ -953,8 +953,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
         private class EventComponent : AutoRenderComponent, IComponent, IHandleEvent
         {
-            public UIEventHandler Handler { get; set; }
-            public UIMouseEventHandler MouseHandler { get; set; }
+            public UIEventHandler OnTest { get; set; }
+            public UIMouseEventHandler OnClick { get; set; }
 
             public bool SkipElement { get; set; }
             private int renderCount = 0;
@@ -966,13 +966,13 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 {
                     builder.OpenElement(1, "parent");
                     builder.OpenElement(2, "some element");
-                    if (Handler != null)
+                    if (OnTest != null)
                     {
-                        builder.AddAttribute(3, "some event", Handler);
+                        builder.AddAttribute(3, "ontest", OnTest);
                     }
-                    if (MouseHandler != null)
+                    if (OnClick != null)
                     {
-                        builder.AddAttribute(4, "some mouse event", MouseHandler);
+                        builder.AddAttribute(4, "onclick", OnClick);
                     }
                     builder.CloseElement();
                     builder.CloseElement();
@@ -1029,7 +1029,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
         private class RendersSelfAfterEventComponent : IComponent, IHandleEvent
         {
-            public Action OnClick { get; set; }
+            public Action<object> OnClick { get; set; }
 
             private RenderHandle _renderHandle;
 
@@ -1052,7 +1052,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 => _renderHandle.Render(builder =>
                 {
                     builder.OpenElement(0, "my button");
-                    builder.AddAttribute(1, "my click handler", eventArgs => OnClick());
+                    builder.AddAttribute(1, "my click handler", eventArgs => OnClick(eventArgs));
                     builder.CloseElement();
                 });
         }
