@@ -1,0 +1,53 @@
+﻿@using System.Net.Http
+@using Microsoft.AspNetCore.Blazor.Browser.Http
+@inject HttpClient Http
+
+<h1>Cookie counter</h1>
+<p>The server increments the count by one on each request.</p>
+<p>TestServer base URL: <input @bind(testServerBaseUrl) /></p>
+<button id="delete" @onclick(DeleteCookie)>Delete cookie</button>
+<button id="increment" @onclick(GetAndIncrementCounter)>Get and increment current value</button>
+
+@if (!requestInProgress)
+{
+    <p id="response-text">@responseText</p>
+}
+
+@functions
+{
+    bool requestInProgress = false;
+    string testServerBaseUrl;
+    string responseText;
+
+    async void DeleteCookie()
+    {
+        await DoRequest("api/cookie/reset");
+        StateHasChanged();
+    }
+
+    async void GetAndIncrementCounter()
+    {
+        await DoRequest("api/cookie/increment");
+        StateHasChanged();
+    }
+
+    async Task DoRequest(string url)
+    {
+        // The following is required only because the test server runs on a different port
+        // to the test app. This means we have to specify "credentials: include" in the
+        // call to 'fetch'. Similarly, it means the server-side code needs to specify
+        // appropriate CORS headers. None of this is needed in the "hosted on ASP.NET"
+        // scenario because the Blazor app would be served from the same origin, and
+        // Blazor's HttpClient includes same-origin credentials by default.
+        var httpWebRequest = new HttpRequestMessage(HttpMethod.Get, testServerBaseUrl + url);
+        httpWebRequest.Properties[BrowserHttpMessageHandler.FetchArgs] = new
+        {
+            credentials = "include"
+        };
+        
+        requestInProgress = true;
+        var response = await Http.SendAsync(httpWebRequest);
+        responseText = await response.Content.ReadAsStringAsync();
+        requestInProgress = false;
+    }
+}
