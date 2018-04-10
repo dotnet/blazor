@@ -6,6 +6,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Package = Microsoft.VisualStudio.Shell.Package;
@@ -40,7 +42,24 @@ namespace Microsoft.VisualStudio.BlazorExtension
             {
                 try
                 {
-                    using (var serverPipe = new NamedPipeServerStream(_pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances))
+                    var identifier = WindowsIdentity.GetCurrent().Owner;
+                    var security = new PipeSecurity();
+
+                    // Restrict access to just this account.  
+                    var rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
+                    security.AddAccessRule(rule);
+                    security.SetOwner(identifier);
+
+                    using (var serverPipe = new NamedPipeServerStream(
+                        _pipeName,
+                        PipeDirection.InOut,
+                        NamedPipeServerStream.MaxAllowedServerInstances,
+                        PipeTransmissionMode.Byte,
+                        PipeOptions.Asynchronous | PipeOptions.WriteThrough,
+                        0x10000, // 64k input buffer
+                        0x10000, // 64k output buffer
+                        security,
+                        HandleInheritability.None))
                     {
                         // As soon as we receive a connection, spin up another background
                         // listener to wait for the next connection
