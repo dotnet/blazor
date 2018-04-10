@@ -46,7 +46,6 @@ namespace Microsoft.AspNetCore.Builder
                 {
                     if (compilationTaskMustBeRefreshedIfNotBuiltSince.HasValue)
                     {
-                        compilationTaskMustBeRefreshedIfNotBuiltSince = null;
                         currentCompilationTask = rebuildService.PerformRebuildAsync(
                             config.SourceMSBuildPath,
                             compilationTaskMustBeRefreshedIfNotBuiltSince.Value);
@@ -61,6 +60,10 @@ namespace Microsoft.AspNetCore.Builder
                     // There's nowhere useful to log this information so if people report
                     // problems we'll just have to get a repro and debug it.
                     // If it was an error on the VS side, it logs to the output window.
+                }
+                finally
+                {
+                    compilationTaskMustBeRefreshedIfNotBuiltSince = null;
                 }
 
                 await next();
