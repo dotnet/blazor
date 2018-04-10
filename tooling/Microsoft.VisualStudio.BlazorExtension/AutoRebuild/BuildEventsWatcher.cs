@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.BlazorExtension
     /// </summary>
     internal class BuildEventsWatcher : IVsUpdateSolutionEvents2
     {
+        private const string BlazorProjectCapability = "Blazor";
         private readonly IVsSolution _vsSolution;
         private readonly IVsSolutionBuildManager _vsBuildManager;
         private readonly object mostRecentBuildInfosLock = new object();
@@ -24,6 +25,35 @@ namespace Microsoft.VisualStudio.BlazorExtension
         {
             _vsSolution = vsSolution ?? throw new ArgumentNullException(nameof(vsSolution));
             _vsBuildManager = vsBuildManager ?? throw new ArgumentNullException(nameof(vsBuildManager));
+        }
+
+        public Task<bool> PerformBuildAsync(string projectPath, DateTime allowExistingBuildsSince)
+        {
+            BuildInfo newBuildInfo;
+
+            lock (mostRecentBuildInfosLock)
+            {
+                if (mostRecentBuildInfos.TryGetValue(projectPath, out var existingInfo))
+                {
+                    // If there's a build in progress, we'll join that even if it was started
+                    // before allowExistingBuildsSince, because it's too messy to cancel
+                    // in-progress builds. On rare occasions if the user is editing files while
+                    // a build is in progress they *might* see a not-latest build when they
+                    // reload, but then they just have to reload again.
+                    var acceptBuild = !existingInfo.TaskCompletionSource.Task.IsCompleted
+                        || existingInfo.StartTime > allowExistingBuildsSince;
+                    if (acceptBuild)
+                    {
+                        return existingInfo.TaskCompletionSource.Task;
+                    }
+                }
+
+                // We're going to start a new build now. Track the BuildInfo for it even
+                // before it starts so other incoming build requests can join it.
+                mostRecentBuildInfos[projectPath] = newBuildInfo = new BuildInfo();
+            }
+
+            return PerformNewBuildAsync(projectPath, newBuildInfo);
         }
 
         public int UpdateSolution_Begin(ref int pfCancelUpdate)
@@ -45,10 +75,10 @@ namespace Microsoft.VisualStudio.BlazorExtension
         {
             if (IsBlazorProject(pHierProj))
             {
-                // If there isn't an in-progress BuildInfo for this project (either there's no record,
-                // or the previous build already finished), then create one. So if there's a manually-
-                // triggered build and then a build request arrives while it's still in progress, we'll
-                // use the existing build rather than waiting for a subsequent one.
+                // This method runs both for manually-invoked builds and for builds triggered automatically
+                // by PerformNewBuildAsync(). In the case where it's a manually-invoked build, make sure
+                // there's an in-progress BuildInfo so that if there are further builds requests while the
+                // build is still in progress we can join them onto this existing build.
                 var ctx = (IVsBrowseObjectContext)pCfgProj;
                 var projectPath = ctx.UnconfiguredProject.FullPath;
                 lock (mostRecentBuildInfosLock)
@@ -66,7 +96,6 @@ namespace Microsoft.VisualStudio.BlazorExtension
             return VSConstants.S_OK;
         }
 
-
         public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
         {
             if (IsBlazorProject(pHierProj))
@@ -74,35 +103,23 @@ namespace Microsoft.VisualStudio.BlazorExtension
                 var buildResult = fSuccess == 1;
                 var ctx = (IVsBrowseObjectContext)pCfgProj;
                 var projectPath = ctx.UnconfiguredProject.FullPath;
-                MarkPendingBuildTasksCompleted(projectPath, buildResult);
+
+                // Mark pending build info as completed
+                BuildInfo foundInfo = null;
+                lock (mostRecentBuildInfosLock)
+                {
+                    mostRecentBuildInfos.TryGetValue(projectPath, out foundInfo);
+                }
+                if (foundInfo != null)
+                {
+                    foundInfo.TaskCompletionSource.TrySetResult(buildResult);
+                }
             }
 
             return VSConstants.S_OK;
         }
 
-        public Task<bool> PerformBuildAsync(string projectPath, DateTime allowExistingBuildsSince)
-        {
-            BuildInfo newBuildInfo;
-
-            lock (mostRecentBuildInfosLock)
-            {
-                if (mostRecentBuildInfos.TryGetValue(projectPath, out var existingInfo))
-                {
-                    var acceptBuild = !existingInfo.TaskCompletionSource.Task.IsCompleted
-                        || existingInfo.StartTime > allowExistingBuildsSince;
-                    if (acceptBuild)
-                    {
-                        return existingInfo.TaskCompletionSource.Task;
-                    }
-                }
-                
-                mostRecentBuildInfos[projectPath] = newBuildInfo = new BuildInfo();
-            }
-
-            return PerformNewBuildAsync(projectPath, newBuildInfo.TaskCompletionSource.Task);
-        }
-
-        private async Task<bool> PerformNewBuildAsync(string projectPath, Task<bool> buildInProgressTask)
+        private async Task<bool> PerformNewBuildAsync(string projectPath, BuildInfo buildInfo)
         {
             // Switch to the UI thread and request the build
             var didStartBuild = await ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
@@ -130,25 +147,17 @@ namespace Microsoft.VisualStudio.BlazorExtension
                 return true;
             });
 
-            return didStartBuild && await buildInProgressTask;
-        }
-
-        private void MarkPendingBuildTasksCompleted(string projectPath, bool buildResult)
-        {
-            BuildInfo foundInfo = null;
-            lock (mostRecentBuildInfosLock)
+            if (!didStartBuild)
             {
-                mostRecentBuildInfos.TryGetValue(projectPath, out foundInfo);
+                // Since the build didn't start, make sure nobody's waiting for it
+                buildInfo.TaskCompletionSource.TrySetResult(false);
             }
 
-            if (foundInfo != null)
-            {
-                foundInfo.TaskCompletionSource.TrySetResult(buildResult);
-            }
+            return await buildInfo.TaskCompletionSource.Task;
         }
 
         private static bool IsBlazorProject(IVsHierarchy pHierProj)
-            => pHierProj.IsCapabilityMatch("Blazor");
+            => pHierProj.IsCapabilityMatch(BlazorProjectCapability);
 
         class BuildInfo
         {
