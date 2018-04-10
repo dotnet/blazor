@@ -3,8 +3,6 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -21,6 +19,7 @@ namespace Microsoft.VisualStudio.BlazorExtension
     /// </summary>
     internal class AutoRebuildService
     {
+        private const int _protocolVersion = 1;
         private readonly BuildEventsWatcher _buildEventsWatcher;
         private readonly string _pipeName;
 
@@ -61,13 +60,22 @@ namespace Microsoft.VisualStudio.BlazorExtension
 
         private async Task HandleRequestAsync(Stream stream)
         {
-            // Very simple protocol:
-            //   1. Receive the project path from the server instance
-            //   2. Receive the "if not built since" timestamp from the server instance
-            //   3. Perform the build, then send back the success/failure result flag
+            // Protocol:
+            //   1. Send a "protocol version" number to the client
+            //   2. Receive the project path from the client
+            //      If it is the special string "abort", gracefully disconnect and end
+            //      This is to allow for mismatches between server and client protocol version
+            //   3. Receive the "if not built since" timestamp from the client
+            //   4. Perform the build, then send back the success/failure result flag
             // Keep in sync with VSForWindowsRebuildService.cs in the Blazor.Server project
             // In the future we may extend this to getting back build error details
+            await stream.WriteIntAsync(_protocolVersion);
             var projectPath = await stream.ReadStringAsync();
+            if (projectPath.Equals("abort", StringComparison.Ordinal))
+            {
+                return;
+            }
+
             var allowExistingBuildsSince = await stream.ReadDateTimeAsync();
             var buildResult = await _buildEventsWatcher.PerformBuildAsync(projectPath, allowExistingBuildsSince);
             await stream.WriteBoolAsync(buildResult);

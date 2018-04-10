@@ -40,15 +40,26 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             {
                 await pipeClient.ConnectAsync(_connectionTimeoutMilliseconds);
 
-                // Very simple protocol:
-                //   1. Send the project path to the VS listener
-                //   2. Send the 'if not rebuilt since' timestamp to the VS listener
-                //   3. Wait for it to send back a bool representing the result
+                // Protocol:
+                //   1. Receive protocol version number from the VS listener
+                //      If we're incompatible with it, send back special string "abort" and end
+                //   2. Send the project path to the VS listener
+                //   3. Send the 'if not rebuilt since' timestamp to the VS listener
+                //   4. Wait for it to send back a bool representing the result
                 // Keep in sync with AutoRebuildService.cs in the BlazorExtension project
                 // In the future we may extend this to getting back build error details
-                await pipeClient.WriteStringAsync(projectFullPath);
-                await pipeClient.WriteDateTimeAsync(ifNotBuiltSince);
-                return await pipeClient.ReadBoolAsync();
+                var remoteProtocolVersion = await pipeClient.ReadIntAsync();
+                if (remoteProtocolVersion == 1)
+                {
+                    await pipeClient.WriteStringAsync(projectFullPath);
+                    await pipeClient.WriteDateTimeAsync(ifNotBuiltSince);
+                    return await pipeClient.ReadBoolAsync();
+                }
+                else
+                {
+                    await pipeClient.WriteStringAsync("abort");
+                    return false;
+                }
             }
         }
 

@@ -29,5 +29,12 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             await stream.ReadAsync(responseBuf, 0, 1);
             return responseBuf[0] == 1;
         }
+
+        public static async Task<int> ReadIntAsync(this Stream stream)
+        {
+            var responseBuf = new byte[4];
+            await stream.ReadAsync(responseBuf, 0, 4);
+            return BitConverter.ToInt32(responseBuf, 0);
+        }
     }
 }

@@ -30,6 +30,11 @@ namespace Microsoft.VisualStudio.BlazorExtension
             await stream.WriteAsync(new[] { byteVal }, 0, 1);
         }
 
+        public static async Task WriteIntAsync(this Stream stream, int value)
+        {
+            await stream.WriteAsync(BitConverter.GetBytes(value), 0, 4);
+        }
+
         private static async Task<byte[]> ReadBytesAsync(Stream stream, int exactLength)
         {
             var buf = new byte[exactLength];
