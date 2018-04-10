@@ -24,7 +24,7 @@
     <!-- Deactivates the Razor SDK's build-time compilation. We do our own -->
     <RazorCompileOnBuild>false</RazorCompileOnBuild>
 
-    <RazorDefaultConfiguration>Blazor-0.1</RazorDefaultConfiguration>
+    <RazorDefaultConfiguration>Blazor-0.2</RazorDefaultConfiguration>
   </PropertyGroup>
 
   <!-- Something quick for input/output tracking - the assumptions here should match what the CLI does -->
@@ -39,18 +39,18 @@
     <ProjectCapability Include="Blazor" />
     <ProjectCapability Include="DotNetCoreRazorConfiguration" />
     
-    <RazorConfiguration Include="Blazor-0.1">
-      <Extensions>Blazor-0.1;Blazor.AngleSharp-0.1;$(CustomRazorExtension)</Extensions>
+    <RazorConfiguration Include="Blazor-0.2">
+      <Extensions>Blazor-0.2;Blazor.AngleSharp-0.2;$(CustomRazorExtension)</Extensions>
     </RazorConfiguration>
-    <RazorConfiguration Include="BlazorDeclaration-0.1">
-      <Extensions>Blazor-0.1;Blazor.AngleSharp-0.1;$(CustomRazorExtension)</Extensions>
+    <RazorConfiguration Include="BlazorDeclaration-0.2">
+      <Extensions>Blazor-0.2;Blazor.AngleSharp-0.2;$(CustomRazorExtension)</Extensions>
     </RazorConfiguration>
 
-    <RazorExtension Include="Blazor.AngleSharp-0.1">
+    <RazorExtension Include="Blazor.AngleSharp-0.2">
       <AssemblyName>Microsoft.AspNetCore.Blazor.AngleSharp</AssemblyName>
       <AssemblyFilePath>$(_BlazorAngleSharpAssemblyPath)</AssemblyFilePath>
     </RazorExtension>
-    <RazorExtension Include="Blazor-0.1">
+    <RazorExtension Include="Blazor-0.2">
       <AssemblyName>Microsoft.AspNetCore.Blazor.Razor.Extensions</AssemblyName>
       <AssemblyFilePath>$(_BlazorExtensionAssemblyPath)</AssemblyFilePath>
     </RazorExtension>
@@ -171,7 +171,7 @@
       <_BlazorGenerateDeclarationWithTargetPath Include="@(BlazorGenerateWithTargetPath)">
         <GeneratedOutput>%(GeneratedDeclaration)</GeneratedOutput>
       </_BlazorGenerateDeclarationWithTargetPath>
-      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'BlazorDeclaration-0.1'))" />
+      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'BlazorDeclaration-0.2'))" />
     </ItemGroup>
 
     <MakeDir Directories="%(BlazorDeclaration.RelativeDir)" />
@@ -212,7 +212,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'BlazorDeclaration-0.1'))" />
+      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'BlazorDeclaration-0.2'))" />
     </ItemGroup>
 
     <!-- 
@@ -265,7 +265,7 @@
       <_BlazorGenerateDefinitionWithTargetPath Include="@(BlazorGenerateWithTargetPath)">
         <GeneratedOutput>%(GeneratedDefinition)</GeneratedOutput>
       </_BlazorGenerateDefinitionWithTargetPath>
-      <_BlazorDefinitionConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'Blazor-0.1'))" />
+      <_BlazorDefinitionConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'Blazor-0.2'))" />
     </ItemGroup>
 
     <MakeDir Directories="%(BlazorDefinition.RelativeDir)" />

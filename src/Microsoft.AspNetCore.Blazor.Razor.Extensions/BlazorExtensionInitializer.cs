@@ -19,12 +19,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         {
             DeclarationConfiguration = RazorConfiguration.Create(
                 RazorLanguageVersion.Version_2_1, // Cannot use experimental until 15.7p4
-                "BlazorDeclaration-0.1",
+                "BlazorDeclaration-0.2",
                 Array.Empty<RazorExtension>());
 
             DefaultConfiguration = RazorConfiguration.Create(
                 RazorLanguageVersion.Version_2_1,
-                "Blazor-0.1",
+                "Blazor-0.2",
                 Array.Empty<RazorExtension>());
         }
 
