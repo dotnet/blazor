@@ -15,6 +15,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
     /// </summary>
     internal class VSForWindowsRebuildService : IRebuildService
     {
+        private const int _connectionTimeoutMilliseconds = 1000;
         private readonly Process _vsProcess;
 
         public static bool TryCreate(out VSForWindowsRebuildService result)
@@ -37,7 +38,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             var pipeName = $"BlazorAutoRebuild\\{_vsProcess.Id}";
             using (var pipeClient = new NamedPipeClientStream(pipeName))
             {
-                await pipeClient.ConnectAsync();
+                await pipeClient.ConnectAsync(_connectionTimeoutMilliseconds);
 
                 // Very simple protocol:
                 //   1. Send the project path to the VS listener

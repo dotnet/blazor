@@ -46,10 +46,10 @@ namespace Microsoft.AspNetCore.Builder
                 {
                     if (compilationTaskMustBeRefreshedIfNotBuiltSince.HasValue)
                     {
+                        compilationTaskMustBeRefreshedIfNotBuiltSince = null;
                         currentCompilationTask = rebuildService.PerformRebuildAsync(
                             config.SourceMSBuildPath,
                             compilationTaskMustBeRefreshedIfNotBuiltSince.Value);
-                        compilationTaskMustBeRefreshedIfNotBuiltSince = null;
                     }
 
                     await currentCompilationTask;
