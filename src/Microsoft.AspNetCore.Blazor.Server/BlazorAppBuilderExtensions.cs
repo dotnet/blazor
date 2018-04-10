@@ -49,9 +49,7 @@ namespace Microsoft.AspNetCore.Builder
                 OnPrepareResponse = SetCacheHeaders
             };
 
-            // TODO: Make it toggleable in the client app's csproj, e.g., by writing the setting
-            // to BlazorConfig. Also keep the IsDevelopment check.
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() && config.EnableAutoRebuilding)
             {
                 applicationBuilder.UseAutoRebuild(config);
             }
