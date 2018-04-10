@@ -17,10 +17,19 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
     /// </summary>
     public class BrowserHttpMessageHandler : HttpMessageHandler
     {
+        /// <summary>
+        /// Gets or sets the default value of the 'credentials' option on outbound HTTP requests.
+        /// Defaults to <see cref="FetchCredentialsOption.SameOrigin"/>.
+        /// </summary>
+        public static FetchCredentialsOption DefaultCredentials { get; set; }
+            = FetchCredentialsOption.SameOrigin;
+
         static object _idLock = new object();
         static int _nextRequestId = 0;
         static IDictionary<int, TaskCompletionSource<HttpResponseMessage>> _pendingRequests
             = new Dictionary<int, TaskCompletionSource<HttpResponseMessage>>();
+
+        public const string FetchArgs = "BrowserHttpMessageHandler.FetchArgs";
 
         /// <inheritdoc />
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -36,13 +45,16 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 _pendingRequests.Add(id, tcs);
             }
 
+            request.Properties.TryGetValue(FetchArgs, out var fetchArgs);
+
             RegisteredFunction.Invoke<object>(
                 $"{typeof(BrowserHttpMessageHandler).FullName}.Send",
                 id,
                 request.Method.Method,
                 request.RequestUri,
                 request.Content == null ? null : await GetContentAsString(request.Content),
-                SerializeHeadersAsJson(request));
+                SerializeHeadersAsJson(request),
+                fetchArgs ?? CreateDefaultFetchArgs());
 
             return await tcs.Task;
         }
@@ -85,6 +97,26 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 var responseContent = responseBodyText == null ? null : new StringContent(responseBodyText);
                 var responseMessage = responseDescriptor.ToResponseMessage(responseContent);
                 tcs.SetResult(responseMessage);
+            }
+        }
+
+        private static object CreateDefaultFetchArgs()
+            => new { credentials = GetDefaultCredentialsString() };
+
+        private static object GetDefaultCredentialsString()
+        {
+            // See https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials for
+            // standard values and meanings
+            switch (DefaultCredentials)
+            {
+                case FetchCredentialsOption.Omit:
+                    return "omit";
+                case FetchCredentialsOption.SameOrigin:
+                    return "same-origin";
+                case FetchCredentialsOption.Include:
+                    return "include";
+                default:
+                    throw new ArgumentException($"Unknown credentials option '{DefaultCredentials}'.");
             }
         }
 

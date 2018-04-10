@@ -24,6 +24,8 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     /// </summary>
     public class NavLink : IComponent, IDisposable
     {
+        private const string DefaultActiveClass = "active";
+
         private RenderHandle _renderHandle;
         private bool _isActive;
 
@@ -31,6 +33,12 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         private string _cssClass;
         private string _hrefAbsolute;
         private IReadOnlyDictionary<string, object> _allAttributes;
+
+        /// <summary>
+        /// Gets or sets the CSS class name applied to the NavLink when the 
+        /// current route matches the NavLink href.
+        /// </summary>
+        public string ActiveClass { get; set; }
 
         /// <summary>
         /// Gets or sets a value representing the URL matching behavior.
@@ -55,6 +63,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             parameters.TryGetValue(RenderTreeBuilder.ChildContent, out _childContent);
             parameters.TryGetValue("class", out _cssClass);
             parameters.TryGetValue("href", out string href);
+            ActiveClass = parameters.GetValueOrDefault(nameof(ActiveClass), DefaultActiveClass);
             Match = parameters.GetValueOrDefault(nameof(Match), NavLinkMatch.Prefix);
             _allAttributes = parameters.ToDictionary();
 
@@ -92,7 +101,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             {
                 return string.Equals(currentUriAbsolute, _hrefAbsolute, StringComparison.Ordinal);
             }
-            else 
+            else
             {
                 throw new InvalidOperationException($"Unsupported {nameof(NavLinkMatch)} value: {Match}");
             }
@@ -102,11 +111,12 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         {
             builder.OpenElement(0, "a");
 
-            // Set "active" class dynamically
-            builder.AddAttribute(0, "class", CombineWithSpace(_cssClass, _isActive ? "active" : null));
+            // Set class attribute
+            builder.AddAttribute(0, "class",
+                CombineWithSpace(_cssClass, _isActive ? ActiveClass : null));
 
             // Pass through all other attributes unchanged
-            foreach (var kvp in _allAttributes.Where(kvp => kvp.Key != "class"))
+            foreach (var kvp in _allAttributes.Where(kvp => kvp.Key != "class" && kvp.Key != nameof(RenderTreeBuilder.ChildContent)))
             {
                 builder.AddAttribute(0, kvp.Key, kvp.Value);
             }

@@ -27,6 +27,9 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         public Queue<RenderQueueEntry> ComponentRenderQueue { get; } = new Queue<RenderQueueEntry>();
         public Queue<int> ComponentDisposalQueue { get; } = new Queue<int>();
 
+        // Scratch data structure for understanding attribute diffs.
+        public Dictionary<string, int> AttributeDiffSet { get; } = new Dictionary<string, int>();
+
         public void Clear()
         {
             EditsBuffer.Clear();
@@ -35,12 +38,14 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             UpdatedComponentDiffs.Clear();
             DisposedComponentIds.Clear();
             DisposedEventHandlerIds.Clear();
+            AttributeDiffSet.Clear();
         }
 
         public RenderBatch ToBatch()
             => new RenderBatch(
                 UpdatedComponentDiffs.ToRange(),
                 ReferenceFramesBuffer.ToRange(),
-                DisposedComponentIds.ToRange());
+                DisposedComponentIds.ToRange(),
+                DisposedEventHandlerIds.ToRange());
     }
 }

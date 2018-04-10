@@ -307,7 +307,7 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
-                frame => AssertFrame.Attribute(frame, "value", "01/01/2018", 2),
+                frame => AssertFrame.Attribute(frame, "value", new DateTime(2018, 1, 1).ToString("MM/dd/yyyy"), 2),
                 frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
                 frame => AssertFrame.Whitespace(frame, 4));
         }
@@ -333,7 +333,7 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
-                frame => AssertFrame.Attribute(frame, "value", "01/01/2018", 2),
+                frame => AssertFrame.Attribute(frame, "value", new DateTime(2018, 1, 1).ToString("MM/dd/yyyy"), 2),
                 frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
                 frame => AssertFrame.Whitespace(frame, 4));
         }
@@ -379,9 +379,8 @@ namespace Test
             // Assert
             Assert.Collection(
                 frames,
-                frame => AssertFrame.Element(frame, "input", 4, 0),
+                frame => AssertFrame.Element(frame, "input", 3, 0),
                 frame => AssertFrame.Attribute(frame, "type", "checkbox", 1),
-                frame => AssertFrame.Attribute(frame, "value", "False", 2),
                 frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
                 frame => AssertFrame.Whitespace(frame, 4));
         }
@@ -429,7 +428,7 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
-                frame => AssertFrame.Attribute(frame, "value", "01/01", 2),
+                frame => AssertFrame.Attribute(frame, "value", new DateTime(2018, 1, 1).ToString("MM/dd"), 2),
                 frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
                 frame => AssertFrame.Whitespace(frame, 4));
         }
@@ -486,6 +485,38 @@ namespace Test
                 frame => AssertFrame.Text(frame, "42", 5),
                 frame => AssertFrame.Whitespace(frame, 6),
                 frame => AssertFrame.Whitespace(frame, 7));
+        }
+
+        [Fact]
+        public void Render_BindFallback_InvalidSyntax_TooManyParts()
+        {
+            // Arrange & Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<input type=""text"" bind-first-second-third=""Text"" />
+@functions {
+    public string Text { get; set; } = ""text"";
+}");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Equal("BL9991", diagnostic.Id);
+        }
+
+        [Fact]
+        public void Render_BindFallback_InvalidSyntax_TrailingDash()
+        {
+            // Arrange & Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<input type=""text"" bind-first-=""Text"" />
+@functions {
+    public string Text { get; set; } = ""text"";
+}");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Equal("BL9991", diagnostic.Id);
         }
     }
 }

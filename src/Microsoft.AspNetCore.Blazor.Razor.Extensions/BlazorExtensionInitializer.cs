@@ -17,30 +17,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         static BlazorExtensionInitializer()
         {
-            // RazorConfiguration is changing between 15.7 and preview2 builds of Razor, this is a reflection-based
-            // workaround.
-            DeclarationConfiguration = Create("BlazorDeclaration-0.1");
-            DefaultConfiguration = Create("Blazor-0.1");
+            DeclarationConfiguration = RazorConfiguration.Create(
+                RazorLanguageVersion.Version_2_1, // Cannot use experimental until 15.7p4
+                "BlazorDeclaration-0.1",
+                Array.Empty<RazorExtension>());
 
-            RazorConfiguration Create(string configurationName)
-            {
-                var args = new object[] { RazorLanguageVersion.Version_2_1, configurationName, Array.Empty<RazorExtension>(), };
-
-                MethodInfo method;
-                ConstructorInfo constructor;
-                if ((method = typeof(RazorConfiguration).GetMethod("Create", BindingFlags.Public | BindingFlags.Static)) != null)
-                {
-                    return (RazorConfiguration)method.Invoke(null, args);
-                }
-                else if ((constructor = typeof(RazorConfiguration).GetConstructors().FirstOrDefault()) != null)
-                {
-                    return (RazorConfiguration)constructor.Invoke(args);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Can't create a configuration. This is bad.");
-                }
-            }
+            DefaultConfiguration = RazorConfiguration.Create(
+                RazorLanguageVersion.Version_2_1,
+                "Blazor-0.1",
+                Array.Empty<RazorExtension>());
         }
 
         public static void Register(RazorProjectEngineBuilder builder)
@@ -65,16 +50,17 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             builder.Features.Add(new ConfigureBlazorCodeGenerationOptions());
 
-            // Implementation of components
+            // Blazor-specific passes, in order.
             builder.Features.Add(new ComponentDocumentClassifierPass());
             builder.Features.Add(new ComplexAttributeContentPass());
-            builder.Features.Add(new ComponentLoweringPass());
-            builder.Features.Add(new ComponentTagHelperDescriptorProvider());
-
-            // Implementation of bind
             builder.Features.Add(new BindLoweringPass());
-            builder.Features.Add(new BindTagHelperDescriptorProvider());
+            builder.Features.Add(new EventHandlerLoweringPass());
+            builder.Features.Add(new ComponentLoweringPass());
             builder.Features.Add(new OrphanTagHelperLoweringPass());
+
+            builder.Features.Add(new ComponentTagHelperDescriptorProvider());
+            builder.Features.Add(new BindTagHelperDescriptorProvider());
+            builder.Features.Add(new EventHandlerTagHelperDescriptorProvider());
 
             if (builder.Configuration.ConfigurationName == DeclarationConfiguration.ConfigurationName)
             {

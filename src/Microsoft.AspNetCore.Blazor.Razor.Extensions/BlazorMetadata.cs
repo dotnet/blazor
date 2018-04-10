@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Blazor.Razor
 {
-    // Metadata used for Blazor's interations with the tag helper system
+    // Metadata used for Blazor's interactions with the tag helper system
     internal static class BlazorMetadata
     {
         // There's a bug in the 15.7 preview 1 Razor that prevents 'Kind' from being serialized
@@ -33,7 +33,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             public static readonly string RuntimeName = "Blazor.IComponent";
 
             public readonly static string TagHelperKind = "Blazor.Component-0.1";
+        }
 
+        public static class EventHandler
+        {
+            public static readonly string EventArgsType = "Blazor.EventHandler.EventArgs";
+
+            public static readonly string RuntimeName = "Blazor.None";
+
+            public readonly static string TagHelperKind = "Blazor.EventHandler-0.1";
         }
     }
 }

@@ -434,7 +434,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
             newTree.CloseElement();
 
             // Act
-            var (result, referenceFrames) = GetSingleUpdatedComponent();
+            var (result, referenceFrames, batch) = GetSingleUpdatedComponentWithBatch(initializeFromFrames: true);
+            var removedEventHandlerFrame = oldTree.GetFrames().Array[2];
 
             // Assert
             Assert.Collection(result.Edits,
@@ -444,6 +445,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
                     Assert.Equal(0, entry.ReferenceFrameIndex);
                 });
             AssertFrame.Attribute(referenceFrames[0], "will change", addedHandler);
+            Assert.NotEqual(0, removedEventHandlerFrame.AttributeEventHandlerId);
+            Assert.Equal(
+                new[] { removedEventHandlerFrame.AttributeEventHandlerId },
+                batch.DisposedEventHandlerIDs);
         }
 
         [Fact]
@@ -473,6 +478,352 @@ namespace Microsoft.AspNetCore.Blazor.Test
                     Assert.Equal(0, entry.ReferenceFrameIndex);
                 });
             AssertFrame.Attribute(referenceFrames[0], "newname", "same value");
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSameSequenceNumber_AttributeAddedAtStart()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(0, "attr2", "value2");
+            oldTree.AddAttribute(0, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(0, "attr1", "value1");
+            newTree.AddAttribute(0, "attr2", "value2");
+            newTree.AddAttribute(0, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.SetAttribute, 0);
+                    Assert.Equal(0, entry.ReferenceFrameIndex);
+                });
+            Assert.Collection(
+                referenceFrames,
+                frame => AssertFrame.Attribute(frame, "attr1", 0));
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSameSequenceNumber_AttributeAddedInMiddle()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(0, "attr1", "value1");
+            oldTree.AddAttribute(0, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(0, "attr1", "value1");
+            newTree.AddAttribute(0, "attr2", "value2");
+            newTree.AddAttribute(0, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.SetAttribute, 0);
+                    Assert.Equal(0, entry.ReferenceFrameIndex);
+                });
+
+            Assert.Collection(
+                referenceFrames,
+                frame => AssertFrame.Attribute(frame, "attr2", 0));
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSameSequenceNumber_AttributeAddedAtEnd()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(0, "attr1", "value1");
+            oldTree.AddAttribute(0, "attr2", "value2");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(0, "attr1", "value1");
+            newTree.AddAttribute(0, "attr2", "value2");
+            newTree.AddAttribute(0, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.SetAttribute, 0);
+                    Assert.Equal(0, entry.ReferenceFrameIndex);
+                });
+
+            Assert.Collection(
+                referenceFrames,
+                frame => AssertFrame.Attribute(frame, "attr3", 0));
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSequentialSequenceNumber_AttributeAddedAtStart()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(2, "attr2", "value2");
+            oldTree.AddAttribute(3, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(1, "attr1", "value1");
+            newTree.AddAttribute(2, "attr2", "value2");
+            newTree.AddAttribute(3, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.SetAttribute, 0);
+                    Assert.Equal(0, entry.ReferenceFrameIndex);
+                });
+            Assert.Collection(
+                referenceFrames,
+                frame => AssertFrame.Attribute(frame, "attr1", 1));
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSequentialSequenceNumber_AttributeAddedInMiddle()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(1, "attr1", "value1");
+            oldTree.AddAttribute(3, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(1, "attr1", "value1");
+            newTree.AddAttribute(2, "attr2", "value2");
+            newTree.AddAttribute(3, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.SetAttribute, 0);
+                    Assert.Equal(0, entry.ReferenceFrameIndex);
+                });
+
+            Assert.Collection(
+                referenceFrames,
+                frame => AssertFrame.Attribute(frame, "attr2", 2));
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSequentialSequenceNumber_AttributeAddedAtEnd()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(1, "attr1", "value1");
+            oldTree.AddAttribute(2, "attr2", "value2");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(1, "attr1", "value1");
+            newTree.AddAttribute(2, "attr2", "value2");
+            newTree.AddAttribute(3, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.SetAttribute, 0);
+                    Assert.Equal(0, entry.ReferenceFrameIndex);
+                });
+
+            Assert.Collection(
+                referenceFrames,
+                frame => AssertFrame.Attribute(frame, "attr3", 3));
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSameSequenceNumber_AttributeRemovedAtStart()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(0, "attr1", "value1");
+            oldTree.AddAttribute(0, "attr2", "value2");
+            oldTree.AddAttribute(0, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(0, "attr2", "value2");
+            newTree.AddAttribute(0, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.RemoveAttribute, 0);
+                    Assert.Equal("attr1", entry.RemovedAttributeName);
+                });
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSameSequenceNumber_AttributeRemovedInMiddle()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(0, "attr1", "value1");
+            oldTree.AddAttribute(0, "attr2", "value2");
+            oldTree.AddAttribute(0, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(0, "attr1", "value1");
+            newTree.AddAttribute(0, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.RemoveAttribute, 0);
+                    Assert.Equal("attr2", entry.RemovedAttributeName);
+                });
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSameSequenceNumber_AttributeRemovedAtEnd()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(0, "attr1", "value1");
+            oldTree.AddAttribute(0, "attr2", "value2");
+            oldTree.AddAttribute(0, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(0, "attr1", "value1");
+            newTree.AddAttribute(0, "attr2", "value2");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.RemoveAttribute, 0);
+                    Assert.Equal("attr3", entry.RemovedAttributeName);
+                });
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSequentialSequenceNumber_AttributeRemovedAtStart()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(1, "attr1", "value1");
+            oldTree.AddAttribute(2, "attr2", "value2");
+            oldTree.AddAttribute(3, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(2, "attr2", "value2");
+            newTree.AddAttribute(3, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.RemoveAttribute, 0);
+                    Assert.Equal("attr1", entry.RemovedAttributeName);
+                });
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSequentialSequenceNumber_AttributeRemovedInMiddle()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(1, "attr1", "value1");
+            oldTree.AddAttribute(2, "attr2", "value2");
+            oldTree.AddAttribute(3, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(1, "attr1", "value1");
+            newTree.AddAttribute(3, "attr3", "value3");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.RemoveAttribute, 0);
+                    Assert.Equal("attr2", entry.RemovedAttributeName);
+                });
+        }
+
+        [Fact]
+        public void AttributeDiff_WithSequentialSequenceNumber_AttributeRemovedAtEnd()
+        {
+            // Arrange
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(1, "attr1", "value1");
+            oldTree.AddAttribute(2, "attr2", "value2");
+            oldTree.AddAttribute(3, "attr3", "value3");
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(1, "attr1", "value1");
+            newTree.AddAttribute(2, "attr2", "value2");
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(
+                result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.RemoveAttribute, 0);
+                    Assert.Equal("attr3", entry.RemovedAttributeName);
+                });
         }
 
         [Fact]
@@ -805,6 +1156,59 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void PreservesEventHandlerIdsForRetainedEventHandlers()
+        {
+            // Arrange
+            UIEventHandler retainedHandler = _ => { };
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(1, "ontest", retainedHandler);
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(1, "ontest", retainedHandler);
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames, batch) = GetSingleUpdatedComponentWithBatch(initializeFromFrames: true);
+            var oldAttributeFrame = oldTree.GetFrames().Array[1];
+            var newAttributeFrame = newTree.GetFrames().Array[1];
+
+            // Assert
+            Assert.Empty(result.Edits);
+            AssertFrame.Attribute(oldAttributeFrame, "ontest", retainedHandler);
+            AssertFrame.Attribute(newAttributeFrame, "ontest", retainedHandler);
+            Assert.NotEqual(0, oldAttributeFrame.AttributeEventHandlerId);
+            Assert.Equal(oldAttributeFrame.AttributeEventHandlerId, newAttributeFrame.AttributeEventHandlerId);
+            Assert.Empty(batch.DisposedEventHandlerIDs);
+        }
+
+        [Fact]
+        public void PreservesEventHandlerIdsForRetainedEventHandlers_SlowPath()
+        {
+            // Arrange
+            UIEventHandler retainedHandler = _ => { };
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddAttribute(0, "ontest", retainedHandler);
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddAttribute(0, "another-attribute", "go down the slow path please");
+            newTree.AddAttribute(0, "ontest", retainedHandler);
+            newTree.CloseElement();
+
+            // Act
+            var (result, referenceFrames, batch) = GetSingleUpdatedComponentWithBatch(initializeFromFrames: true);
+            var oldAttributeFrame = oldTree.GetFrames().Array[1];
+            var newAttributeFrame = newTree.GetFrames().Array[2];
+
+            // Assert
+            Assert.Single(result.Edits);
+            AssertFrame.Attribute(oldAttributeFrame, "ontest", retainedHandler);
+            AssertFrame.Attribute(newAttributeFrame, "ontest", retainedHandler);
+            Assert.NotEqual(0, oldAttributeFrame.AttributeEventHandlerId);
+            Assert.Equal(oldAttributeFrame.AttributeEventHandlerId, newAttributeFrame.AttributeEventHandlerId);
+            Assert.Empty(batch.DisposedEventHandlerIDs);
+        }
+
+        [Fact]
         public void SetsUpdatedParametersOnChildComponents()
         {
             // Arrange
@@ -921,10 +1325,16 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
         private (RenderTreeDiff, RenderTreeFrame[]) GetSingleUpdatedComponent(bool initializeFromFrames = false)
         {
+            var result = GetSingleUpdatedComponentWithBatch(initializeFromFrames);
+            return (result.Item1, result.Item2);
+        }
+
+        private (RenderTreeDiff, RenderTreeFrame[], RenderBatch) GetSingleUpdatedComponentWithBatch(bool initializeFromFrames = false)
+        {
             var batch = GetRenderedBatch(initializeFromFrames);
             var diffsInBatch = batch.UpdatedComponents;
             Assert.Equal(1, diffsInBatch.Count);
-            return (diffsInBatch.Array[0], batch.ReferenceFrames.ToArray());
+            return (diffsInBatch.Array[0], batch.ReferenceFrames.ToArray(), batch);
         }
 
         private RenderBatch GetRenderedBatch(bool initializeFromFrames = false)

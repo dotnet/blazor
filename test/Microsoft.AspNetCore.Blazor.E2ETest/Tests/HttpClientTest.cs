@@ -10,6 +10,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
 {
@@ -24,8 +25,9 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         public HttpClientTest(
             BrowserFixture browserFixture,
             DevHostServerFixture<BasicTestApp.Program> devHostServerFixture,
-            AspNetSiteServerFixture apiServerFixture)
-            : base(browserFixture, devHostServerFixture)
+            AspNetSiteServerFixture apiServerFixture,
+            ITestOutputHelper output)
+            : base(browserFixture, devHostServerFixture, output)
         {
             apiServerFixture.BuildWebHostMethod = TestServer.Program.BuildWebHost;
             _apiServerFixture = apiServerFixture;
@@ -95,6 +97,47 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal("OK", _responseStatus.Text);
             Assert.Contains("Content-Type: application/json", _responseHeaders.Text);
             Assert.Equal("{\"id\":123,\"name\":\"Bert\"}", _responseBody.Text);
+        }
+
+        [Fact]
+        public void CanSetRequestReferer()
+        {
+            SetValue("request-referrer", "/test-referrer");
+            IssueRequest("GET", "/api/person/referrer");
+            Assert.Equal("OK", _responseStatus.Text);
+            Assert.EndsWith("/test-referrer", _responseBody.Text);
+        }
+
+        [Fact]
+        public void CanSendAndReceiveCookies()
+        {
+            var app = MountTestComponent<CookieCounterComponent>();
+            var deleteButton = app.FindElement(By.Id("delete"));
+            var incrementButton = app.FindElement(By.Id("increment"));
+            app.FindElement(By.TagName("input")).SendKeys(_apiServerFixture.RootUri.ToString());
+
+            // Ensure we're starting from a clean state
+            deleteButton.Click();
+            Assert.Equal("Reset completed", WaitAndGetResponseText());
+
+            // Observe that subsequent requests manage to preserve state via cookie
+            incrementButton.Click();
+            Assert.Equal("Counter value is 1", WaitAndGetResponseText());
+            incrementButton.Click();
+            Assert.Equal("Counter value is 2", WaitAndGetResponseText());
+
+            // Verify that attempting to delete a cookie actually works
+            deleteButton.Click();
+            Assert.Equal("Reset completed", WaitAndGetResponseText());
+            incrementButton.Click();
+            Assert.Equal("Counter value is 1", WaitAndGetResponseText());
+
+            string WaitAndGetResponseText()
+            {
+                new WebDriverWait(Browser, TimeSpan.FromSeconds(30)).Until(
+                    driver => driver.FindElement(By.Id("response-text")) != null);
+                return app.FindElement(By.Id("response-text")).Text;
+            }
         }
 
         private void IssueRequest(string requestMethod, string relativeUri, string requestBody = null)

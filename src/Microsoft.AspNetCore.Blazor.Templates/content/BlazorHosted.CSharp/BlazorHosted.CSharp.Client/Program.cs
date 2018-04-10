@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Blazor.Browser.Rendering;
 using Microsoft.AspNetCore.Blazor.Browser.Services;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace BlazorHosted.CSharp.Client
@@ -8,7 +9,7 @@ namespace BlazorHosted.CSharp.Client
     {
         static void Main(string[] args)
         {
-            var serviceProvider = new BrowserServiceProvider(configure =>
+            var serviceProvider = new BrowserServiceProvider(services =>
             {
                 // Add any custom services here
             });
