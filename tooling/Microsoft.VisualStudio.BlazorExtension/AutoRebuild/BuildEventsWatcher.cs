@@ -19,7 +19,8 @@ namespace Microsoft.VisualStudio.BlazorExtension
         private readonly IVsSolution _vsSolution;
         private readonly IVsSolutionBuildManager _vsBuildManager;
         private readonly object mostRecentBuildInfosLock = new object();
-        private readonly Dictionary<string, BuildInfo> mostRecentBuildInfos = new Dictionary<string, BuildInfo>();
+        private readonly Dictionary<string, BuildInfo> mostRecentBuildInfos
+            = new Dictionary<string, BuildInfo>(StringComparer.OrdinalIgnoreCase);
 
         public BuildEventsWatcher(IVsSolution vsSolution, IVsSolutionBuildManager vsBuildManager)
         {
