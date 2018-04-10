@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Builder
             // to BlazorConfig. Also keep the IsDevelopment check.
             if (env.IsDevelopment())
             {
-                applicationBuilder.UseAutoRecompilation(config);
+                applicationBuilder.UseAutoRebuild(config);
             }
 
             // First, match the request against files in the client app dist directory

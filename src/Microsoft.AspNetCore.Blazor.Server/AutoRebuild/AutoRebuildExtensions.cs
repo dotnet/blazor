@@ -1,24 +1,33 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Blazor.Server;
+using Microsoft.AspNetCore.Blazor.Server.AutoRebuild;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Blazor.Server
+namespace Microsoft.AspNetCore.Builder
 {
-    internal static class AutoRecompilation
+    internal static class AutoRebuildExtensions
     {
-        // TODO: Make this configurable in csproj
-        private static string[] _watchedExtensions = new[] { ".cs", ".cshtml" };
-        private static string[] _excludeSubdirectories = new[] { "obj", "bin" };
+        // Note that we don't need to watch typical static-file extensions (.css, .js, etc.)
+        // because anything in wwwroot is just served directly from disk on each reload. But
+        // as a special case, we do watch index.html because it needs compilation.
+        // TODO: Make the set of extensions and exclusions configurable in csproj
+        private static string[] _includedSuffixes = new[] { ".cs", ".cshtml", "index.html" };
+        private static string[] _excludedDirectories = new[] { "obj", "bin" };
 
-        public static void UseAutoRecompilation(this IApplicationBuilder appBuilder, BlazorConfig config)
+        public static void UseAutoRebuild(this IApplicationBuilder appBuilder, BlazorConfig config)
         {
+            // Currently this only supports VS for Windows. Later on we can add
+            // an IRebuildService implementation for VS for Mac, etc.
+            if (!VSForWindowsRebuildService.TryCreate(out var rebuildService))
+            {
+                return; // You're not on Windows, or you didn't launch this process from VS
+            }
+
             var currentCompilationTask = Task.CompletedTask;
             var compilationTaskMustBeRefreshed = false;
 
@@ -33,42 +42,33 @@ namespace Microsoft.AspNetCore.Blazor.Server
 
             appBuilder.Use(async (context, next) =>
             {
-                if (compilationTaskMustBeRefreshed)
+                try
                 {
-                    currentCompilationTask = Recompile(config);
-                    compilationTaskMustBeRefreshed = false;
+                    if (compilationTaskMustBeRefreshed)
+                    {
+                        currentCompilationTask = rebuildService.PerformRebuildAsync(config.SourceMSBuildPath);
+                        compilationTaskMustBeRefreshed = false;
+                    }
+
+                    await currentCompilationTask;
+                }
+                catch (Exception)
+                {
+                    // If there's no listener on the other end of the pipe, or if anything
+                    // else goes wrong, we just let the incoming request continue.
+                    // There's nowhere useful to log this information so if people report
+                    // problems we'll just have to get a repro and debug it.
+                    // If it was an error on the VS side, it logs to the output window.
                 }
 
-                await currentCompilationTask;
                 await next();
             });
-        }
-
-        private static Task Recompile(BlazorConfig config)
-        {
-            var tcs = new TaskCompletionSource<object>();
-
-            new Thread(() =>
-            {
-                // TODO: Perform the build inside VS instead of as a command-line build
-                // TODO: Capture build errors/timeouts and show them in the browser
-                var proc = Process.Start(new ProcessStartInfo
-                {
-                    WorkingDirectory = Path.GetDirectoryName(config.SourceMSBuildPath),
-                    FileName = "dotnet",
-                    Arguments = "build --no-restore --no-dependencies " + Path.GetFileName(config.SourceMSBuildPath),
-                });
-                proc.WaitForExit(60 * 1000);
-                tcs.SetResult(new object());
-            }).Start();
-
-            return tcs.Task;
         }
 
         private static void WatchFileSystem(BlazorConfig config, Action onWrite)
         {
             var clientAppRootDir = Path.GetDirectoryName(config.SourceMSBuildPath);
-            var excludePathPrefixes = _excludeSubdirectories.Select(subdir
+            var excludePathPrefixes = _excludedDirectories.Select(subdir
                 => Path.Combine(clientAppRootDir, subdir) + Path.DirectorySeparatorChar);
 
             var fsw = new FileSystemWatcher(clientAppRootDir);
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
                     return;
                 }
 
-                if (!_watchedExtensions.Any(ext => eventArgs.Name.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                if (!_includedSuffixes.Any(ext => eventArgs.Name.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Not a candiate file type
                     return;
