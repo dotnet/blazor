@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             }
 
             var candidateProcess = Process.GetCurrentProcess();
-            while (candidateProcess != null)
+            while (candidateProcess != null && !candidateProcess.HasExited)
             {
                 // It's unlikely that anyone's going to have a non-VS process in the process
                 // hierarchy called 'devenv', but if that turns out to be a scenario, we could
