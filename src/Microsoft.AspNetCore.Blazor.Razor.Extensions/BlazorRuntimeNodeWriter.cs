@@ -200,6 +200,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 if (nextToken.Type == HtmlTokenType.EndOfFile)
                 {
+                    // If we got an EOF in the middle of an HTML element, it's probably because we're
+                    // about to receive some attribute name/value pairs. Store the unused HTML content
+                    // so we can prepend it to the part that comes after the attributes to make
+                    // complete valid markup.
+                    if (originalHtmlContent.Length > nextToken.Position.Position)
+                    {
+                        _unconsumedHtml = originalHtmlContent.Substring(nextToken.Position.Position - 1);
+                    }
                     break;
                 }
 
@@ -283,15 +291,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     default:
                         throw new InvalidCastException($"Unsupported token type: {nextToken.Type.ToString()}");
                 }
-            }
-
-            // If we got an EOF in the middle of an HTML element, it's probably because we're
-            // about to receive some attribute name/value pairs. Store the unused HTML content
-            // so we can prepend it to the part that comes after the attributes to make
-            // complete valid markup.
-            if (originalHtmlContent.Length > nextToken.Position.Position)
-            {
-                _unconsumedHtml = originalHtmlContent.Substring(nextToken.Position.Position - 1);
             }
         }
 
