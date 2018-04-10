@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             }
         }
 
-        public async Task<bool> PerformRebuildAsync(string projectFullPath)
+        public async Task<bool> PerformRebuildAsync(string projectFullPath, DateTime ifNotBuiltSince)
         {
             var pipeName = $"BlazorAutoRebuild\\{_vsProcess.Id}";
             using (var pipeClient = new NamedPipeClientStream(pipeName))
@@ -41,10 +41,12 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
 
                 // Very simple protocol:
                 //   1. Send the project path to the VS listener
-                //   2. Wait for it to send back a bool representing the result
+                //   2. Send the 'if not rebuilt since' timestamp to the VS listener
+                //   3. Wait for it to send back a bool representing the result
                 // Keep in sync with AutoRebuildService.cs in the BlazorExtension project
                 // In the future we may extend this to getting back build error details
                 await pipeClient.WriteStringAsync(projectFullPath);
+                await pipeClient.WriteDateTimeAsync(ifNotBuiltSince);
                 return await pipeClient.ReadBoolAsync();
             }
         }

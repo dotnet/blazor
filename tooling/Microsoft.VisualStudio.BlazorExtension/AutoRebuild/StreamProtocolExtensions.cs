@@ -17,6 +17,13 @@ namespace Microsoft.VisualStudio.BlazorExtension
             return Encoding.UTF8.GetString(utf8Bytes);
         }
 
+        public static async Task<DateTime> ReadDateTimeAsync(this Stream stream)
+        {
+            var ticksBytes = await ReadBytesAsync(stream, 8);
+            var ticks = BitConverter.ToInt64(ticksBytes, 0);
+            return new DateTime(ticks);
+        }
+
         public static async Task WriteBoolAsync(this Stream stream, bool value)
         {
             var byteVal = value ? (byte)1 : (byte)0;

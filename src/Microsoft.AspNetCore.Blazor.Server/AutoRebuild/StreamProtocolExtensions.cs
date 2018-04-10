@@ -17,6 +17,12 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             await stream.WriteAsync(utf8Bytes, 0, utf8Bytes.Length);
         }
 
+        public static async Task WriteDateTimeAsync(this Stream stream, DateTime value)
+        {
+            var ticksBytes = BitConverter.GetBytes(value.Ticks);
+            await stream.WriteAsync(ticksBytes, 0, 8);
+        }
+
         public static async Task<bool> ReadBoolAsync(this Stream stream)
         {
             var responseBuf = new byte[1];

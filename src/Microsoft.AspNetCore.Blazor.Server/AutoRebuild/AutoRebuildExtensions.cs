@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             var currentCompilationTask = Task.CompletedTask;
-            var compilationTaskMustBeRefreshed = false;
+            var compilationTaskMustBeRefreshedIfNotBuiltSince = (DateTime?)null;
 
             WatchFileSystem(config, () =>
             {
@@ -37,17 +37,19 @@ namespace Microsoft.AspNetCore.Builder
                 // HTTP request arrives, because it's annoying if the IDE is constantly rebuilding
                 // when you're making changes to multiple files and aren't ready to reload
                 // in the browser yet.
-                compilationTaskMustBeRefreshed = true;
+                compilationTaskMustBeRefreshedIfNotBuiltSince = DateTime.Now;
             });
 
             appBuilder.Use(async (context, next) =>
             {
                 try
                 {
-                    if (compilationTaskMustBeRefreshed)
+                    if (compilationTaskMustBeRefreshedIfNotBuiltSince.HasValue)
                     {
-                        currentCompilationTask = rebuildService.PerformRebuildAsync(config.SourceMSBuildPath);
-                        compilationTaskMustBeRefreshed = false;
+                        currentCompilationTask = rebuildService.PerformRebuildAsync(
+                            config.SourceMSBuildPath,
+                            compilationTaskMustBeRefreshedIfNotBuiltSince.Value);
+                        compilationTaskMustBeRefreshedIfNotBuiltSince = null;
                     }
 
                     await currentCompilationTask;

@@ -3,22 +3,28 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.BlazorExtension
 {
+    /// <summary>
+    /// Watches for Blazor project build events, starts new builds, and tracks builds in progress.
+    /// </summary>
     internal class BuildEventsWatcher : IVsUpdateSolutionEvents2
     {
-        // TODO: Also track "last build" timestamp for each project, and then amend
-        // the protocol to "build project <path> if not built since <timestamp>"
-        // where <timestamp> comes from the FSW change event (so that if you build
-        // manually, you don't have to wait for a further rebuild)
+        private readonly IVsSolution _vsSolution;
+        private readonly IVsSolutionBuildManager _vsBuildManager;
+        private readonly object mostRecentBuildInfosLock = new object();
+        private readonly Dictionary<string, BuildInfo> mostRecentBuildInfos = new Dictionary<string, BuildInfo>();
 
-        private object pendingBuildResultTasksLock = new object();
-        private List<PendingBuildResultTask> pendingBuildResultTasks = new List<PendingBuildResultTask>();
+        public BuildEventsWatcher(IVsSolution vsSolution, IVsSolutionBuildManager vsBuildManager)
+        {
+            _vsSolution = vsSolution ?? throw new ArgumentNullException(nameof(vsSolution));
+            _vsBuildManager = vsBuildManager ?? throw new ArgumentNullException(nameof(vsBuildManager));
+        }
 
         public int UpdateSolution_Begin(ref int pfCancelUpdate)
            => VSConstants.S_OK;
@@ -36,73 +42,122 @@ namespace Microsoft.VisualStudio.BlazorExtension
            => VSConstants.S_OK;
 
         public int UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
-           => VSConstants.S_OK;
-
-        public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
         {
-            var buildResult = fSuccess == 1;
-            var ctx = (IVsBrowseObjectContext)pCfgProj;
-            var projectPath = ctx.UnconfiguredProject.FullPath;
-            foreach (var pendingBuildTask in GetAndRemovePendingBuildTasks(projectPath))
+            if (IsBlazorProject(pHierProj))
             {
-                pendingBuildTask.TaskCompletionSource.SetResult(buildResult);
+                // If there isn't an in-progress BuildInfo for this project (either there's no record,
+                // or the previous build already finished), then create one. So if there's a manually-
+                // triggered build and then a build request arrives while it's still in progress, we'll
+                // use the existing build rather than waiting for a subsequent one.
+                var ctx = (IVsBrowseObjectContext)pCfgProj;
+                var projectPath = ctx.UnconfiguredProject.FullPath;
+                lock (mostRecentBuildInfosLock)
+                {
+                    var hasBuildInProgress =
+                        mostRecentBuildInfos.TryGetValue(projectPath, out var existingInfo)
+                        && !existingInfo.TaskCompletionSource.Task.IsCompleted;
+                    if (!hasBuildInProgress)
+                    {
+                        mostRecentBuildInfos[projectPath] = new BuildInfo();
+                    }
+                }
             }
 
             return VSConstants.S_OK;
         }
 
-        private IEnumerable<PendingBuildResultTask> GetAndRemovePendingBuildTasks(string projectPath)
+
+        public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
         {
-            lock (pendingBuildResultTasksLock)
+            if (IsBlazorProject(pHierProj))
             {
-                if (pendingBuildResultTasks.Count == 0)
-                {
-                    return Enumerable.Empty<PendingBuildResultTask>();
-                }
+                var buildResult = fSuccess == 1;
+                var ctx = (IVsBrowseObjectContext)pCfgProj;
+                var projectPath = ctx.UnconfiguredProject.FullPath;
+                MarkPendingBuildTasksCompleted(projectPath, buildResult);
+            }
 
-                var result = new List<PendingBuildResultTask>();
+            return VSConstants.S_OK;
+        }
 
-                for (var index = 0; index < pendingBuildResultTasks.Count; index++)
+        public Task<bool> PerformBuildAsync(string projectPath, DateTime allowExistingBuildsSince)
+        {
+            BuildInfo newBuildInfo;
+
+            lock (mostRecentBuildInfosLock)
+            {
+                if (mostRecentBuildInfos.TryGetValue(projectPath, out var existingInfo))
                 {
-                    var candidate = pendingBuildResultTasks[index];
-                    if (candidate.ProjectPath.Equals(projectPath, StringComparison.Ordinal))
+                    var acceptBuild = !existingInfo.TaskCompletionSource.Task.IsCompleted
+                        || existingInfo.StartTime > allowExistingBuildsSince;
+                    if (acceptBuild)
                     {
-                        result.Add(candidate);
-                        pendingBuildResultTasks.RemoveAt(index);
-                        index--;
+                        return existingInfo.TaskCompletionSource.Task;
                     }
                 }
-
-                return result;
+                
+                mostRecentBuildInfos[projectPath] = newBuildInfo = new BuildInfo();
             }
+
+            return PerformNewBuildAsync(projectPath, newBuildInfo.TaskCompletionSource.Task);
         }
 
-        public Task<bool> GetNextBuildResultAsync(string projectPath)
+        private async Task<bool> PerformNewBuildAsync(string projectPath, Task<bool> buildInProgressTask)
         {
-            var pendingBuildResultTask = new PendingBuildResultTask(projectPath);
-            lock (pendingBuildResultTasksLock)
+            // Switch to the UI thread and request the build
+            var didStartBuild = await ThreadHelper.JoinableTaskFactory.RunAsync(async delegate
             {
-                pendingBuildResultTasks.Add(pendingBuildResultTask);
-            }
-            return pendingBuildResultTask.TaskCompletionSource.Task;
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var hr = _vsSolution.GetProjectOfUniqueName(projectPath, out var hierarchy);
+                if (hr != VSConstants.S_OK)
+                {
+                    return false;
+                }
+
+                hr = _vsBuildManager.StartSimpleUpdateProjectConfiguration(
+                    hierarchy,
+                    /* not used */ null,
+                    /* not used */ null,
+                    (uint)VSSOLNBUILDUPDATEFLAGS.SBF_OPERATION_BUILD,
+                    /* other flags */ 0,
+                    /* suppress dialogs */ 1);
+                if (hr != VSConstants.S_OK)
+                {
+                    return false;
+                }
+
+                return true;
+            });
+
+            return didStartBuild && await buildInProgressTask;
         }
 
-        public void DiscardPendingBuildTask(Task<bool> projectBuildTask)
+        private void MarkPendingBuildTasksCompleted(string projectPath, bool buildResult)
         {
-            lock (pendingBuildResultTasksLock)
+            BuildInfo foundInfo = null;
+            lock (mostRecentBuildInfosLock)
             {
-                pendingBuildResultTasks.RemoveAll(x => x.TaskCompletionSource.Task == projectBuildTask);
+                mostRecentBuildInfos.TryGetValue(projectPath, out foundInfo);
+            }
+
+            if (foundInfo != null)
+            {
+                foundInfo.TaskCompletionSource.TrySetResult(buildResult);
             }
         }
 
-        class PendingBuildResultTask
+        private static bool IsBlazorProject(IVsHierarchy pHierProj)
+            => pHierProj.IsCapabilityMatch("Blazor");
+
+        class BuildInfo
         {
-            public string ProjectPath { get; }
+            public DateTime StartTime { get; }
             public TaskCompletionSource<bool> TaskCompletionSource { get; }
 
-            public PendingBuildResultTask(string projectPath)
+            public BuildInfo()
             {
-                ProjectPath = projectPath;
+                StartTime = DateTime.Now;
                 TaskCompletionSource = new TaskCompletionSource<bool>();
             }
         }

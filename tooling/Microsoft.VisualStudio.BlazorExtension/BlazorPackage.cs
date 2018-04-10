@@ -28,14 +28,13 @@ namespace Microsoft.VisualStudio.BlazorExtension
             ThreadHelper.ThrowIfNotOnUIThread();
 
             // Create build watcher. No need to unadvise, as this only happens once anyway.
-            var buildWatcher = new BuildEventsWatcher();
+            var solution = (IVsSolution)GetGlobalService(typeof(IVsSolution));
             var buildManager = (IVsSolutionBuildManager)GetService(typeof(SVsSolutionBuildManager));
+            var buildWatcher = new BuildEventsWatcher(solution, buildManager);
             var hr = buildManager.AdviseUpdateSolutionEvents(buildWatcher, out var cookie);
             Marshal.ThrowExceptionForHR(hr);
 
-            // Create AutoRebuildService
-            var solution = (IVsSolution)GetGlobalService(typeof(IVsSolution));
-            new AutoRebuildService(solution, buildManager, buildWatcher).Listen();
+            new AutoRebuildService(buildWatcher).Listen();
         }
     }
 }
