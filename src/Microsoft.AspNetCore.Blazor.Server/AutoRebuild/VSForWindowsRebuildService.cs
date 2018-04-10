@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
     /// </summary>
     internal class VSForWindowsRebuildService : IRebuildService
     {
-        private const int _connectionTimeoutMilliseconds = 1000;
+        private const int _connectionTimeoutMilliseconds = 3000;
         private readonly Process _vsProcess;
 
         public static bool TryCreate(out VSForWindowsRebuildService result)
