@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Blazor
 {
-    [ExportCustomProjectEngineFactory("Blazor-0.1", SupportsSerialization = false)]
+    [ExportCustomProjectEngineFactory("Blazor-0.2", SupportsSerialization = false)]
     internal class BlazorProjectEngineFactory : IProjectEngineFactory
     {
         public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)

@@ -5,8 +5,8 @@ using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Blazor.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 
-[assembly: ProvideRazorExtensionInitializer("Blazor-0.1", typeof(BlazorExtensionInitializer))]
-[assembly: ProvideRazorExtensionInitializer("BlazorDeclaration-0.1", typeof(BlazorExtensionInitializer))]
+[assembly: ProvideRazorExtensionInitializer("Blazor-0.2", typeof(BlazorExtensionInitializer))]
+[assembly: ProvideRazorExtensionInitializer("BlazorDeclaration-0.2", typeof(BlazorExtensionInitializer))]
 
 [assembly: InternalsVisibleTo("Microsoft.AspNetCore.Blazor.Build.Test")]
 [assembly: InternalsVisibleTo("Microsoft.AspNetCore.Blazor.Razor.Extensions.Test")]
