@@ -28,8 +28,8 @@ namespace Microsoft.AspNetCore.Builder
                 return; // You're not on Windows, or you didn't launch this process from VS
             }
 
-            var currentCompilationTask = Task.CompletedTask;
-            var compilationTaskMustBeRefreshedIfNotBuiltSince = (DateTime?)null;
+            // Assume we're up to date when the app starts.
+            var buildToken = new RebuildToken(new DateTime(1970, 1, 1)) { BuildTask = Task.CompletedTask, };
 
             WatchFileSystem(config, () =>
             {
@@ -37,23 +37,32 @@ namespace Microsoft.AspNetCore.Builder
                 // HTTP request arrives, because it's annoying if the IDE is constantly rebuilding
                 // when you're making changes to multiple files and aren't ready to reload
                 // in the browser yet.
-                compilationTaskMustBeRefreshedIfNotBuiltSince = DateTime.Now;
+                //
+                // Replacing the token means that new requests that come in will trigger a rebuild,
+                // and will all 'join' that build until a new file change occurs.
+                buildToken = new RebuildToken(DateTime.Now);
             });
 
             appBuilder.Use(async (context, next) =>
             {
                 try
                 {
-                    if (compilationTaskMustBeRefreshedIfNotBuiltSince.HasValue)
+                    var token = buildToken;
+                    if (token.BuildTask == null)
                     {
-                        var rebuildIfNotBuiltSince = compilationTaskMustBeRefreshedIfNotBuiltSince.Value;
-                        compilationTaskMustBeRefreshedIfNotBuiltSince = null;
-                        currentCompilationTask = rebuildService.PerformRebuildAsync(
+                        // The build is out of date, but a new build is not yet started.
+                        //
+                        // We can count on VS to only allow one build at a time, this is a safe race
+                        // because if we request a second concurrent build, it will 'join' the current one.
+                        var task = rebuildService.PerformRebuildAsync(
                             config.SourceMSBuildPath,
-                            rebuildIfNotBuiltSince);
+                            token.LastChange);
+                        token.BuildTask = task;
                     }
 
-                    await currentCompilationTask;
+                    // In the general case it's safe to await this task, it will be a completed task
+                    // if everything is up to date.
+                    await token.BuildTask;
                 }
                 catch (Exception)
                 {
@@ -104,6 +113,23 @@ namespace Microsoft.AspNetCore.Builder
 
                 onWrite();
             }
+        }
+
+        // Represents a three-state value for the state of the build
+        //
+        // BuildTask == null means the build is out of date, but no build has started
+        // BuildTask.IsCompleted == false means the build has been started, but has not completed
+        // BuildTask.IsCompleted == true means the build has completed
+        private class RebuildToken
+        {
+            public RebuildToken(DateTime lastChange)
+            {
+                LastChange = lastChange;
+            }
+
+            public DateTime LastChange { get; }
+
+            public Task BuildTask;
         }
     }
 }
