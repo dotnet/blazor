@@ -42,13 +42,18 @@ namespace Microsoft.VisualStudio.BlazorExtension
             {
                 try
                 {
-                    var identifier = WindowsIdentity.GetCurrent().Owner;
+                    var identity = WindowsIdentity.GetCurrent();
+                    var identifier = identity.Owner;
                     var security = new PipeSecurity();
 
-                    // Restrict access to just this account.  
+                    // Restrict access to just this account.
                     var rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
                     security.AddAccessRule(rule);
                     security.SetOwner(identifier);
+
+                    // And our current elevation level
+                    var principal = new WindowsPrincipal(identity);
+                    var isServerElevated = principal.IsInRole(WindowsBuiltInRole.Administrator);
 
                     using (var serverPipe = new NamedPipeServerStream(
                         _pipeName,
@@ -66,7 +71,7 @@ namespace Microsoft.VisualStudio.BlazorExtension
                         await serverPipe.WaitForConnectionAsync();
                         AddBuildServiceNamedPipeServer();
 
-                        await HandleRequestAsync(serverPipe);
+                        await HandleRequestAsync(serverPipe, isServerElevated);
                     }
                 }
                 catch (Exception ex)
@@ -77,7 +82,7 @@ namespace Microsoft.VisualStudio.BlazorExtension
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        private async Task HandleRequestAsync(Stream stream)
+        private async Task HandleRequestAsync(NamedPipeServerStream stream, bool isServerElevated)
         {
             // Protocol:
             //   1. Send a "protocol version" number to the client
@@ -90,6 +95,13 @@ namespace Microsoft.VisualStudio.BlazorExtension
             // In the future we may extend this to getting back build error details
             await stream.WriteIntAsync(_protocolVersion);
             var projectPath = await stream.ReadStringAsync();
+
+            // We can't do the security check for elevation until we read from the stream.
+            if (isServerElevated != IsClientElevated(stream))
+            {
+                return;
+            }
+
             if (projectPath.Equals("abort", StringComparison.Ordinal))
             {
                 return;
@@ -117,6 +129,19 @@ namespace Microsoft.VisualStudio.BlazorExtension
                     pane.Activate();
                 }
             }
+        }
+
+        private bool? IsClientElevated(NamedPipeServerStream stream)
+        {
+            bool? isClientElevated = null;
+            stream.RunAsClient(() => 
+            {
+                var identity = WindowsIdentity.GetCurrent(ifImpersonating: true);
+                var principal = new WindowsPrincipal(identity);
+                isClientElevated = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            });
+
+            return isClientElevated;
         }
     }
 }
