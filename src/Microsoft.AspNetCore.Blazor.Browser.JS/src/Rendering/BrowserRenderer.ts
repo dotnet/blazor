@@ -2,6 +2,9 @@
 import { getRenderTreeEditPtr, renderTreeEdit, RenderTreeEditPointer, EditType } from './RenderTreeEdit';
 import { getTreeFramePtr, renderTreeFrame, FrameType, RenderTreeFramePointer } from './RenderTreeFrame';
 import { platform } from '../Environment';
+import { EventDelegator } from './EventDelegator';
+import { EventForDotNet, UIEventArgs } from './EventForDotNet';
+
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
 
@@ -168,17 +171,16 @@ class BlazorDOMElement {
 		const toDomElement = this.Range.startContainer as Element;
 		const browserRendererId = this.browserRenderer.browserRendererId;
 
-		// TODO: Instead of applying separate event listeners to each DOM element, use event delegation
-		// and remove all the _blazor*Listener hacks
-		switch (attributeName) {
-			case 'onclick': {
-				toDomElement.removeEventListener('click', toDomElement['_blazorClickListener']);
-				const listener = evt => raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'mouse', { Type: 'click' });
-				toDomElement['_blazorClickListener'] = listener;
-				toDomElement.addEventListener('click', listener);
-				return true;
+		if (eventHandlerId) {
+			const firstTwoChars = attributeName.substring(0, 2);
+			const eventName = attributeName.substring(2);
+			if (firstTwoChars !== 'on' || !eventName) {
+				throw new Error(`Attribute has nonzero event handler ID, but attribute name '${attributeName}' does not start with 'on'.`);
 			}
+			this.browserRenderer.eventDelegator.setListener(toDomElement, eventName, componentId, eventHandlerId);
+			return true;
 		}
+
 		return false;
 	}
 
@@ -250,53 +252,61 @@ class BlazorINPUTElement extends BlazorDOMElement {
 		return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
 	}
 
-	protected applyEvent(attributeName: string, componentId: number, eventHandlerId: number): boolean {
-		const toDomElement = this.getDOMElement();
-		const browserRendererId = this.browserRenderer.browserRendererId;
+	//protected applyEvent(attributeName: string, componentId: number, eventHandlerId: number): boolean {
+	//	const toDomElement = this.getDOMElement();
+	//	const browserRendererId = this.browserRenderer.browserRendererId;
 
-		// TODO: Instead of applying separate event listeners to each DOM element, use event delegation
-		// and remove all the _blazor*Listener hacks
-		switch (attributeName) {
-			case 'onchange': {
-				toDomElement.removeEventListener('change', toDomElement['_blazorChangeListener']);
-				const targetIsCheckbox = this.isCheckbox(toDomElement);
-				const listener = evt => {
-					const newValue = targetIsCheckbox ? evt.target.checked : evt.target.value;
-					raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'change', { Type: 'change', Value: newValue });
-				};
-				toDomElement['_blazorChangeListener'] = listener;
-				toDomElement.addEventListener('change', listener);
-				return true;
-			}
-			case 'onkeypress': {
-				toDomElement.removeEventListener('keypress', toDomElement['_blazorKeypressListener']);
-				const listener = evt => {
-					// This does not account for special keys nor cross-browser differences. So far it's
-					// just to establish that we can pass parameters when raising events.
-					// We use C#-style PascalCase on the eventInfo to simplify deserialization, but this could
-					// change if we introduced a richer JSON library on the .NET side.
-					raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'keyboard', { Type: evt.type, Key: (evt as any).key });
-				};
-				toDomElement['_blazorKeypressListener'] = listener;
-				toDomElement.addEventListener('keypress', listener);
-				return true;
-			}
-		}
-		return super.applyEvent(attributeName, componentId, eventHandlerId);
-	}
+	//	// TODO: Instead of applying separate event listeners to each DOM element, use event delegation
+	//	// and remove all the _blazor*Listener hacks
+	//	switch (attributeName) {
+	//		case 'onchange': {
+	//			toDomElement.removeEventListener('change', toDomElement['_blazorChangeListener']);
+	//			const targetIsCheckbox = this.isCheckbox(toDomElement);
+	//			const listener = evt => {
+	//				const newValue = targetIsCheckbox ? evt.target.checked : evt.target.value;
+	//				raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'change', { Type: 'change', Value: newValue });
+	//			};
+	//			toDomElement['_blazorChangeListener'] = listener;
+	//			toDomElement.addEventListener('change', listener);
+	//			return true;
+	//		}
+	//		case 'onkeypress': {
+	//			toDomElement.removeEventListener('keypress', toDomElement['_blazorKeypressListener']);
+	//			const listener = evt => {
+	//				// This does not account for special keys nor cross-browser differences. So far it's
+	//				// just to establish that we can pass parameters when raising events.
+	//				// We use C#-style PascalCase on the eventInfo to simplify deserialization, but this could
+	//				// change if we introduced a richer JSON library on the .NET side.
+	//				raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'keyboard', { Type: evt.type, Key: (evt as any).key });
+	//			};
+	//			toDomElement['_blazorKeypressListener'] = listener;
+	//			toDomElement.addEventListener('keypress', listener);
+	//			return true;
+	//		}
+	//	}
+	//	return super.applyEvent(attributeName, componentId, eventHandlerId);
+	//}
 }
 
 export class BrowserRenderer {
 	// private is better (todo: I don't like it!)
+	public eventDelegator: EventDelegator;
 	public readonly childComponentLocations: { [componentId: number]: BlazorDOMElement } = {};
 
 	public readonly browserRendererId: number;
 
-	constructor(RendererId: number) {
-		this.browserRendererId = RendererId;
+	constructor(rendererId: number) {
+		this.browserRendererId = rendererId;
+		this.eventDelegator = new EventDelegator((event, componentId, eventHandlerId, eventArgs) => {
+			raiseEvent(event, this.browserRendererId, componentId, eventHandlerId, eventArgs);
+		});
 	}
 
-	public attachComponentToElement(componentId: number, element: Node) {
+	public attachRootComponentToElement(componentId: number, element: Element) {
+		this.attachComponentToElement(componentId, element);
+	}
+
+	private attachComponentToElement(componentId: number, element: Node) {
 		let blazorElement = new BlazorDOMElement(this, element);
 		this.childComponentLocations[componentId] = blazorElement;
 	}
@@ -486,6 +496,10 @@ export class BrowserRenderer {
 		parent.removeFromDom(childIndex);
 	}
 
+	public disposeEventHandler(eventHandlerId: number) {
+		this.eventDelegator.removeListener(eventHandlerId);
+	}
+
 	private createElement(tagName: string, parentElement: BlazorDOMElement): Element {
 		const parent = parentElement.getParentDOMElement();
 		const newDomElement = tagName === 'svg' || parent.namespaceURI === 'http://www.w3.org/2000/svg' ?
@@ -509,7 +523,7 @@ export class BrowserRenderer {
 	}
 }
 
-function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventInfoType: EventInfoType, eventInfo: any) {
+function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
 	event.preventDefault();
 
 	if (!raiseEventMethod) {
@@ -522,13 +536,11 @@ function raiseEvent(event: Event, browserRendererId: number, componentId: number
 		BrowserRendererId: browserRendererId,
 		ComponentId: componentId,
 		EventHandlerId: eventHandlerId,
-		EventArgsType: eventInfoType
+		EventArgsType: eventArgs.type
 	};
 
 	platform.callMethod(raiseEventMethod, null, [
 		platform.toDotNetString(JSON.stringify(eventDescriptor)),
-		platform.toDotNetString(JSON.stringify(eventInfo))
+		platform.toDotNetString(JSON.stringify(eventArgs.data))
 	]);
 }
-
-type EventInfoType = 'mouse' | 'keyboard' | 'change';
