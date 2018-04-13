@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Layouts;
@@ -46,7 +47,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void SetParameters(ParameterCollection parameters)
         {
             parameters.AssignToProperties(this);
-            var types = ComponentResolver.ResolveComponents(AppAssembly);
+            var types = GetComponentTypesInAssembly(AppAssembly);
             Routes = RouteTable.Create(types);
             Refresh();
         }
@@ -101,5 +102,15 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 Refresh();
             }
         }
+
+        // Currently, the Router only looks for routable components in the application assembly,
+        // not in its dependencies. That's a deliberate restriction because later we'll have a way
+        // of mounting the components exposed from different assemblies at different points in the
+        // URL space. It wouldn't be a good idea to mash together routable components from all
+        // dependency assemblies at the root of the URL space because there'd be no sensible way
+        // to manage precedence or to be sure that adding a type to an assembly doesn't break routing
+        // in a different assembly. The routing config for each assembly should be encapsulated.
+        private static IEnumerable<Type> GetComponentTypesInAssembly(Assembly assembly)
+            => assembly.ExportedTypes.Where(t => typeof(IComponent).IsAssignableFrom(t));
     }
 }
