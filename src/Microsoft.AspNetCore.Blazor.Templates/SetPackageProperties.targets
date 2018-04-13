@@ -11,11 +11,15 @@
 
   <Target Name="SetTemplateJsonSymbolReplacements">
     <PropertyGroup>
+      <IncludeCustomRestoreSourcesValue Condition="'$(IsFinalBuild)' == 'true'">false</IncludeCustomRestoreSourcesValue>
+      <IncludeCustomRestoreSourcesValue Condition="'$(IsFinalBuild)' != 'true'">true</IncludeCustomRestoreSourcesValue>
+
       <!--
         Properties here will be injected into the template config *.json files
         during the build, replacing tokens of the form ${PropertyName}
       -->
       <GeneratedContentProperties>
+        IncludeCustomRestoreSources=$(IncludeCustomRestoreSourcesValue);
       </GeneratedContentProperties>
     </PropertyGroup>    
   </Target>

@@ -65,6 +65,12 @@
       },
       "replaces": "61501"
     },
+    "IncludeCustomRestoreSourcesSymbol": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "If set, includes restore sources for the Blazor MyGet feed.",
+      "defaultValue": "${IncludeCustomRestoreSources}"
+    },
     "skipRestore": {
       "type": "parameter",
       "datatype": "bool",

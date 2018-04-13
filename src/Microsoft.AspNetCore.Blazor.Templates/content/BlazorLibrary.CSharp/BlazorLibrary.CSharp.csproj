@@ -5,9 +5,7 @@
     <OutputType>library</OutputType>
     <IsPackable>true</IsPackable>
     <BlazorLinkOnBuild>false</BlazorLinkOnBuild>
-
-    <RestoreSources>
-      <!-- The custom package feed is required only when using nightly builds of Blazor -->
+    <RestoreSources Condition="'$(IncludeCustomRestoreSourcesSymbol)'=='true'">
       $(RestoreSources);
       https://api.nuget.org/v3/index.json;
       https://dotnet.myget.org/f/blazor-dev/api/v3/index.json;
