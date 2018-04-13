@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <TemplateBlazorPackageVersion>0.2.0-preview1-10195</TemplateBlazorPackageVersion>
+  </PropertyGroup>
+
+  <Import Project="..\..\Directory.Build.props" />
+</Project>
