@@ -1,8 +1,0 @@
-<Project>
-  <!--
-    Left mostly blank to avoid sharing config with the build for the main repo.
-    For example, we want the templates to declare their own independent package restore sources.
-  -->
-
-  <Import Project="../../version.props" />
-</Project>
