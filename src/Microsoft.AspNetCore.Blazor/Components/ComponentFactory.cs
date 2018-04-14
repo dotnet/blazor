@@ -9,6 +9,9 @@ using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Components
 {
+		/// <summary>
+		/// ComponentFactory
+		/// </summary>
     public class ComponentFactory
     {
         private readonly static BindingFlags _injectablePropertyBindingFlags
@@ -132,8 +135,18 @@ namespace Microsoft.AspNetCore.Blazor.Components
         }
 
 				private static List<Type> _RegisteredCustomDOMElement = new List<Type>();
+
+				/// <summary>
+				/// Register a javascript implementation of Blazor Component.
+				/// </summary>
+				/// <param name="ComponentType">Type of Blazor Component</param>
+				/// <returns>
+				/// Returns a value that bind javascript implementation with .net component. 
+				/// (That value is used in BrowserRenderer's getRegisteredCustomDOMElement)
+				/// </returns>
 				public static short RegisterCustomComponent( Type ComponentType )
 				{
+					// need check for ComponentType
 					if (_RegisteredCustomDOMElement.Contains(ComponentType) == false)
 						_RegisteredCustomDOMElement.Add(ComponentType);
 
@@ -141,6 +154,13 @@ namespace Microsoft.AspNetCore.Blazor.Components
 					return componentId;
 				}
 
+				/// <summary>
+				/// Get the registrered custom BlazorDOMComponent
+				/// </summary>
+				/// <param name="ComponentType">BlazorComponent Type</param>
+				/// <returns>
+				/// A short for CustomComponentType for RenderTreeFrameType.Component
+				/// </returns>
 				public static short GetRegisteredCustomComponent( Type ComponentType )
 				{
 					if (_RegisteredCustomDOMElement.Contains(ComponentType) == false)
