@@ -1,5 +1,7 @@
 ﻿import { platform } from './Environment'
 import { registerFunction } from './Interop/RegisteredFunction';
+import { BlazorDOMElement, BlazorDOMComponent, raiseEvent } from './Rendering/BrowserRenderer'
+import { registerCustomTag, registerCustomDOMElement } from './Interop/RenderingFunction'
 import { navigateTo } from './Services/UriHelper';
 
 if (typeof window !== 'undefined') {
@@ -8,6 +10,12 @@ if (typeof window !== 'undefined') {
   window['Blazor'] = {
     platform,
     registerFunction,
-    navigateTo,
+		navigateTo,
+
+		raiseEvent,
+		registerCustomTag,
+		registerCustomDOMElement,
+		BlazorDOMElement,
+		BlazorDOMComponent
   };
 }

@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Components
 {
-    internal class ComponentFactory
+    public class ComponentFactory
     {
         private readonly static BindingFlags _injectablePropertyBindingFlags
             = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -18,13 +18,13 @@ namespace Microsoft.AspNetCore.Blazor.Components
         private readonly IDictionary<Type, Action<IComponent>> _cachedInitializers
             = new ConcurrentDictionary<Type, Action<IComponent>>();
 
-        public ComponentFactory(IServiceProvider serviceProvider)
+        internal ComponentFactory(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider
                 ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public IComponent InstantiateComponent(Type componentType)
+        internal IComponent InstantiateComponent(Type componentType)
         {
             if (!typeof(IComponent).IsAssignableFrom(componentType))
             {
@@ -130,5 +130,23 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 type = type.BaseType;
             }
         }
-    }
+
+				private static List<Type> _RegisteredCustomDOMElement = new List<Type>();
+				public static short RegisterCustomComponent( Type ComponentType )
+				{
+					if (_RegisteredCustomDOMElement.Contains(ComponentType) == false)
+						_RegisteredCustomDOMElement.Add(ComponentType);
+
+					var componentId = (short)(_RegisteredCustomDOMElement.IndexOf(ComponentType) + 1);
+					return componentId;
+				}
+
+				public static short GetRegisteredCustomComponent( Type ComponentType )
+				{
+					if (_RegisteredCustomDOMElement.Contains(ComponentType) == false)
+						return 0;
+
+					return (short)(_RegisteredCustomDOMElement.IndexOf(ComponentType) + 1);
+				}
+	}
 }

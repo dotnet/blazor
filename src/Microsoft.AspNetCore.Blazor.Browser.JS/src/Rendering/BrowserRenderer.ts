@@ -4,11 +4,12 @@ import { getTreeFramePtr, renderTreeFrame, FrameType, RenderTreeFramePointer } f
 import { platform } from '../Environment';
 import { EventDelegator } from './EventDelegator';
 import { EventForDotNet, UIEventArgs } from './EventForDotNet';
+import { getRegisteredCustomTag, getRegisteredCustomDOMElement } from '../Interop/RenderingFunction';
 
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
 
-class BlazorDOMElement {
+export class BlazorDOMElement {
 	private Range: Range;
 	protected readonly browserRenderer: BrowserRenderer;
 
@@ -99,20 +100,25 @@ class BlazorDOMElement {
 		}
 	}
 
-	public removeFromDom(childIndex: number) {
-		const element = this.getElementChild(childIndex)!;
-
-		if (element instanceof BlazorDOMElement) {
+	public removeFromDom(childIndex: number | null = null) {
+		if (childIndex === null) {
 			// Adjust range to whole component
-			element.Range.setStartBefore(element.Range.startContainer);
-			element.Range.setEndAfter(element.Range.endContainer);
+			this.Range.setStartBefore(this.Range.startContainer);
+			this.Range.setEndAfter(this.Range.endContainer);
 
 			// Clear whole range
-			element.Range.deleteContents();
+			this.Range.deleteContents();
 		}
 		else {
-			// Remove only the childindex-nth element
-			element.parentElement!.removeChild(element as Node);
+			const element = this.getElementChild(childIndex)!;
+
+			if (element instanceof BlazorDOMElement) {
+				element.removeFromDom();
+			}
+			else {
+				// Remove only the childindex-nth element
+				element.parentElement!.removeChild(element as Node);
+			}
 		}
 	}
 
@@ -192,7 +198,7 @@ class BlazorDOMElement {
 	}
 }
 
-class BlazorDOMComponent extends BlazorDOMElement {
+export class BlazorDOMComponent extends BlazorDOMElement {
 	ComponentID: number;
 
 	constructor(CID: number, parent: BlazorDOMElement, childIndex: number, br: BrowserRenderer) {
@@ -204,6 +210,10 @@ class BlazorDOMComponent extends BlazorDOMElement {
 
 		super(br, markerStart, markerEnd);
 		this.ComponentID = CID;
+	}
+
+	protected setAttribute(attributeName: string, attributeValue: string | null) {
+		// Blazor DOM Component do not have attributes
 	}
 }
 
@@ -335,6 +345,7 @@ export class BrowserRenderer {
 		const maxEditIndexExcl = editsOffset + editsLength;
 
 		var parentElement = parent as BlazorDOMElement;
+		parentElement.onDOMUpdating();
 
 		var elementStack = new Array();
 		elementStack.push(parentElement);
@@ -411,6 +422,8 @@ export class BrowserRenderer {
 				}
 			}
 		}
+
+		parentElement.onDOMUpdated();
 	}
 
 	private insertFrame(componentId: number, parent: BlazorDOMElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number): number {
@@ -425,7 +438,7 @@ export class BrowserRenderer {
 			case FrameType.attribute:
 				throw new Error('Attribute frames should only be present as leading children of element frames.');
 			case FrameType.component:
-				this.insertComponent(parent, childIndex, frame);
+				this.insertComponent(parent, childIndex, frame, frames, frameIndex);
 				return 1;
 			case FrameType.region:
 				return this.insertFrameRange(componentId, parent, childIndex, frames, frameIndex + 1, frameIndex + renderTreeFrame.subtreeLength(frame));
@@ -461,12 +474,27 @@ export class BrowserRenderer {
 		blazorElement.dispose();
 	}
 
-	private insertComponent(parent: BlazorDOMElement, childIndex: number, frame: RenderTreeFramePointer) {
+	private insertComponent(parent: BlazorDOMElement, childIndex: number, frame: RenderTreeFramePointer, frames: System_Array<RenderTreeFramePointer>, frameIndex: number) {
 		// All we have to do is associate the child component ID with its location. We don't actually
 		// do any rendering here, because the diff for the child will appear later in the render batch.
 		const childComponentId = renderTreeFrame.componentId(frame);
-		const component = this.createBlazorDOMComponent(childComponentId, parent, childIndex);
-		this.attachBlazorComponentToElement(childComponentId, component);
+		const customComponentType = renderTreeFrame.customComponentType(frame);
+		const blazorElement = this.createBlazorDOMComponent(childComponentId, parent, childIndex, customComponentType);
+		this.attachBlazorComponentToElement(childComponentId, blazorElement);
+
+		if (customComponentType != 0) {
+			// Apply attributes
+			const descendantsEndIndexExcl = frameIndex + renderTreeFrame.subtreeLength(frame);
+			for (let descendantIndex = frameIndex + 1; descendantIndex < descendantsEndIndexExcl; descendantIndex++) {
+				const descendantFrame = getTreeFramePtr(frames, descendantIndex);
+
+				if (renderTreeFrame.frameType(descendantFrame) === FrameType.attribute) {
+					blazorElement.applyAttribute(childComponentId, descendantFrame);
+				} else {
+					break;
+				}
+			}
+		}
 	}
 
 	private insertText(parent: BlazorDOMElement, childIndex: number, textFrame: RenderTreeFramePointer) {
@@ -508,23 +536,37 @@ export class BrowserRenderer {
 		return newDomElement;
 	}
 
-	private createBlazorDOMComponent(componentId: number, parent: BlazorDOMElement, childIndex: number): BlazorDOMComponent {
-		// here can insert a lookup to a registry
-		let blazorElement = new BlazorDOMComponent(componentId, parent, childIndex, this);
-		return blazorElement;
+	private createBlazorDOMComponent(componentId: number, parent: BlazorDOMElement, childIndex: number, customComponentType: number): BlazorDOMComponent {
+		let blazorElement: BlazorDOMComponent | null = null;
+
+		if (customComponentType !== 0) {
+			let customElement = getRegisteredCustomDOMElement(customComponentType) as any;
+			blazorElement = customElement(componentId, parent, childIndex, this);
+		}
+		else {
+			blazorElement = new BlazorDOMComponent(componentId, parent, childIndex, this);
+		}
+		return blazorElement!;
 	}
 
 	private createBlazorDOMElement(stepInElement: Element): BlazorDOMElement {
-		// here can insert a lookup to a registry
 		if (stepInElement.tagName == "INPUT" || stepInElement.tagName == "SELECT" || stepInElement.tagName == "TEXTAREA")
 			return new BlazorINPUTElement(this, stepInElement);
-		else
-			return new BlazorDOMElement(this, stepInElement);
+		else {
+			let customDOM = getRegisteredCustomTag(stepInElement.tagName) as any;
+			if (customDOM !== null) {
+				return customDOM(this, stepInElement);
+			}
+			else {
+				return new BlazorDOMElement(this, stepInElement);
+			}
+		}
 	}
 }
 
-function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
-	event.preventDefault();
+export function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
+	if (event.preventDefault !== undefined)
+		event.preventDefault();
 
 	if (!raiseEventMethod) {
 		raiseEventMethod = platform.findMethod(

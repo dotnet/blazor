@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
     /// <summary>
     /// Describes the type of a <see cref="RenderTreeFrame"/>.
     /// </summary>
-    public enum RenderTreeFrameType: int
+    public enum RenderTreeFrameType: short
     {
         /// <summary>
         /// Represents a container for other frames.

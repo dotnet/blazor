@@ -43,4 +43,17 @@ namespace Microsoft.AspNetCore.Blazor
     public class UIMouseEventArgs : UIEventArgs
     {
     }
+
+	
+	  /// <summary>
+    /// Custom event
+    /// </summary>
+    public class UICustomEventArgs : UIEventArgs
+    {
+        /// <summary>
+        /// Custom Event Value. This is a <see cref="string"/>
+        /// </summary>
+        public object Value { get; set; }
+    }
+
 }

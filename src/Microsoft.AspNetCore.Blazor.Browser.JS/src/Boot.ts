@@ -34,8 +34,16 @@ async function boot() {
     throw new Error(`Failed to start platform. Reason: ${ex}`);
   }
 
+	// Trigger BlazorOnLoad event
+	let evt = new Event('BlazorOnLoad');
+	window.dispatchEvent(evt);
+
   // Start up the application
-  platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
+	platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
+
+	// Trigger BlazorOnStart event
+	evt = new Event('BlazorOnStart');
+	window.dispatchEvent(evt);
 }
 
 function getRequiredBootScriptAttribute(elem: HTMLScriptElement, attributeName: string): string {

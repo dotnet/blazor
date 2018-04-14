@@ -12,7 +12,8 @@
   getArrayEntryPtr<TPtr extends Pointer>(array: System_Array<TPtr>, index: number, itemSize: number): TPtr;
 
   getObjectFieldsBaseAddress(referenceTypedObject: System_Object): Pointer;
-  readInt32Field(baseAddress: Pointer, fieldOffset?: number): number;
+	readInt32Field(baseAddress: Pointer, fieldOffset?: number): number;
+	readInt16Field(baseAddress: Pointer, fieldOffset?: number): number;
   readObjectField<T extends System_Object>(baseAddress: Pointer, fieldOffset?: number): T;
   readStringField(baseAddress: Pointer, fieldOffset?: number): string | null;
   readStructField<T extends Pointer>(baseAddress: Pointer, fieldOffset?: number): T;

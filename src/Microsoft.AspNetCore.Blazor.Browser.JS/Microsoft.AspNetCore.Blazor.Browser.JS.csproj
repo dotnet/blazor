@@ -15,6 +15,10 @@
     <WebpackInputs Include="**\*.ts" Exclude="node_modules\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <WebpackInputs Remove="src\Interop\RenderingFunction.ts" />
+  </ItemGroup>
+
   <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\ReferenceFromSource.props" />
 
   <Target Name="EnsureNpmRestored" Condition="!Exists('node_modules')">
