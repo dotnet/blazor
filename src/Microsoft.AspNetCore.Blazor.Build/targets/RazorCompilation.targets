@@ -54,10 +54,6 @@
       <Extensions>Blazor-$(BlazorLanguageVersion)Blazor.AngleSharp-$(BlazorLanguageVersion);$(CustomRazorExtension)</Extensions>
     </RazorConfiguration>
 
-    <RazorExtension Include="Blazor.AngleSharp-0.1">
-      <AssemblyName>AngleSharp</AssemblyName>
-      <AssemblyFilePath>$(_AngleSharpAssemblyPath)</AssemblyFilePath>
-    </RazorExtension>
     <RazorExtension Include="Blazor.AngleSharp-$(BlazorLanguageVersion)">
       <AssemblyName>AngleSharp</AssemblyName>
       <AssemblyFilePath>$(_AngleSharpAssemblyPath)</AssemblyFilePath>
