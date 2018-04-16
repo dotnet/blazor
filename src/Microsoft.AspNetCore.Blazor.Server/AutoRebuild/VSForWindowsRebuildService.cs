@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             try
             {
                 var vsProcess = Process.GetProcessById(owningPid);
-                if (vsProcess != null && !vsProcess.HasExited)
+                if (vsProcess != null && vsProcess.ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase) && !vsProcess.HasExited)
                     return vsProcess;
             }
             catch (Exception)
