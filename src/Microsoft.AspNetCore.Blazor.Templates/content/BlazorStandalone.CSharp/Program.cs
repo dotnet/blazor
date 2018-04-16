@@ -5,9 +5,9 @@ using System;
 
 namespace BlazorStandalone.CSharp
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var serviceProvider = new BrowserServiceProvider(services =>
             {
