@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
-    <IsFinalBuild>false</IsFinalBuild>
+    <IsFinalBuild>true</IsFinalBuild>
     <VersionPrefix>0.2.0</VersionPrefix>
-    <VersionSuffix>rc2</VersionSuffix>
+    <VersionSuffix>rtm</VersionSuffix>
     <PackageVersion Condition="'$(IsFinalBuild)' == 'true' AND '$(VersionSuffix)' == 'rtm' ">$(VersionPrefix)</PackageVersion>
     <PackageVersion Condition="'$(IsFinalBuild)' == 'true' AND '$(VersionSuffix)' != 'rtm' ">$(VersionPrefix)-$(VersionSuffix)-final</PackageVersion>
     <BuildNumber Condition="'$(BuildNumber)' == ''">t000</BuildNumber>
