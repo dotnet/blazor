@@ -1430,12 +1430,13 @@ namespace SimpleJson
                             obj = value;
                         else
                         {
-                            try{
+                            try
+                            {
                                 obj = ConstructorCache[type](); 
                             }
-                            catch(NullReferenceException)
+                            catch (NullReferenceException)
                             {
-                                throw new InvalidOperationException($"Objects must have a constructorless parameter to deserialize. Offending type '{type}'");
+                                throw new InvalidOperationException($"Cannot deserialize JSON into type '{type.FullName}' because it does not have a public parameterless constructor.");
                             }
                             foreach (KeyValuePair<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> setter in SetCache[type])
                             {
