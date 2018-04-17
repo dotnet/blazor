@@ -1430,7 +1430,13 @@ namespace SimpleJson
                             obj = value;
                         else
                         {
-                            obj = ConstructorCache[type]();
+                            try{
+                                obj = ConstructorCache[type](); 
+                            }
+                            catch(NullReferenceException)
+                            {
+                                throw new InvalidOperationException($"Objects must have a constructorless parameter to deserialize. Offending type '{type}'");
+                            }
                             foreach (KeyValuePair<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> setter in SetCache[type])
                             {
                                 object jsonValue;
