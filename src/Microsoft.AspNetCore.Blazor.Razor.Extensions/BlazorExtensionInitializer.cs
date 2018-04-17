@@ -64,6 +64,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             builder.Features.Add(new ConfigureBlazorCodeGenerationOptions());
 
             // Blazor-specific passes, in order.
+            builder.Features.Add(new TrimWhitespacePass());
             builder.Features.Add(new ComponentDocumentClassifierPass());
             builder.Features.Add(new ComplexAttributeContentPass());
             builder.Features.Add(new BindLoweringPass());
