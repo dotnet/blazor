@@ -44,17 +44,27 @@ export function createAndInsertLogicalContainer(parent: LogicalElement, childInd
 }
 
 export function insertLogicalChild(child: Node, parent: LogicalElement, childIndex: number) {
-  // For consistency with regular DOM APIs, moving an existing logical element automatically
-  // removes it from its previous location.
   const childAsLogicalElement = child as any as LogicalElement;
-  const previousLogicalParent = getLogicalParent(childAsLogicalElement);
-  if (previousLogicalParent) {
-    const previousSiblings = getLogicalChildrenArray(previousLogicalParent);
-    const previousSiblingIndex = Array.prototype.indexOf.call(previousSiblings, child);
-    previousSiblings.splice(previousSiblingIndex, 1);
+  if (child instanceof Comment) {
+    const existingGrandchildren = getLogicalChildrenArray(childAsLogicalElement);
+    if (existingGrandchildren && getLogicalChildrenArray(childAsLogicalElement).length > 0) {
+      // There's nothing to stop us implementing support for this scenario, and it's not difficult
+      // (after inserting 'child' itself, also iterate through its logical children and physically
+      // put them as following-siblings in the DOM). However there's no scenario that requires it
+      // presently, so if we did implement it there'd be no good way to have tests for it.
+      throw new Error('Not implemented: inserting non-empty logical container');
+    }
   }
 
-  // TODO: Allow for child being a Comment with its own logical children
+  if (getLogicalParent(childAsLogicalElement)) {
+    // Likewise, we could easily support this scenario too (in this 'if' block, just splice
+    // out 'child' from the logical children array of its previous logical parent by using
+    // Array.prototype.indexOf to determine its previous sibling index).
+    // But again, since there's not currently any scenario that would use it, we would not
+    // have any test coverage for such an implementation.
+    throw new Error('Not implemented: moving existing logical children');
+  }
+
   const newSiblings = getLogicalChildrenArray(parent);
   const newPhysicalParent = getClosestDomElement(parent);
   if (childIndex < newSiblings.length) {
