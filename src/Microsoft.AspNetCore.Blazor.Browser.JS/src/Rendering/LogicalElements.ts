@@ -25,8 +25,8 @@
   - Whenever a logical child is added or removed, we update the parent's array of logical children
 */
 
-const logicalChildrenPropname = '_blazorLogicalChildren';
-const logicalParentPropname = '_blazorLogicalParent';
+const logicalChildrenPropname = createSymbolOrFallback('_blazorLogicalChildren');
+const logicalParentPropname = createSymbolOrFallback('_blazorLogicalParent');
 
 export function toLogicalElement(element: Element) {
   if (element.childNodes.length > 0) {
@@ -138,6 +138,10 @@ function getClosestDomElement(logicalElement: LogicalElement) {
   } else {
     throw new Error('Not a valid logical element');
   }
+}
+
+function createSymbolOrFallback(fallback: string): symbol | string {
+  return typeof Symbol === 'function' ? Symbol() : fallback;
 }
 
 // Nominal type to represent a logical element without needing to allocate any object for instances
