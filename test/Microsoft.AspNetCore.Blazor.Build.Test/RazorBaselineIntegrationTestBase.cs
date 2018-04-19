@@ -76,6 +76,9 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         {
             var document = codeDocument.GetCSharpDocument();
 
+            // Normalize newlines to match those in the baseline.
+            var actualCode = document.GeneratedCode.Replace("\r", "").Replace("\n", "\r\n");
+
             var baselineFilePath = GetBaselineFilePath(codeDocument, ".codegen.cs");
             var baselineDiagnosticsFilePath = GetBaselineFilePath(codeDocument, ".diagnostics.txt");
             var baselineMappingsFilePath = GetBaselineFilePath(codeDocument, ".mappings.txt");
@@ -86,7 +89,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             {
                 var baselineFullPath = Path.Combine(TestProjectRoot, baselineFilePath);
                 Directory.CreateDirectory(Path.GetDirectoryName(baselineFullPath));
-                File.WriteAllText(baselineFullPath, document.GeneratedCode);
+                File.WriteAllText(baselineFullPath, actualCode);
 
                 var baselineDiagnosticsFullPath = Path.Combine(TestProjectRoot, baselineDiagnosticsFilePath);
                 var lines = document.Diagnostics.Select(RazorDiagnosticSerializer.Serialize).ToArray();
@@ -120,9 +123,6 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             }
 
             var baseline = codegenFile.ReadAllText();
-
-            // Normalize newlines to match those in the baseline.
-            var actualCode = document.GeneratedCode.Replace("\r", "").Replace("\n", "\r\n");
             Assert.Equal(baseline, actualCode);
 
             var baselineDiagnostics = string.Empty;
