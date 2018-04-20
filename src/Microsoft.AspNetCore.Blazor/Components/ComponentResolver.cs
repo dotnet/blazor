@@ -22,37 +22,49 @@ namespace Microsoft.AspNetCore.Blazor.Components
         {
             var blazorAssembly = typeof(IComponent).Assembly;
 
-            return EnumerateAssemblies(appAssembly.GetName(), blazorAssembly, new HashSet<Assembly>(new AssemblyComparer()))
+            return EnumerateAssemblies(appAssembly.GetName(), blazorAssembly)
                 .SelectMany(a => a.ExportedTypes)
                 .Where(t => typeof(IComponent).IsAssignableFrom(t));
         }
 
         private static IEnumerable<Assembly> EnumerateAssemblies(
-            AssemblyName assemblyName,
-            Assembly blazorAssembly,
-            HashSet<Assembly> visited)
+            AssemblyName mainAssemblyName,
+            Assembly blazorAssembly)
         {
-            var assembly = Assembly.Load(assemblyName);
-            if (visited.Contains(assembly))
-            {
-                // Avoid traversing visited assemblies.
-                yield break;
-            }
-            visited.Add(assembly);
-            var references = assembly.GetReferencedAssemblies();
-            if (!references.Any(r => string.Equals(r.FullName, blazorAssembly.FullName, StringComparison.Ordinal)))
-            {
-                // Avoid traversing references that don't point to blazor (like netstandard2.0)
-                yield break;
-            }
-            else
-            {
-                yield return assembly;
+            var visited = new HashSet<Assembly>(new AssemblyComparer());
+            var candidates = new HashSet<Assembly>(new AssemblyComparer());
 
-                // Look at the list of transitive dependencies for more components.
-                foreach (var reference in references.SelectMany(r => EnumerateAssemblies(r, blazorAssembly, visited)))
+            EnumerateAssembliesCore(mainAssemblyName);
+
+            return candidates;
+
+            void EnumerateAssembliesCore(AssemblyName assemblyName)
+            {
+                var assembly = Assembly.Load(assemblyName);
+                if (visited.Contains(assembly))
                 {
-                    yield return reference;
+                    return;
+                }
+
+                visited.Add(assembly);
+                var references = assembly.GetReferencedAssemblies();
+                if (references.Any(r => string.Equals(r.FullName, blazorAssembly.FullName, StringComparison.Ordinal)))
+                {
+                    candidates.Add(assembly);
+                }
+
+                foreach (var reference in references)
+                {
+                    var countBeforeScanningDependencies = candidates.Count;
+                    EnumerateAssembliesCore(reference);
+                    // If the number of candidates has increased after this call, it means that a transitive dependency
+                    // of this assembly references the Blazor dll and by that token we should consider the current
+                    // assembly a candidate for components even though it might not directly reference the blazor assembly.
+                    if (countBeforeScanningDependencies < candidates.Count)
+                    {
+                        // This is ok as it will only be added once.
+                        candidates.Add(assembly);
+                    }
                 }
             }
         }

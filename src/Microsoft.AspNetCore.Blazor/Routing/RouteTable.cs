@@ -16,14 +16,14 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             Routes = routes;
         }
 
-        public RouteEntry[] Routes { get; set; }
+        public RouteEntry[] Routes { get; }
 
         public static RouteTable Create(IEnumerable<Type> types)
         {
             var routes = new List<RouteEntry>();
             foreach (var type in types)
             {
-                var routeAttributes = type.GetCustomAttributes<RouteAttribute>(); // Inherit: true?
+                var routeAttributes = type.GetCustomAttributes<RouteAttribute>(inherit: true);
                 foreach (var routeAttribute in routeAttributes)
                 {
                     var template = TemplateParser.ParseTemplate(routeAttribute.Template);
