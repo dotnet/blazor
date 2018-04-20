@@ -77,6 +77,30 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
+        public static UIEventHandler SetValueHandler(Action<double> setter, double existingValue)
+        {
+            return _ => setter(double.Parse((string)((UIChangeEventArgs)_).Value));
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static UIEventHandler SetValueHandler(Action<float> setter, float existingValue)
+        {
+            return _ => setter(float.Parse((string)((UIChangeEventArgs)_).Value));
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static UIEventHandler SetValueHandler(Action<decimal> setter, decimal existingValue)
+        {
+            return _ => setter(decimal.Parse((string)((UIChangeEventArgs)_).Value));
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
         public static UIEventHandler SetValueHandler(Action<DateTime> setter, DateTime existingValue)
         {
             return _ => SetDateTimeValue(setter, (object)((UIChangeEventArgs)_).Value, null);
@@ -125,6 +149,24 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<object> SetValue(Action<int> setter, int existingValue)
             => objValue => setter(int.Parse((string)objValue));
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<object> SetValue(Action<double> setter, double existingValue)
+            => objValue => setter(double.Parse((string)objValue));
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<object> SetValue(Action<float> setter, float existingValue)
+            => objValue => setter(float.Parse((string)objValue));
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<object> SetValue(Action<decimal> setter, decimal existingValue)
+            => objValue => setter(decimal.Parse((string)objValue));
 
         /// <summary>
         /// Not intended to be used directly.
