@@ -1,0 +1,14 @@
+Source Location: (72:1,41 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|@class|
+Generated Location: (851:20,41 [6] )
+|@class|
+
+Source Location: (118:3,12 [40] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private Test.MyComponent @class;
+|
+Generated Location: (1101:30,12 [40] )
+|
+    private Test.MyComponent @class;
+|
+

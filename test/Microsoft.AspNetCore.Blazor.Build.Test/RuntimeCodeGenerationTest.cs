@@ -942,5 +942,151 @@ namespace Test
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
             CompileToAssembly(generated);
         }
+
+        [Fact]
+        public void Element_WithRef_NoLeadingAt()
+        {
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+<elem attributebefore=""before"" ref=""myElem"" attributeafter=""after"">Hello</elem>
+
+@functions {
+    private Microsoft.AspNetCore.Blazor.ElementRef myElem;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Element_WithRef_LeadingAt()
+        {
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+<elem attributebefore=""before"" ref=""@myElem"" attributeafter=""after"">Hello</elem>
+
+@functions {
+    private Microsoft.AspNetCore.Blazor.ElementRef myElem;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Element_WithRef_CSharpReservedWord()
+        {
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+<elem ref=""@(@class)"" />
+
+@functions {
+    private Microsoft.AspNetCore.Blazor.ElementRef @class;
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithRef_NoLeadingAt()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent ParamBefore=""before"" ref=""myInstance"" ParamAfter=""after"" />
+
+@functions {
+    private Test.MyComponent myInstance;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithRef_LeadingAt()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent ParamBefore=""before"" ref=""@myInstance"" ParamAfter=""after"" />
+
+@functions {
+    private Test.MyComponent myInstance;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithRef_CSharpReservedWord()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent ParamBefore=""before"" ref=""@(@class)"" ParamAfter=""after"" />
+
+@functions {
+    private Test.MyComponent @class;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
     }
 }

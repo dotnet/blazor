@@ -5,6 +5,7 @@ import { platform } from '../Environment';
 import { EventDelegator } from './EventDelegator';
 import { EventForDotNet, UIEventArgs } from './EventForDotNet';
 import { LogicalElement, toLogicalElement, insertLogicalChild, removeLogicalChild, getLogicalParent, getLogicalChild, createAndInsertLogicalContainer, isSvgElement } from './LogicalElements';
+import { applyCaptureIdToElement } from './ElementReferenceCapture';
 const selectValuePropname = '_blazorSelectValue';
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
@@ -138,6 +139,13 @@ export class BrowserRenderer {
         return 1;
       case FrameType.region:
         return this.insertFrameRange(componentId, parent, childIndex, frames, frameIndex + 1, frameIndex + renderTreeFrame.subtreeLength(frame));
+      case FrameType.elementReferenceCapture:
+        if (parent instanceof Element) {
+          applyCaptureIdToElement(parent, renderTreeFrame.elementReferenceCaptureId(frame));
+        } else {
+          throw new Error('Reference capture frames can only be children of element frames.');
+        }
+        return 0;
       default:
         const unknownType: never = frameType; // Compile-time verification that the switch was exhaustive
         throw new Error(`Unknown frame type: ${unknownType}`);
