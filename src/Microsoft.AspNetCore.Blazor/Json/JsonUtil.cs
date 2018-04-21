@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Blazor
         /// <summary>
         /// Sets the parsing strategy for JSON, the default is <see cref="ParsingStrategy.CamelCase"/>
         /// </summary>
-        public static void SetDefaultParsingStrategy(ParsingStrategy strategy)
+        public static void SetParsingStrategy(ParsingStrategy strategy = ParsingStrategy.CamelCase)
         {
             SimpleJson.SimpleJson.SetParsingStrategy((int)strategy);
         }

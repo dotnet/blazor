@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void NoneParsingStrategyDoesNotConvertPropertyNamesToCamelCase()
         {
             // Arrange
-            JsonUtil.SetDefaultParsingStrategy(JsonUtil.ParsingStrategy.None);
+            JsonUtil.SetParsingStrategy(JsonUtil.ParsingStrategy.None);
             var person = new Person
             {
                 Id = 1844,
@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Cleanup
             // Reset Parsing Strategy to default since test order is not guaranteed
             // to avoid test errors as Json.Util is shared between tests.
-            JsonUtil.SetDefaultParsingStrategy(JsonUtil.ParsingStrategy.CamelCase);
+            JsonUtil.SetParsingStrategy();
         }
 
         [Fact]
