@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Blazor
             /// </summary>
             CamelCase = 1,
             /// <summary>
-            /// No JSON parsing strategy to be applied.
+            /// No JSON parsing strategy.
             /// </summary>
             None = 2
         }
