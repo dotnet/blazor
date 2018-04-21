@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert
             Assert.Equal(
-                "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}",
+                "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\"}",
                 JsonUtil.Serialize(person));
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void CanDeserializeClassFromJson()
         {
             // Arrange
-            var json = "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}";
+            var json = "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\"}";
 
             // Act
             var person = JsonUtil.Deserialize<Person>(json);
@@ -95,14 +95,14 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var result = JsonUtil.Serialize(commandResult);
             
             // Assert
-            Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", result);
+            Assert.Equal("{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}", result);
         }
 
         [Fact]
         public void CanDeserializeStructFromJson()
         {
             // Arrange
-            var json = "{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}";
+            var json = "{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}";
 
             //Act
             var simpleError = JsonUtil.Deserialize<SimpleStruct>(json);
@@ -111,6 +111,44 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal("Test", simpleError.StringProperty);
             Assert.True(simpleError.BoolProperty);
             Assert.Equal(1, simpleError.NullableIntProperty);
+        }
+
+        [Fact]
+        public void NoneParsingStrategyDoesNotConvertPropertyNamesToCamelCase()
+        {
+            // Arrange
+            JsonUtil.SetDefaultParsingStrategy(JsonUtil.ParsingStrategy.None);
+            var person = new Person
+            {
+                Id = 1844,
+                Name = "Athos",
+                Pets = new[] { "Aramis", "Porthos", "D'Artagnan" },
+                Hobby = Hobbies.Swordfighting,
+                Nicknames = new List<string> { "Comte de la Fère", "Armand" },
+                BirthInstant = new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)),
+                Age = new TimeSpan(7665, 1, 30, 0)
+            };
+            var commandResult = new SimpleStruct
+            {
+                StringProperty = "Test",
+                BoolProperty = true,
+                NullableIntProperty = 1
+            };
+
+            // Act
+            var structResult = JsonUtil.Serialize(commandResult);
+            var classResult = JsonUtil.Serialize(person);
+
+            // Assert
+            Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", structResult);
+            Assert.Equal(
+                "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}",
+                classResult);
+
+            // Cleanup
+            // Reset Parsing Strategy to default since test order is not guaranteed
+            // to avoid test errors as Json.Util is shared between tests.
+            JsonUtil.SetDefaultParsingStrategy(JsonUtil.ParsingStrategy.CamelCase);
         }
 
         [Fact]

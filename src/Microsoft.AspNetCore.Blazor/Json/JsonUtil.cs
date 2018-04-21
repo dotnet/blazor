@@ -13,6 +13,14 @@ namespace Microsoft.AspNetCore.Blazor
     public static class JsonUtil
     {
         /// <summary>
+        /// Sets the parsing strategy for JSON, the default is <see cref="ParsingStrategy.CamelCase"/>
+        /// </summary>
+        public static void SetDefaultParsingStrategy(ParsingStrategy strategy)
+        {
+            SimpleJson.SimpleJson.SetParsingStrategy((int)strategy);
+        }
+
+        /// <summary>
         /// Serializes the value as a JSON string.
         /// </summary>
         /// <param name="value">The value to serialize.</param>
@@ -28,5 +36,20 @@ namespace Microsoft.AspNetCore.Blazor
         /// <returns>An object of the specified type.</returns>
         public static T Deserialize<T>(string json)
             => SimpleJson.SimpleJson.DeserializeObject<T>(json);
+
+        /// <summary>
+        /// Parsing Strategy to be used by simple json when deserializing or serializing JSON.
+        /// </summary>
+        public enum ParsingStrategy
+        {
+            /// <summary>
+            /// Camel case JSON parsing strategy.
+            /// </summary>
+            CamelCase = 1,
+            /// <summary>
+            /// No JSON parsing strategy to be applied.
+            /// </summary>
+            None = 2
+        }
     }
 }
