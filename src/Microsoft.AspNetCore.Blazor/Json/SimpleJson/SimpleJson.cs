@@ -547,7 +547,7 @@ namespace SimpleJson
         }
 
         /// <summary>
-        /// Sets the property name parsing strategy to either camel case or pascal case.
+        /// Sets the property name parsing strategy to either camel case or none.
         /// </summary>
         /// <param name="strategy">The parsing strategy to be used.</param>
         public static void SetParsingStrategy(int strategy)
