@@ -52,8 +52,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         break;
 
                     case CSharpExpressionIntermediateNode _:
+                    case TagHelperIntermediateNode _:
+                        // These node types may produce non-whitespace output at runtime
                         shouldRemoveNode = false;
-                        shouldContinueIteration = false; // Because it may produce nonwhitespace output
+                        shouldContinueIteration = false;
                         break;
 
                     case CSharpCodeIntermediateNode codeIntermediateNode:

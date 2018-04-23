@@ -418,6 +418,35 @@ namespace Test
         }
 
         [Fact]
+        public void LeadingWhiteSpace_WithComponent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class SomeOtherComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+   
+<SomeOtherComponent />
+
+<h1>Hello</h1>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void TrailingWhiteSpace_WithDirective()
         {
             // Arrange/Act
@@ -442,6 +471,36 @@ namespace Test
 <h1>Hello</h1>
 
 @(""My value"")
+
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void TrailingWhiteSpace_WithComponent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class SomeOtherComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<h1>Hello</h1>
+
+<SomeOtherComponent />
 
 ");
 
