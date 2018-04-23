@@ -21,11 +21,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(documentNode));
             }
 
-            var method = documentNode.FindPrimaryMethod();
-            if (method != null)
+            // There's no benefit running the whitespace trimmer during design-time builds
+            if (!documentNode.Options.DesignTime)
             {
-                RemoveContiguousWhitespace(method.Children, TraversalDirection.Forwards);
-                RemoveContiguousWhitespace(method.Children, TraversalDirection.Backwards);
+                var method = documentNode.FindPrimaryMethod();
+                if (method != null)
+                {
+                    RemoveContiguousWhitespace(method.Children, TraversalDirection.Forwards);
+                    RemoveContiguousWhitespace(method.Children, TraversalDirection.Backwards);
+                }
             }
         }
 
