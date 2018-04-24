@@ -514,12 +514,11 @@ namespace SimpleJson
         private const int TOKEN_FALSE = 10;
         private const int TOKEN_NULL = 11;
         private const int BUILDER_CAPACITY = 2000;
-        public const int CAMEL_CASE_STRATEGY = 1;
 
         private static readonly char[] EscapeTable;
         private static readonly char[] EscapeCharacters = new char[] { '"', '\\', '\b', '\f', '\n', '\r', '\t' };
         private static readonly string EscapeCharactersString = new string(EscapeCharacters);
-        private static int ParsingStrategy = CAMEL_CASE_STRATEGY;
+        private static int DefaultPropertyNamingScheme = PropertyNamingSceme.CAMEL_CASE_PROPERTY_NAMING;
 
         static SimpleJson()
         {
@@ -544,17 +543,6 @@ namespace SimpleJson
             if (TryDeserializeObject(json, out obj))
                 return obj;
             throw new SerializationException("Invalid JSON string");
-        }
-
-        /// <summary>
-        /// Sets the property name parsing strategy to either camel case or none.
-        /// </summary>
-        /// <param name="strategy">The parsing strategy to be used.</param>
-        public static void SetParsingStrategy(int strategy)
-        {
-            ParsingStrategy = strategy;
-            CurrentJsonSerializerStrategy = new PocoJsonSerializerStrategy(ParsingStrategy);
-            _pocoJsonSerializerStrategy = new PocoJsonSerializerStrategy(ParsingStrategy);
         }
 
         /// <summary>
@@ -605,7 +593,14 @@ namespace SimpleJson
 
         public static T DeserializeObject<T>(string json)
         {
+            CurrentJsonSerializerStrategy.SetPropertyNamingScheme(DefaultPropertyNamingScheme);
             return (T)DeserializeObject(json, typeof(T), null);
+        }
+
+        public static T DeserializeObject<T>(string json, int propertyNaming)
+        {
+            CurrentJsonSerializerStrategy.SetPropertyNamingScheme(propertyNaming);
+            return (T)DeserializeObject(json, typeof(T), CurrentJsonSerializerStrategy);
         }
 
         /// <summary>
@@ -623,6 +618,13 @@ namespace SimpleJson
 
         public static string SerializeObject(object json)
         {
+            CurrentJsonSerializerStrategy.SetPropertyNamingScheme(DefaultPropertyNamingScheme);
+            return SerializeObject(json, CurrentJsonSerializerStrategy);
+        }
+
+        public static string SerializeObject(object json, int propertyNaming)
+        {
+            CurrentJsonSerializerStrategy.SetPropertyNamingScheme(propertyNaming);
             return SerializeObject(json, CurrentJsonSerializerStrategy);
         }
 
@@ -712,7 +714,7 @@ namespace SimpleJson
                 {
                     // name
                     string name = ParseString(json, ref index, ref success);
-                    if (ParsingStrategy == CAMEL_CASE_STRATEGY)
+                    if (DefaultPropertyNamingScheme == PropertyNamingSceme.CAMEL_CASE_PROPERTY_NAMING)
                     {
                         name = char.ToUpper(name[0]) + name.Substring(1);
                     }
@@ -1223,7 +1225,7 @@ namespace SimpleJson
         {
             get
             {
-                return _pocoJsonSerializerStrategy ?? (_pocoJsonSerializerStrategy = new PocoJsonSerializerStrategy(ParsingStrategy));
+                return _pocoJsonSerializerStrategy ?? (_pocoJsonSerializerStrategy = new PocoJsonSerializerStrategy(DefaultPropertyNamingScheme));
             }
         }
 
@@ -1253,6 +1255,13 @@ namespace SimpleJson
         [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate", Justification="Need to support .NET 2")]
         bool TrySerializeNonPrimitiveObject(object input, out object output);
         object DeserializeObject(object value, Type type);
+        void SetPropertyNamingScheme(int propertyNaming);
+    }
+
+    static class PropertyNamingSceme
+    {
+        public const int CAMEL_CASE_PROPERTY_NAMING = 1;
+        public const int PASCAL_CASE_PROPERTY_NAMING = 2;
     }
 
     [GeneratedCode("simple-json", "1.0.0")]
@@ -1276,18 +1285,23 @@ namespace SimpleJson
                                                                  @"yyyy-MM-dd\THH:mm:ss\Z",
                                                                  @"yyyy-MM-dd\THH:mm:ssK"
                                                              };
-        private int ParsingStrategy;
-        public PocoJsonSerializerStrategy(int parsingStrategy)
+        public int PropertyNaming;
+        public PocoJsonSerializerStrategy(int propertyNamingScheme)
         {
             ConstructorCache = new ReflectionUtils.ThreadSafeDictionary<Type, ReflectionUtils.ConstructorDelegate>(ConstructorDelegateFactory);
             GetCache = new ReflectionUtils.ThreadSafeDictionary<Type, IDictionary<string, ReflectionUtils.GetDelegate>>(GetterValueFactory);
             SetCache = new ReflectionUtils.ThreadSafeDictionary<Type, IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>>(SetterValueFactory);
-            ParsingStrategy = parsingStrategy;
+            PropertyNaming = propertyNamingScheme;
         }
 
-        protected virtual string MapClrMemberNameToJsonFieldName(string clrPropertyName, bool isFromSetterFactory = false)
+        public void SetPropertyNamingScheme(int propertyNaming)
         {
-            return ParsingStrategy == SimpleJson.CAMEL_CASE_STRATEGY && !isFromSetterFactory
+            PropertyNaming = propertyNaming;
+        }
+
+        protected virtual string MapClrMemberNameToJsonFieldName(string clrPropertyName, bool isFromGetterFactory)
+        {
+            return PropertyNaming == PropertyNamingSceme.CAMEL_CASE_PROPERTY_NAMING && isFromGetterFactory
                 ? char.ToLowerInvariant(clrPropertyName[0]) + clrPropertyName.Substring(1)
                 : clrPropertyName;
         }
@@ -1309,14 +1323,14 @@ namespace SimpleJson
                     MethodInfo getMethod = ReflectionUtils.GetGetterMethodInfo(propertyInfo);
                     if (getMethod.IsStatic || !getMethod.IsPublic)
                         continue;
-                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name)] = ReflectionUtils.GetGetMethod(propertyInfo);
+                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name, true)] = ReflectionUtils.GetGetMethod(propertyInfo);
                 }
             }
             foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(type))
             {
                 if (fieldInfo.IsStatic || !fieldInfo.IsPublic)
                     continue;
-                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name)] = ReflectionUtils.GetGetMethod(fieldInfo);
+                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name, true)] = ReflectionUtils.GetGetMethod(fieldInfo);
             }
             return result;
         }
@@ -1331,14 +1345,14 @@ namespace SimpleJson
                     MethodInfo setMethod = ReflectionUtils.GetSetterMethodInfo(propertyInfo);
                     if (setMethod.IsStatic || !setMethod.IsPublic)
                         continue;
-                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name, true)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(propertyInfo.PropertyType, ReflectionUtils.GetSetMethod(propertyInfo));
+                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name, false)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(propertyInfo.PropertyType, ReflectionUtils.GetSetMethod(propertyInfo));
                 }
             }
             foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(type))
             {
                 if (fieldInfo.IsInitOnly || fieldInfo.IsStatic || !fieldInfo.IsPublic)
                     continue;
-                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name, true)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(fieldInfo.FieldType, ReflectionUtils.GetSetMethod(fieldInfo));
+                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name, false)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(fieldInfo.FieldType, ReflectionUtils.GetSetMethod(fieldInfo));
             }
             return result;
         }
@@ -1545,7 +1559,7 @@ namespace SimpleJson
             foreach (KeyValuePair<string, ReflectionUtils.GetDelegate> getter in getters)
             {
                 if (getter.Value != null)
-                    obj.Add(MapClrMemberNameToJsonFieldName(getter.Key), getter.Value(input));
+                    obj.Add(MapClrMemberNameToJsonFieldName(getter.Key, true), getter.Value(input));
             }
             output = obj;
             return true;

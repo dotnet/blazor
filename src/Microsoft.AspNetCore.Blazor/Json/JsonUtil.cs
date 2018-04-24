@@ -13,20 +13,21 @@ namespace Microsoft.AspNetCore.Blazor
     public static class JsonUtil
     {
         /// <summary>
-        /// Sets the parsing strategy for JSON, the default is <see cref="ParsingStrategy.CamelCase"/>
-        /// </summary>
-        public static void SetParsingStrategy(ParsingStrategy strategy = ParsingStrategy.CamelCase)
-        {
-            SimpleJson.SimpleJson.SetParsingStrategy((int)strategy);
-        }
-
-        /// <summary>
-        /// Serializes the value as a JSON string.
+        /// Serializes the value as a JSON string using the default property naming scheme <see cref="PropertyNaming.CamelCase"/>.
         /// </summary>
         /// <param name="value">The value to serialize.</param>
         /// <returns>The JSON string.</returns>
         public static string Serialize(object value)
             => SimpleJson.SimpleJson.SerializeObject(value);
+
+        /// <summary>
+        /// Serializes the value as a JSON string with the specified property naming scheme.
+        /// </summary>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="naming">The property naming scheme for serializing.</param>
+        /// <returns>The JSON string.</returns>
+        public static string Serialize(object value, PropertyNaming naming)
+            => SimpleJson.SimpleJson.SerializeObject(value, (int)naming);
 
         /// <summary>
         /// Deserializes the JSON string, creating an object of the specified generic type.
@@ -38,18 +39,28 @@ namespace Microsoft.AspNetCore.Blazor
             => SimpleJson.SimpleJson.DeserializeObject<T>(json);
 
         /// <summary>
-        /// Parsing Strategy to be used by simple json when deserializing or serializing JSON.
+        /// Deserializes the JSON string, creating an object of the specified generic type.
         /// </summary>
-        public enum ParsingStrategy
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json">The JSON string.</param>
+        /// <param name="propertyNaming">The property naming of the JSON string.</param>
+        /// <returns>An object of the specified type.</returns>
+        public static T Deserialize<T>(string json, PropertyNaming propertyNaming)
+            => SimpleJson.SimpleJson.DeserializeObject<T>(json, (int)propertyNaming);
+
+        /// <summary>
+        /// Property Naming scheme to be used by simple json when deserializing or serializing JSON.
+        /// </summary>
+        public enum PropertyNaming
         {
             /// <summary>
-            /// Camel case JSON parsing strategy.
+            /// Camel case JSON property naming scheme.
             /// </summary>
             CamelCase = 1,
             /// <summary>
-            /// No JSON parsing strategy.
+            /// Pascal case JSON property naming scheme.
             /// </summary>
-            None = 2
+            PascalCase = 2
         }
     }
 }
