@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AngleSharp;
+using AngleSharp.Extensions;
 using AngleSharp.Html;
 using AngleSharp.Parser.Html;
 using Microsoft.AspNetCore.Razor.Language;
@@ -208,18 +209,29 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 _unconsumedHtml = null;
             }
 
-            var tokenizer = new HtmlTokenizer(
-                new TextSource(originalHtmlContent),
-                HtmlEntityService.Resolver);
+            var textSource = new TextSource(originalHtmlContent);
+
             var codeWriter = context.CodeWriter;
 
             // TODO: As an optimization, identify static subtrees (i.e., HTML elements in the Razor source
             // that contain no C#) and represent them as a new RenderTreeFrameType called StaticElement or
             // similar. This means you can have arbitrarily deep static subtrees without paying any per-
             // node cost during rendering or diffing.
-            HtmlToken nextToken;
-            while ((nextToken = tokenizer.Get()).Type != HtmlTokenType.EndOfFile)
+            foreach (var nextToken in textSource.Tokenize(HtmlEntityService.Resolver))
             {
+                if (nextToken.Type == HtmlTokenType.EndOfFile)
+                {
+                    // If we got an EOF in the middle of an HTML element, it's probably because we're
+                    // about to receive some attribute name/value pairs. Store the unused HTML content
+                    // so we can prepend it to the part that comes after the attributes to make
+                    // complete valid markup.
+                    if (originalHtmlContent.Length > nextToken.Position.Position)
+                    {
+                        _unconsumedHtml = originalHtmlContent.Substring(nextToken.Position.Position - 1);
+                    }
+                    break;
+                }
+
                 switch (nextToken.Type)
                 {
                     case HtmlTokenType.Character:
@@ -253,7 +265,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                                     .WriteParameterSeparator()
                                     .WriteStringLiteral(nextTag.Data)
                                     .WriteEndMethodInvocation();
- 
+
                                 foreach (var attribute in nextTag.Attributes)
                                 {
                                     var token = new IntermediateToken() { Kind = TokenKind.Html, Content = attribute.Value };
@@ -268,7 +280,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                                     }
                                     _currentElementAttributes.Clear();
                                 }
-
                                 _scopeStack.OpenScope( tagName: nextTag.Data, isComponent: false);
                             }
 
@@ -294,15 +305,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     default:
                         throw new InvalidCastException($"Unsupported token type: {nextToken.Type.ToString()}");
                 }
-            }
-
-            // If we got an EOF in the middle of an HTML element, it's probably because we're
-            // about to receive some attribute name/value pairs. Store the unused HTML content
-            // so we can prepend it to the part that comes after the attributes to make
-            // complete valid markup.
-            if (originalHtmlContent.Length > nextToken.Position.Position)
-            {
-                _unconsumedHtml = originalHtmlContent.Substring(nextToken.Position.Position - 1);
             }
         }
 
@@ -479,7 +481,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 throw new InvalidOperationException("Unexpected node type " + node.Children[0].GetType().FullName);
             }
-            
+
             context.CodeWriter.Write(");");
             context.CodeWriter.WriteLine();
         }

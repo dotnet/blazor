@@ -6,12 +6,4 @@
       <AdditionalProperties>Configuration=$(Configuration)NoVSIX</AdditionalProperties>
     </Solutions>
   </ItemGroup>
-
-  <!-- 
-    Get Anglesharp built right away. This isn't needed for correctness, but helps avoid concurrency problems.
-  -->
-  <Target Name="BuildAngleSharp" BeforeTargets="BuildSolutions">
-    <Message Importance="High" Text="Building Anglesharp..." />
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\src\anglesharp\AngleSharpBuilder\AngleSharpBuilder.csproj" />
-  </Target>
 </Project>
