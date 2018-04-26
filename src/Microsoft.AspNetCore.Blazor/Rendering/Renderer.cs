@@ -26,6 +26,8 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         private int _lastEventHandlerId = 0;
         private readonly Dictionary<int, EventHandlerInvoker> _eventBindings = new Dictionary<int, EventHandlerInvoker>();
 
+        private readonly List<Action> _renderCompleteCallbacks = new List<Action>();
+
         /// <summary>
         /// Constructs an instance of <see cref="Renderer"/>.
         /// </summary>
@@ -122,7 +124,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             frame = frame.WithAttributeEventHandlerId(id);
         }
 
-        internal void AddToRenderQueue(int componentId, RenderFragment renderFragment)
+        internal void AddToRenderQueue(int componentId, RenderFragment renderFragment, Action renderCompleteCallback)
         {
             var componentState = GetOptionalComponentState(componentId);
             if (componentState == null)
@@ -130,6 +132,11 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
                 // If the component was already disposed, then its render handle trying to
                 // queue a render is a no-op.
                 return;
+            }
+
+            if (renderCompleteCallback != null)
+            {
+                _renderCompleteCallbacks.Add(renderCompleteCallback);
             }
 
             _batchBuilder.ComponentRenderQueue.Enqueue(
@@ -165,12 +172,18 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
                 }
 
                 UpdateDisplay(_batchBuilder.ToBatch());
+
+                foreach (var callback in _renderCompleteCallbacks)
+                {
+                    callback();
+                }
             }
             finally
             {
                 RemoveEventHandlerIds(_batchBuilder.DisposedEventHandlerIds.ToRange());
                 _batchBuilder.Clear();
                 _isBatchInProgress = false;
+                _renderCompleteCallbacks.Clear();
             }
         }
 

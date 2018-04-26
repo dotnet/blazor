@@ -91,6 +91,19 @@ namespace Microsoft.AspNetCore.Blazor.Components
             => null;
 
         /// <summary>
+        /// Method invoked when the component has rendered into the DOM.
+        /// </summary>
+        protected virtual void OnRenderComplete()
+        {
+        }
+
+        /// <summary>
+        /// Method invoked when the component has rendered into the DOM.
+        /// </summary>
+        protected virtual Task OnRenderCompleteAsync()
+            => null;
+
+        /// <summary>
         /// Notifies the component that its state has changed. When applicable, this will
         /// cause the component to be re-rendered.
         /// </summary>
@@ -104,7 +117,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             if (_hasNeverRendered || ShouldRender())
             {
                 _hasPendingQueuedRender = true;
-                _renderHandle.Render(_renderFragment);
+                _renderHandle.Render(_renderFragment, RenderCompleteCallback);
             }
         }
 
@@ -150,6 +163,19 @@ namespace Microsoft.AspNetCore.Blazor.Components
             OnParametersSetAsync()?.ContinueWith(ContinueAfterLifecycleTask);
 
             StateHasChanged();
+        }
+
+        private void RenderCompleteCallback()
+        {
+            OnRenderComplete();
+            
+            OnRenderCompleteAsync()?.ContinueWith(task =>
+            {
+                if (task.Exception != null)
+                {
+                    HandleException(task.Exception);
+                }
+            });
         }
 
         private void ContinueAfterLifecycleTask(Task task)
