@@ -519,7 +519,6 @@
     </PropertyGroup>
 
     <WriteLinesToFile
-          Condition="'@(_BlazorDependencyInput)' != ''"
           File="$(BlazorReferencesConfigFilePath)"
           Lines="@(_BlazorDependencyInput)"
           Overwrite="true" />
@@ -613,7 +612,6 @@
     </PropertyGroup>
 
     <WriteLinesToFile
-      Condition="'@(_AppReferences)' != ''"
       File="$(BlazorReferencesConfigFilePath)"
       Lines="@(_AppReferences)"
       Overwrite="true" />
