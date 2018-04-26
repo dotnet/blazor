@@ -7,7 +7,7 @@ namespace BlazorStandalone.CSharp
 {
     public class Program
     {
-        public static void Main(string[] args)
+        static void Main(string[] args)
         {
             var serviceProvider = new BrowserServiceProvider(services =>
             {
