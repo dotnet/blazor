@@ -3,8 +3,11 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
@@ -68,6 +71,46 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
             _vsProcess = vsProcess ?? throw new ArgumentNullException(nameof(vsProcess));
         }
 
+        private static Process FindIISHostedVSProcess(Process VSIISExeLauncher)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return null;
+            }
+
+            var launcherDirectory = Path.GetDirectoryName(VSIISExeLauncher.MainModule.FileName);
+
+            //Assuming default IISLauncherArgs.txt filename
+            var IISExeLauncherArgs = Path.Combine(launcherDirectory, "IISExeLauncherArgs.txt");
+            if (!File.Exists(IISExeLauncherArgs))
+                return null;
+
+            string args = File.ReadAllText(IISExeLauncherArgs);
+            Match m = Regex.Match(args, @"-owningPid (?<Pid>[0-9]+)");
+
+            int owningPid = 0;
+            if (!int.TryParse(m.Groups["Pid"]?.Value, out owningPid))
+            {
+                return null;
+            }
+
+            try
+            {
+                var vsProcess = Process.GetProcessById(owningPid);
+                if (vsProcess != null && vsProcess.ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase) && !vsProcess.HasExited)
+                    return vsProcess;
+            }
+            catch (Exception)
+            {
+                // There's probably some permissions issue that prevents us from seeing
+                // more information about devenv process. The used service account in IIS
+                // may not be in the administrator group, and lack of privilege.
+            }
+
+            //If no process were found or if the devenv process exited, then there is no eligible PID
+            return null;
+        }
+
         private static Process FindAncestorVSProcess()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -89,6 +132,18 @@ namespace Microsoft.AspNetCore.Blazor.Server.AutoRebuild
                     if (candidateProcess.ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase))
                     {
                         return candidateProcess;
+                    }
+
+                    // The currently debuggable process may be launched from the VSIISExeLauncher program
+                    // if hosted in IIS with Visual Studio IIS continuous integration. In this scenario we
+                    // retrieve VS PID (devenv) from IISExeLauncherArgs.txt file, in owningPid option.
+                    if (candidateProcess.ProcessName.Equals("VSIISExeLauncher", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var hostedVSProcess = FindIISHostedVSProcess(candidateProcess);
+                        if (hostedVSProcess != null)
+                        {
+                            return hostedVSProcess;
+                        }
                     }
 
                     candidateProcess = ProcessUtils.GetParent(candidateProcess);
