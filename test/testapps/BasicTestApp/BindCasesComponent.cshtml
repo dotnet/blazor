@@ -11,6 +11,18 @@
     <span id="textbox-initially-populated-value">@textboxInitiallyPopulatedValue</span>
 </p>
 
+<h2>Numeric Stepper</h2>
+<p>
+    Initially blank:
+    <input id="numericstepper-initially-blank" bind="numericStepperInitiallyBlankValue" type="number" step="any" />
+    <span id="numericstepper-initially-blank-value">@numericStepperInitiallyBlankValue</span>
+</p>
+<p>
+    Initially populated:
+    <input id="numericstepper-initially-populated" bind="numericStepperInitiallyPopulatedValue" type="number" step="any" />
+    <span id="numericstepper-initially-populated-value">@numericStepperInitiallyPopulatedValue</span>
+</p>
+
 <h2>Text Area</h2>
 <p>
     Initially blank:
@@ -59,6 +71,9 @@
 
     bool checkboxInitiallyUncheckedValue = false;
     bool checkboxInitiallyCheckedValue = true;
+
+    decimal numericStepperInitiallyBlankValue = default;
+    decimal numericStepperInitiallyPopulatedValue = 1.23456789M;
 
     bool includeFourthOption = false;
     enum SelectableValue { First, Second, Third, Fourth }
