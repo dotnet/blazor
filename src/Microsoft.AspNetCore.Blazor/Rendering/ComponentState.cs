@@ -63,7 +63,14 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         public void DisposeInBatch(RenderBatchBuilder batchBuilder)
         {
             _componentWasDisposed = true;
- 
+
+            //BlazorComponent is abstract, so we are only checking that this instance is a subclass
+            if (_component.GetType().IsSubclassOf(typeof(BlazorComponent)))
+            {
+                var blazorComponent = _component as BlazorComponent;
+                blazorComponent.NotifyOnRemove();
+            }
+
             // TODO: Handle components throwing during dispose. Shouldn't break the whole render batch.
             if (_component is IDisposable disposable)
             {
