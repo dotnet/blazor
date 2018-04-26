@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using System;
 using System.Threading.Tasks;
@@ -91,6 +92,33 @@ namespace Microsoft.AspNetCore.Blazor.Components
             => null;
 
         /// <summary>
+        /// Method invoked when the component is ready to be removed from the DOM
+        /// </summary>
+        protected virtual void OnRemove()
+        {
+        }
+
+        /// <summary>
+        /// Method invoked when the component is ready to be removed from the DOM
+        /// 
+        /// Override this method if you will perform an asynchronous operation. The
+        /// component will not be refreshed when that operation is completed, as it's
+        /// actually disposing.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing any asynchronous operation, or <see langword="null"/>.</returns>
+        protected virtual Task OnRemoveAsync()
+            => null;
+
+        /// <summary>
+        /// This method should be called from <see cref="ComponentState"/> DisposeInBatch method, in order to fire the OnRemove event to the component
+        /// </summary>
+        internal void NotifyOnRemove()
+        {
+            OnRemove();
+            OnRemoveAsync();
+        }
+
+        /// <summary>
         /// Notifies the component that its state has changed. When applicable, this will
         /// cause the component to be re-rendered.
         /// </summary>
@@ -127,7 +155,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
             _renderHandle = renderHandle;
         }
-        
+
         /// <summary>
         /// Method invoked to apply initial or updated parameters to the component.
         /// </summary>
