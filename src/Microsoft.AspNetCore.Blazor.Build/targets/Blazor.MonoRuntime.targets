@@ -512,10 +512,9 @@
             @(_BlazorDependencyInput)"
     Outputs="$(BlazorResolvedAssembliesOutputPath)"
   >
-    <ItemGroup>
-      <_DependenciesParameter Include="@(_BlazorDependencyInput->'--reference &quot;%(Identity)&quot;')" />
-    </ItemGroup>
+
     <PropertyGroup>
+      <_ReferencesArg Condition="'@(_BlazorDependencyInput)' != ''">--references &quot;$(BlazorReferencesConfigFilePath)&quot;</_ReferencesArg>
       <_BclParameter>--base-class-library &quot;$(MonoBaseClassLibraryPath)&quot; --base-class-library &quot;$(MonoBaseClassLibraryFacadesPath)&quot;</_BclParameter>
     </PropertyGroup>
 
@@ -525,7 +524,7 @@
           Lines="@(_BlazorDependencyInput)"
           Overwrite="true" />
 
-    <Exec Command="$(BlazorBuildExe) resolve-dependencies &quot;@(IntermediateAssembly->'%(FullPath)')&quot; --references &quot;$(BlazorReferencesConfigFilePath)&quot; $(_BclParameter) --output &quot;$(BlazorResolvedAssembliesOutputPath)&quot;" />
+    <Exec Command="$(BlazorBuildExe) resolve-dependencies &quot;@(IntermediateAssembly->'%(FullPath)')&quot; $(_ReferencesArg) $(_BclParameter) --output &quot;$(BlazorResolvedAssembliesOutputPath)&quot;" />
 
   </Target>
 
