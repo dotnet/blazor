@@ -44,7 +44,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             => new RenderFragment[]
             {
                 builder => builder.AddContent(0, "Hello"),
-                builder => builder.OpenElement(0, "Some Element"),
+                builder =>
+                {
+                    builder.OpenElement(0, "Some Element");
+                    builder.CloseElement();
+                },
                 builder =>
                 {
                     builder.OpenElement(0, "Some Element");
