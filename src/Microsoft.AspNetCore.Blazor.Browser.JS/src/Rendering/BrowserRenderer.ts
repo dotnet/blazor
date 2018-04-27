@@ -79,7 +79,7 @@ export class BrowserRenderer {
 					const frameIndex = renderTreeEdit.newTreeIndex(edit);
 					const frame = getTreeFramePtr(referenceFrames, frameIndex);
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					const element = parent.getElementChild(childIndexAtCurrentDepth + siblingIndex) as Element;
+					const element = parent.getLogicalChild(childIndexAtCurrentDepth + siblingIndex) as Element;
 
 					const blazorElement = createBlazorDOMElement(this, element);
 					blazorElement.applyAttribute(componentId, frame);
@@ -100,7 +100,7 @@ export class BrowserRenderer {
 				}
 				case EditType.stepIn: {
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					const stepInElement = parent.getElementChild(childIndexAtCurrentDepth + siblingIndex)!;
+					const stepInElement = parent.getLogicalChild(childIndexAtCurrentDepth + siblingIndex)!;
 
 					// if stepInElement is a simple DOM element, create a element
 					if (stepInElement instanceof BlazorDOMElement == false) {

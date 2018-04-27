@@ -24,7 +24,7 @@ export class BlazorDOMElement {
         return this.Range.startContainer as HTMLElement;
     }
 
-    public getElementChild(childIndex: number): Node | BlazorDOMElement | null {
+    public getLogicalChild(childIndex: number): Node | BlazorDOMElement | null {
         let element: Node | null = this.Range.startContainer;
         if (this.isComponent() === false)
             element = element.firstChild;
@@ -83,7 +83,7 @@ export class BlazorDOMElement {
     public insertNodeIntoDOM(node: Node, childIndex: number) {
         let parentElement = this.getParentDOMElement();
 
-        let realSibling = this.getElementChild(childIndex);
+        let realSibling = this.getLogicalChild(childIndex);
         if (realSibling === null) {
             parentElement.appendChild(node);
         }
@@ -102,7 +102,7 @@ export class BlazorDOMElement {
             this.Range.deleteContents();
         }
         else {
-            const element = this.getElementChild(childIndex)!;
+            const element = this.getLogicalChild(childIndex)!;
 
             if (element instanceof BlazorDOMElement) {
                 element.removeFromDom();
@@ -115,7 +115,7 @@ export class BlazorDOMElement {
     }
 
     public updateText(childIndex: number, newText: string | null) {
-        const domTextNode = this.getElementChild(childIndex) as Text;
+        const domTextNode = this.getLogicalChild(childIndex) as Text;
         domTextNode.textContent = newText;
     }
 
@@ -138,7 +138,7 @@ export class BlazorDOMElement {
 
     public removeAttribute(childIndex: number, attributeName: string) {
         // maybe must be rewritten (never go inside for now)
-        const element = this.getElementChild(childIndex) as Element;
+        const element = this.getLogicalChild(childIndex) as Element;
         element.removeAttribute(attributeName);
     }
 
