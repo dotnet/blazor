@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Test
@@ -157,8 +158,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
             };
 
             // Act
-            var structResult = JsonUtil.Serialize(commandResult, JsonUtil.PropertyNaming.PascalCase);
-            var classResult = JsonUtil.Serialize(person, JsonUtil.PropertyNaming.PascalCase);
+            var structResult = JsonUtil.Serialize(commandResult, SimpleJson.PropertyNaming.PascalCase);
+            var classResult = JsonUtil.Serialize(person, SimpleJson.PropertyNaming.PascalCase);
 
             // Assert
             Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", structResult);
@@ -184,6 +185,39 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(
                 $"Cannot deserialize JSON into type '{type.FullName}' because it does not have a public parameterless constructor.", 
                 exception.Message);
+        }
+
+        [Fact]
+        public void JsonSerializeAndDeserializeIsThreadSafe()
+        {
+            // Arrange
+            var command1 = new SimpleStruct
+            {
+                StringProperty = "Test",
+                BoolProperty = true,
+                NullableIntProperty = 1
+            };
+            var command2 = new SimpleStruct
+            {
+                StringProperty = "Test",
+                BoolProperty = true,
+                NullableIntProperty = 1
+            };
+            var result1 = string.Empty;
+            var result2 = string.Empty;
+            var thread1 = new Thread(() => result1 = JsonUtil.Serialize(command1, SimpleJson.PropertyNaming.PascalCase));
+            var thread2 = new Thread(() => result2 = JsonUtil.Serialize(command2));
+
+            // Act
+            thread1.Start();
+            thread2.Start();
+
+            thread1.Join();
+            thread2.Join();
+
+            // Assert
+            Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", result1);
+            Assert.Equal("{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}", result2);
         }
 
         class NonEmptyConstructorPoco
