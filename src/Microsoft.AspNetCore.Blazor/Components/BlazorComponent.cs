@@ -117,14 +117,14 @@ namespace Microsoft.AspNetCore.Blazor.Components
             => true;
 
         /// <summary>
-        /// Method invoked each time after the component has been rendered.
+        /// Method invoked after each time the component has been rendered.
         /// </summary>
         protected virtual void OnAfterRender()
         {
         }
 
         /// <summary>
-        /// Method invoked each time after the component has been rendered. Note that the component does
+        /// Method invoked after each time the component has been rendered. Note that the component does
         /// not automatically re-render after the completion of any returned <see cref="Task"/>, because
         /// that would cause an infinite render loop.
         /// </summary>
