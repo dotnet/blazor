@@ -13,23 +13,24 @@ namespace Test
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
-            builder.OpenComponent<Test.MyComponent>(0);
-            builder.AddAttribute(1, "ParamBefore", "before");
-            builder.AddAttribute(2, "ParamAfter", "after");
-            builder.AddComponentReferenceCapture(3, (__value) => {
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                        myInstance = (Test.MyComponent)__value;
+            builder.OpenElement(0, "elem");
+            builder.AddAttribute(1, "attributebefore", "before");
+            builder.AddAttribute(2, "attributeafter", "after");
+            builder.AddElementReferenceCapture(3, (__value) => {
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                    myElem = __value;
 
 #line default
 #line hidden
             }
             );
-            builder.CloseComponent();
+            builder.AddContent(4, "Hello");
+            builder.CloseElement();
         }
         #pragma warning restore 1998
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
             
-    private Test.MyComponent myInstance;
+    private Microsoft.AspNetCore.Blazor.ElementRef myElem;
 
 #line default
 #line hidden

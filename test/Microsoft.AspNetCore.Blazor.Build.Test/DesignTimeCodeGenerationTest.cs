@@ -691,7 +691,7 @@ namespace Test
         }
 
         [Fact]
-        public void Element_WithRef_NoLeadingAt()
+        public void Element_WithRef()
         {
             // Arrange/Act
             var generated = CompileToCSharp(@"
@@ -711,47 +711,7 @@ namespace Test
         }
 
         [Fact]
-        public void Element_WithRef_LeadingAt()
-        {
-            // Arrange/Act
-            var generated = CompileToCSharp(@"
-<elem attributebefore=""before"" ref=""@myElem"" attributeafter=""after"">Hello</elem>
-
-@functions {
-    Microsoft.AspNetCore.Blazor.ElementRef myElem;
-
-    void DoSomething() { myElem.GetHashCode(); } // Avoid 'assigned but not used' warning
-}
-");
-
-            // Assert
-            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-            CompileToAssembly(generated);
-        }
-
-        [Fact]
-        public void Element_WithRef_CSharpReservedWord()
-        {
-            // Arrange/Act
-            var generated = CompileToCSharp(@"
-<elem attributebefore=""before"" ref=""@(@class)"" attributeafter=""after"">Hello</elem>
-
-@functions {
-    Microsoft.AspNetCore.Blazor.ElementRef @class;
-
-    void DoSomething() { @class.GetHashCode(); } // Avoid 'assigned but not used' warning
-}
-");
-
-            // Assert
-            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-            CompileToAssembly(generated);
-        }
-
-        [Fact]
-        public void Component_WithRef_NoLeadingAt()
+        public void Component_WithRef()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
@@ -774,72 +734,6 @@ namespace Test
     Test.MyComponent myInstance;
 
     void DoSomething() { myInstance.GetHashCode(); } // Avoid 'assigned but not used' warning
-}
-");
-
-            // Assert
-            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-            CompileToAssembly(generated);
-        }
-
-        [Fact]
-        public void Component_WithRef_LeadingAt()
-        {
-            // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
-using Microsoft.AspNetCore.Blazor.Components;
-
-namespace Test
-{
-    public class MyComponent : BlazorComponent
-    {
-    }
-}
-"));
-
-            // Act
-            var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
-<MyComponent ParamBefore=""before"" ref=""@myInstance"" ParamAfter=""after"" />
-
-@functions {
-    Test.MyComponent myInstance;
-
-    void DoSomething() { myInstance.GetHashCode(); } // Avoid 'assigned but not used' warning
-}
-");
-
-            // Assert
-            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-            CompileToAssembly(generated);
-        }
-
-        [Fact]
-        public void Component_WithRef_CSharpReservedWord()
-            {
-            // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
-using Microsoft.AspNetCore.Blazor.Components;
-
-namespace Test
-{
-    public class MyComponent : BlazorComponent
-    {
-    }
-}
-"));
-
-            // Act
-            var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
-<MyComponent ParamBefore=""before"" ref=""@(@class)"" ParamAfter=""after"" />
-
-@functions {
-    Test.MyComponent @class;
-
-    void DoSomething() { @class.GetHashCode(); } // Avoid 'assigned but not used' warning
 }
 ");
 
