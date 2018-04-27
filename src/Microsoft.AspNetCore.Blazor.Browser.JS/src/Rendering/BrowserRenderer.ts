@@ -142,10 +142,10 @@ export class BrowserRenderer {
       case FrameType.elementReferenceCapture:
         if (parent instanceof Element) {
           applyCaptureIdToElement(parent, renderTreeFrame.elementReferenceCaptureId(frame));
+          return 0; // A "capture" is a child in the diff, but has no node in the DOM
         } else {
           throw new Error('Reference capture frames can only be children of element frames.');
         }
-        return 0;
       default:
         const unknownType: never = frameType; // Compile-time verification that the switch was exhaustive
         throw new Error(`Unknown frame type: ${unknownType}`);
@@ -260,13 +260,24 @@ export class BrowserRenderer {
       childIndex += numChildrenInserted;
 
       // Skip over any descendants, since they are already dealt with recursively
-      const subtreeLength = renderTreeFrame.subtreeLength(frame);
-      if (subtreeLength > 1) {
-        index += subtreeLength - 1;
-      }
+      index += countDescendantFrames(frame);
     }
 
     return (childIndex - origChildIndex); // Total number of children inserted
+  }
+}
+
+function countDescendantFrames(frame: RenderTreeFramePointer): number {
+  switch (renderTreeFrame.frameType(frame)) {
+    // The following frame types have a subtree length. Other frames may use that memory slot
+    // to mean something else, so we must not read it. We should consider having nominal subtypes
+    // of RenderTreeFramePointer that prevent access to non-applicable fields.
+    case FrameType.component:
+    case FrameType.element:
+    case FrameType.region:
+      return renderTreeFrame.subtreeLength(frame) - 1;
+    default:
+      return 0;
   }
 }
 

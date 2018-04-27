@@ -293,11 +293,17 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         private static int NextSiblingIndex(RenderTreeFrame frame, int frameIndex)
         {
-            var subtreeLength = frame.ElementSubtreeLength;
-            var distanceToNextSibling = subtreeLength == 0
-                ? 1                 // For frames that don't have a subtree length set, such as text frames
-                : subtreeLength;    // For element or component frames
-            return frameIndex + distanceToNextSibling;
+            switch (frame.FrameType)
+            {
+                case RenderTreeFrameType.Component:
+                    return frameIndex + frame.ComponentSubtreeLength;
+                case RenderTreeFrameType.Element:
+                    return frameIndex + frame.ElementSubtreeLength;
+                case RenderTreeFrameType.Region:
+                    return frameIndex + frame.RegionSubtreeLength;
+                default:
+                    return frameIndex + 1;
+            }
         }
 
         private static void AppendDiffEntriesForFramesWithSameSequence(
