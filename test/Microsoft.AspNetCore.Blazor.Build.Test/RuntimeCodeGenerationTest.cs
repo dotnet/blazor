@@ -965,7 +965,7 @@ namespace Test
         public void Component_WithRef()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -996,7 +996,7 @@ namespace Test
         public void Component_WithRef_WithChildContent()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
