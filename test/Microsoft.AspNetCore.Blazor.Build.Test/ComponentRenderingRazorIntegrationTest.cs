@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         public void Render_ChildComponent_Simple()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -46,7 +46,7 @@ namespace Test
         public void Render_ChildComponent_WithParameters()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -94,7 +94,7 @@ namespace Test
         public void Render_ChildComponent_WithExplicitStringParameter()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -124,7 +124,7 @@ namespace Test
         public void Render_ChildComponent_WithNonPropertyAttributes()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -165,7 +165,7 @@ namespace Test
         public void Render_ChildComponent_WithEventHandler(string expression)
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -174,7 +174,7 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public UIMouseEventHandler OnClick { get; set; }
+        public Action<UIMouseEventArgs> OnClick { get; set; }
     }
 }
 "));
@@ -203,17 +203,16 @@ namespace Test
                     AssertFrame.Attribute(frame, "OnClick", 1);
 
                     // The handler will have been assigned to a lambda
-                    var handler = Assert.IsType<UIMouseEventHandler>(frame.AttributeValue);
+                    var handler = Assert.IsType<Action<UIMouseEventArgs>>(frame.AttributeValue);
                     Assert.Equal("Test.TestComponent", handler.Target.GetType().FullName);
-                },
-                frame => AssertFrame.Whitespace(frame, 2));
+                });
         }
 
         [Fact]
         public void Render_ChildComponent_WithExplicitEventHandler()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -222,7 +221,7 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public UIEventHandler OnClick { get; set; }
+        public Action<UIEventArgs> OnClick { get; set; }
     }
 }
 "));
@@ -251,18 +250,17 @@ namespace Test
                     AssertFrame.Attribute(frame, "OnClick", 1);
 
                     // The handler will have been assigned to a lambda
-                    var handler = Assert.IsType<UIEventHandler>(frame.AttributeValue);
+                    var handler = Assert.IsType<Action<UIEventArgs>>(frame.AttributeValue);
                     Assert.Equal("Test.TestComponent", handler.Target.GetType().FullName);
                     Assert.Equal("Increment", handler.Method.Name);
-                },
-                frame => AssertFrame.Whitespace(frame, 2));
+                });
         }
 
         [Fact]
         public void Render_ChildComponent_WithMinimizedBoolAttribute()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -291,7 +289,7 @@ namespace Test
         public void Render_ChildComponent_WithChildContent()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
 namespace Test
@@ -332,7 +330,7 @@ namespace Test
         public void Render_ChildComponent_Nested()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
 

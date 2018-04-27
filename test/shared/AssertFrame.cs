@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Blazor.Test.Helpers
             Assert.Equal(attributeValue, frame.AttributeValue);
         }
 
-        public static void Attribute(RenderTreeFrame frame, string attributeName, UIEventHandler attributeEventHandlerValue, int? sequence = null)
+        public static void Attribute(RenderTreeFrame frame, string attributeName, Action<UIEventArgs> attributeEventHandlerValue, int? sequence = null)
         {
             AssertFrame.Attribute(frame, attributeName, sequence);
             Assert.Equal(attributeEventHandlerValue, frame.AttributeValue);
@@ -106,6 +106,20 @@ namespace Microsoft.AspNetCore.Blazor.Test.Helpers
             Assert.Equal(RenderTreeFrameType.Text, frame.FrameType);
             AssertFrame.Sequence(frame, sequence);
             Assert.True(string.IsNullOrWhiteSpace(frame.TextContent));
+        }
+
+        public static void ElementReferenceCapture(RenderTreeFrame frame, Action<ElementRef> action, int? sequence = null)
+        {
+            Assert.Equal(RenderTreeFrameType.ElementReferenceCapture, frame.FrameType);
+            Assert.Same(action, frame.ElementReferenceCaptureAction);
+            AssertFrame.Sequence(frame, sequence);
+        }
+
+        public static void ComponentReferenceCapture(RenderTreeFrame frame, Action<object> action, int? sequence = null)
+        {
+            Assert.Equal(RenderTreeFrameType.ComponentReferenceCapture, frame.FrameType);
+            Assert.Same(action, frame.ComponentReferenceCaptureAction);
+            AssertFrame.Sequence(frame, sequence);
         }
     }
 }
