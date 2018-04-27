@@ -203,10 +203,26 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 BoolProperty = true,
                 NullableIntProperty = 1
             };
+            var json1 = "{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}";
+            var json2 = "{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}";
+            SimpleStruct structSample1 = default;
+            SimpleStruct structSample2 = default;
+
             var result1 = string.Empty;
             var result2 = string.Empty;
-            var thread1 = new Thread(() => result1 = JsonUtil.Serialize(command1, SimpleJson.PropertyNaming.PascalCase));
-            var thread2 = new Thread(() => result2 = JsonUtil.Serialize(command2));
+
+            //Act
+
+            var thread1 = new Thread(() =>
+            {
+                structSample1 = JsonUtil.Deserialize<SimpleStruct>(json1, SimpleJson.PropertyNaming.PascalCase);
+                result1 = JsonUtil.Serialize(command1, SimpleJson.PropertyNaming.PascalCase);
+            });
+            var thread2 = new Thread(() =>
+            {
+                structSample2 = JsonUtil.Deserialize<SimpleStruct>(json2);
+                result2 = JsonUtil.Serialize(command2);
+            });
 
             // Act
             thread1.Start();
@@ -218,6 +234,14 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Assert
             Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", result1);
             Assert.Equal("{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}", result2);
+
+            Assert.Equal("Test", structSample1.StringProperty);
+            Assert.True(structSample1.BoolProperty);
+            Assert.Equal(1, structSample1.NullableIntProperty);
+
+            Assert.Equal("Test", structSample2.StringProperty);
+            Assert.True(structSample2.BoolProperty);
+            Assert.Equal(1, structSample2.NullableIntProperty);
         }
 
         class NonEmptyConstructorPoco
