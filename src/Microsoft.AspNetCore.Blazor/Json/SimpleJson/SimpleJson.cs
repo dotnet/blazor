@@ -1503,22 +1503,10 @@ namespace SimpleJson
                                 ?? throw new InvalidOperationException($"Cannot deserialize JSON into type '{type.FullName}' because it does not have a public parameterless constructor.");
                             obj = constructorDelegate();
 
-                            IDictionary<string, string> pascalCaseKeys = null;
-                            if (naming == PropertyNaming.CamelCase)
-                            {
-                                pascalCaseKeys = GetPascalCasePropertyNames(jsonObject.Keys);
-                            }
-
                             foreach (KeyValuePair<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> setter in SetCache[(type, naming)])
                             {
-                                string setterKey = null;
-                                if (naming == PropertyNaming.CamelCase)
-                                {
-                                    pascalCaseKeys.TryGetValue(setter.Key, out setterKey);
-                                }
-
                                 object jsonValue;
-                                if (jsonObject.TryGetValue(setterKey ?? setter.Key, out jsonValue))
+                                if (jsonObject.TryGetValue(naming == PropertyNaming.CamelCase ? GetCamelCasePropertyName(setter.Key) : setter.Key, out jsonValue))
                                 {
                                     jsonValue = DeserializeObject(jsonValue, setter.Value.Key, naming);
                                     setter.Value.Value(obj, jsonValue);
@@ -1559,16 +1547,9 @@ namespace SimpleJson
             return obj;
         }
 
-        internal virtual IDictionary<string, string> GetPascalCasePropertyNames(ICollection<string> keys)
+        internal virtual string GetCamelCasePropertyName(string propertyName)
         {
-            var pascalCaseJsonPropertyKeyPair = new Dictionary<string, string>();
-            foreach (var key in keys)
-            {
-                var pascalName = char.ToUpper(key[0]) + key.Substring(1);
-                pascalCaseJsonPropertyKeyPair[pascalName] = key;
-            }
-
-            return pascalCaseJsonPropertyKeyPair;
+            return char.ToLower(propertyName[0]) + propertyName.Substring(1); ;
         }
 
         protected virtual object SerializeEnum(Enum p)
