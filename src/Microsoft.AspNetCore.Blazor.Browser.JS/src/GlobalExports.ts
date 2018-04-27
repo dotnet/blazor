@@ -1,7 +1,9 @@
 ﻿import { platform } from './Environment'
 import { registerFunction } from './Interop/RegisteredFunction';
-import { BlazorDOMElement, BlazorDOMComponent, raiseEvent } from './Rendering/BrowserRenderer'
+import { BlazorDOMComponent } from './Rendering/Elements/BlazorDOMComponent'
+import { BlazorDOMElement } from './Rendering/Elements/BlazorDOMElement'
 import { registerCustomTag, registerCustomDOMElement } from './Interop/RenderingFunction'
+import { raiseEvent } from './Rendering/BrowserRenderer'
 import { navigateTo } from './Services/UriHelper';
 
 if (typeof window !== 'undefined') {

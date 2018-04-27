@@ -4,299 +4,12 @@ import { getTreeFramePtr, renderTreeFrame, FrameType, RenderTreeFramePointer } f
 import { platform } from '../Environment';
 import { EventDelegator } from './EventDelegator';
 import { EventForDotNet, UIEventArgs } from './EventForDotNet';
-import { getRegisteredCustomTag, getRegisteredCustomDOMElement } from '../Interop/RenderingFunction';
+
+import { BlazorDOMElement } from './Elements/BlazorDOMElement'
+import { createBlazorDOMElement, createBlazorDOMComponent } from './Elements/BlazorDOMComponent';
 
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
-
-export class BlazorDOMElement {
-	private Range: Range;
-	protected readonly browserRenderer: BrowserRenderer;
-
-	constructor(browserRendeder: BrowserRenderer, start: Node, end: Node | null = null) {
-		this.browserRenderer = browserRendeder;
-		this.Range = document.createRange();
-		this.Range.setStart(start, 0);
-		if (end !== null) this.Range.setEnd(end, 0);
-	}
-
-	public isComponent(): boolean {
-		return !this.Range.collapsed;
-	}
-
-	public getParentDOMElement(): Node {
-		return this.Range.commonAncestorContainer;
-	}
-
-	protected getDOMElement(): HTMLElement {
-		return this.Range.startContainer as HTMLElement;
-	}
-
-	public getElementChild(childIndex: number): Node | BlazorDOMElement | null {
-		let element: Node | null = this.Range.startContainer;
-		if (this.isComponent() === false)
-			element = element.firstChild;
-		else
-			element = element.nextSibling;
-
-		if (element == null) {
-			// no child
-			return null;
-		}
-		else {
-			while (childIndex > 0) {
-				// skip if is this.Range
-				if (element !== this.Range.startContainer) {
-					// is a component ?
-					let blazorDom = this.getComponentFromNode(element);
-					if (blazorDom != null) {
-						element = blazorDom.Range.endContainer;
-					}
-				}
-
-				childIndex--;
-
-				element = element!.nextSibling;
-				if (element == null) return null;
-			}
-
-			let blazorDom = this.getComponentFromNode(element);
-			if (blazorDom != null) {
-				return blazorDom;
-			}
-
-			return element;
-		}
-	}
-
-	private getComponentFromNode(element: Node): BlazorDOMElement | null {
-		if (element.nodeType == Node.COMMENT_NODE) { // check for performance
-			for (let index in this.browserRenderer.childComponentLocations) {
-				let component = this.browserRenderer.childComponentLocations[index];
-				if (component.isComponent() && component.Range.startContainer === element)
-					return component;
-			}
-
-			// old code, question: is better?
-			//let nodeValue: string = element.nodeValue!;
-			//if (nodeValue.startsWith("blazor-component-start.")) {
-			//	let componentId: number = parseInt(nodeValue.split(".")[1]);
-			//	let blazorDom = this.br.childComponentLocations[componentId];
-			//	return blazorDom;
-			//}
-		}
-		return null;
-	}
-
-	public insertNodeIntoDOM(node: Node, childIndex: number) {
-		let parentElement = this.getParentDOMElement();
-
-		let realSibling = this.getElementChild(childIndex);
-		if (realSibling === null) {
-			parentElement.appendChild(node);
-		}
-		else {
-			parentElement.insertBefore(node, realSibling as Node);
-		}
-	}
-
-	public removeFromDom(childIndex: number | null = null) {
-		if (childIndex === null) {
-			// Adjust range to whole component
-			this.Range.setStartBefore(this.Range.startContainer);
-			this.Range.setEndAfter(this.Range.endContainer);
-
-			// Clear whole range
-			this.Range.deleteContents();
-		}
-		else {
-			const element = this.getElementChild(childIndex)!;
-
-			if (element instanceof BlazorDOMElement) {
-				element.removeFromDom();
-			}
-			else {
-				// Remove only the childindex-nth element
-				element.parentElement!.removeChild(element as Node);
-			}
-		}
-	}
-
-	public updateText(childIndex: number, newText: string | null) {
-		const domTextNode = this.getElementChild(childIndex) as Text;
-		domTextNode.textContent = newText;
-	}
-
-	public applyAttribute(componentId: number, attributeFrame: RenderTreeFramePointer) {
-		//const toDomElement = this.Range.startContainer as Element;
-		//const browserRendererId = this.browserRenderer.browserRendererId;
-		const attributeName = renderTreeFrame.attributeName(attributeFrame)!;
-		const attributeValue = renderTreeFrame.attributeValue(attributeFrame);
-
-		if (this.isDOMAttribute(attributeName, attributeValue) == false) {
-			return; // If this DOM element type has special 'value' handling, don't also write it as an attribute
-		}
-
-		const eventHandlerId = renderTreeFrame.attributeEventHandlerId(attributeFrame);
-		if (this.applyEvent(attributeName, componentId, eventHandlerId) == false) {
-			// Treat as a regular string-valued attribute
-			this.setAttribute(attributeName, attributeValue);
-		}
-	}
-
-	public removeAttribute(childIndex: number, attributeName: string) {
-		// maybe must be rewritten (never go inside for now)
-		const element = this.getElementChild(childIndex) as Element;
-		element.removeAttribute(attributeName);
-	}
-
-	protected setAttribute(attributeName: string, attributeValue: string | null) {
-		const toDomElement = this.Range.startContainer as Element;
-
-		if (attributeValue == null) {
-			// or better delete the attribute?
-			toDomElement.setAttribute(
-				attributeName,
-				""
-			);
-		}
-		else {
-			toDomElement.setAttribute(
-				attributeName,
-				attributeValue
-			);
-		}
-	}
-
-	protected isDOMAttribute(attributeName: string, value: string | null): boolean {
-		// default is true
-		return true;
-	}
-
-	protected applyEvent(attributeName: string, componentId: number, eventHandlerId: number): boolean {
-		const toDomElement = this.Range.startContainer as Element;
-		const browserRendererId = this.browserRenderer.browserRendererId;
-
-		if (eventHandlerId) {
-			const firstTwoChars = attributeName.substring(0, 2);
-			const eventName = attributeName.substring(2);
-			if (firstTwoChars !== 'on' || !eventName) {
-				throw new Error(`Attribute has nonzero event handler ID, but attribute name '${attributeName}' does not start with 'on'.`);
-			}
-			this.browserRenderer.eventDelegator.setListener(toDomElement, eventName, componentId, eventHandlerId);
-			return true;
-		}
-
-		return false;
-	}
-
-	public onDOMUpdating() { }
-	public onDOMUpdated() { }
-
-	public dispose() {
-		this.Range.detach();
-	}
-}
-
-export class BlazorDOMComponent extends BlazorDOMElement {
-	ComponentID: number;
-
-	constructor(CID: number, parent: BlazorDOMElement, childIndex: number, br: BrowserRenderer) {
-		const markerStart = document.createComment('blazor-component-start.' + CID);
-		const markerEnd = document.createComment('blazor-component-end.' + CID);
-
-		parent.insertNodeIntoDOM(markerEnd, childIndex);
-		parent.insertNodeIntoDOM(markerStart, childIndex);
-
-		super(br, markerStart, markerEnd);
-		this.ComponentID = CID;
-	}
-
-	protected setAttribute(attributeName: string, attributeValue: string | null) {
-		// Blazor DOM Component do not have attributes
-	}
-}
-
-class BlazorINPUTElement extends BlazorDOMElement {
-	private handleSelectValue: string | null = null;
-
-	protected isDOMAttribute(attributeName: string, value: string | null): boolean {
-		const element = this.getDOMElement();
-
-		if (attributeName == "value") {
-			// Certain elements have built-in behaviour for their 'value' property
-			switch (element.tagName) {
-				case 'INPUT':
-				case 'SELECT':
-				case 'TEXTAREA':
-					if (this.isCheckbox(element)) {
-						(element as HTMLInputElement).checked = value === 'True';
-					} else {
-						this.handleSelectValue = value;
-						(element as any).value = value;
-					}
-					return false;
-				default:
-					return super.isDOMAttribute(attributeName, value);
-			}
-		}
-		else
-			return true;
-	}
-
-	public onDOMUpdating() {
-		this.handleSelectValue = null;
-	}
-
-	public onDOMUpdated() {
-		if (this.handleSelectValue !== null) {
-			const element = this.getDOMElement();
-			if (element.tagName == "SELECT") {
-				(element as any).value = this.handleSelectValue;
-				this.handleSelectValue = null;
-			}
-		}
-	}
-
-	private isCheckbox(element: Element) {
-		return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
-	}
-
-	//protected applyEvent(attributeName: string, componentId: number, eventHandlerId: number): boolean {
-	//	const toDomElement = this.getDOMElement();
-	//	const browserRendererId = this.browserRenderer.browserRendererId;
-
-	//	// TODO: Instead of applying separate event listeners to each DOM element, use event delegation
-	//	// and remove all the _blazor*Listener hacks
-	//	switch (attributeName) {
-	//		case 'onchange': {
-	//			toDomElement.removeEventListener('change', toDomElement['_blazorChangeListener']);
-	//			const targetIsCheckbox = this.isCheckbox(toDomElement);
-	//			const listener = evt => {
-	//				const newValue = targetIsCheckbox ? evt.target.checked : evt.target.value;
-	//				raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'change', { Type: 'change', Value: newValue });
-	//			};
-	//			toDomElement['_blazorChangeListener'] = listener;
-	//			toDomElement.addEventListener('change', listener);
-	//			return true;
-	//		}
-	//		case 'onkeypress': {
-	//			toDomElement.removeEventListener('keypress', toDomElement['_blazorKeypressListener']);
-	//			const listener = evt => {
-	//				// This does not account for special keys nor cross-browser differences. So far it's
-	//				// just to establish that we can pass parameters when raising events.
-	//				// We use C#-style PascalCase on the eventInfo to simplify deserialization, but this could
-	//				// change if we introduced a richer JSON library on the .NET side.
-	//				raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'keyboard', { Type: evt.type, Key: (evt as any).key });
-	//			};
-	//			toDomElement['_blazorKeypressListener'] = listener;
-	//			toDomElement.addEventListener('keypress', listener);
-	//			return true;
-	//		}
-	//	}
-	//	return super.applyEvent(attributeName, componentId, eventHandlerId);
-	//}
-}
 
 export class BrowserRenderer {
 	// private is better (todo: I don't like it!)
@@ -372,7 +85,7 @@ export class BrowserRenderer {
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
 					const element = parentElement.getElementChild(childIndexAtCurrentDepth + siblingIndex) as Element;
 
-					const blazorElement = this.createBlazorDOMElement(element);
+					const blazorElement = createBlazorDOMElement(this, element);
 					blazorElement.applyAttribute(componentId, frame);
 					blazorElement.dispose();
 					break;
@@ -396,7 +109,7 @@ export class BrowserRenderer {
 					elementStack.push(parentElement);
 					if (stepInElement instanceof BlazorDOMElement == false) {
 						// stepInElement is a simple DOM element, so create 
-						parentElement = this.createBlazorDOMElement(stepInElement as HTMLElement);
+						parentElement = createBlazorDOMElement(this, stepInElement as HTMLElement);
 					}
 					parentElement.onDOMUpdating();
 
@@ -453,7 +166,7 @@ export class BrowserRenderer {
 		const newDomElement = this.createElement(tagName, parent);
 		parent.insertNodeIntoDOM(newDomElement, childIndex);
 
-		let blazorElement = this.createBlazorDOMElement(newDomElement);
+		let blazorElement = createBlazorDOMElement(this, newDomElement);
 
 		// Apply attributes
 		const descendantsEndIndexExcl = frameIndex + renderTreeFrame.subtreeLength(frame);
@@ -479,7 +192,7 @@ export class BrowserRenderer {
 		// do any rendering here, because the diff for the child will appear later in the render batch.
 		const childComponentId = renderTreeFrame.componentId(frame);
 		const customComponentType = renderTreeFrame.customComponentType(frame);
-		const blazorElement = this.createBlazorDOMComponent(childComponentId, parent, childIndex, customComponentType);
+		const blazorElement = createBlazorDOMComponent(this, childComponentId, parent, childIndex, customComponentType);
 		this.attachBlazorComponentToElement(childComponentId, blazorElement);
 
 		if (customComponentType != 0) {
@@ -534,33 +247,6 @@ export class BrowserRenderer {
 			document.createElementNS('http://www.w3.org/2000/svg', tagName) :
 			document.createElement(tagName);
 		return newDomElement;
-	}
-
-	private createBlazorDOMComponent(componentId: number, parent: BlazorDOMElement, childIndex: number, customComponentType: number): BlazorDOMComponent {
-		let blazorElement: BlazorDOMComponent | null = null;
-
-		if (customComponentType !== 0) {
-			let customElement = getRegisteredCustomDOMElement(customComponentType) as any;
-			blazorElement = customElement(componentId, parent, childIndex, this);
-		}
-		else {
-			blazorElement = new BlazorDOMComponent(componentId, parent, childIndex, this);
-		}
-		return blazorElement!;
-	}
-
-	private createBlazorDOMElement(stepInElement: Element): BlazorDOMElement {
-		if (stepInElement.tagName == "INPUT" || stepInElement.tagName == "SELECT" || stepInElement.tagName == "TEXTAREA")
-			return new BlazorINPUTElement(this, stepInElement);
-		else {
-			let customDOM = getRegisteredCustomTag(stepInElement.tagName) as any;
-			if (customDOM !== null) {
-				return customDOM(this, stepInElement);
-			}
-			else {
-				return new BlazorDOMElement(this, stepInElement);
-			}
-		}
 	}
 }
 
