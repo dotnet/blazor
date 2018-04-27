@@ -245,6 +245,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(1, structSample2.NullableIntProperty);
         }
       
+        [Fact]
         public void SupportsInternalCustomSerializer()
         {
             // Arrange/Act
