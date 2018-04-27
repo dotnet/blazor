@@ -991,6 +991,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 });
         }
 
+        [Fact]
         public void CallsAfterRenderOnEachRender()
         {
             // Arrange
