@@ -44,13 +44,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private void RewriteUsage(ClassDeclarationIntermediateNode classNode, TagHelperIntermediateNode node, int index, ComponentAttributeExtensionNode attributeNode)
         {
-            node.Children.Remove(attributeNode);
-
             // If we can't get a nonempty attribute name, do nothing because there will
             // already be a diagnostic for empty values
             var identifierToken = DetermineIdentifierToken(attributeNode);
             if (identifierToken != null)
             {
+                node.Children.Remove(attributeNode);
+
                 // Determine whether this is an element capture or a component capture, and
                 // if applicable the type name that will appear in the resulting capture code
                 var componentTagHelper = node.TagHelpers.FirstOrDefault(x => x.IsComponentTagHelper());
