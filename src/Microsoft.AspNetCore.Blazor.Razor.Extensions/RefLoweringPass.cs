@@ -25,7 +25,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
 
             var nodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
-            var isDesignTime = documentNode.Options.DesignTime;
             for (var i = 0; i < nodes.Count; i++)
             {
                 var node = nodes[i];
@@ -37,13 +36,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         attributeNode.TagHelper != null &&
                         attributeNode.TagHelper.IsRefTagHelper())
                     {
-                        RewriteUsage(@class, node, j, attributeNode, isDesignTime);
+                        RewriteUsage(@class, node, j, attributeNode);
                     }
                 }
             }
         }
 
-        private void RewriteUsage(ClassDeclarationIntermediateNode classNode, TagHelperIntermediateNode node, int index, ComponentAttributeExtensionNode attributeNode, bool isDesignTime)
+        private void RewriteUsage(ClassDeclarationIntermediateNode classNode, TagHelperIntermediateNode node, int index, ComponentAttributeExtensionNode attributeNode)
         {
             node.Children.Remove(attributeNode);
 
@@ -92,7 +91,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 }
                 else if (attributeNode.Children[0] is CSharpExpressionIntermediateNode csharpNode)
                 {
-                    if (csharpNode.Children.Count > 0)
+                    if (csharpNode.Children.Count == 1)
                     {
                         foundToken = csharpNode.Children[0] as IntermediateToken;
                     }
