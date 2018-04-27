@@ -1,0 +1,41 @@
+﻿@page "/form"
+@inherits Microsoft.AspNetCore.Blazor.Forms.Form<StandaloneApp.Models.TestModel>
+
+<input type="text" onchange="@(x => Console.WriteLine("p"))" />
+
+<div class="form-group row m-b-15">
+    @this.LabelFor(m => m.Text, new { @class = "col-md-4 col-sm-4 col-form-label" })
+    <div class="col-md-8 col-sm-8">
+        @this.TextBoxFor(m => m.Text, new { @class = "form-control" })
+        @this.ValidationMessageFor(m => m.Text)
+    </div>
+</div>
+
+<div class="form-group row m-b-15">
+    @this.LabelFor(m => m.Email, new { @class = "col-md-4 col-sm-4 col-form-label" })
+    <div class="col-md-8 col-sm-8">
+        @this.TextBoxFor(m => m.Email, new { @class = "form-control" })
+        @this.ValidationMessageFor(m => m.Email)
+    </div>
+</div>
+
+<div>
+    <div>Text</div>
+    <div>@(this.ModelState.ContainsKey("Text") ? this.ModelState["Text"] : "N/A")</div>
+</div>
+
+<div>
+    <div>Email</div>
+    <div>@(this.ModelState.ContainsKey("Email") ? this.ModelState["Email"] : "N/A "  + this.Model.Email)</div>
+</div>
+
+<button onclick="@(() => this.ValidateModel())">Validate</button>
+
+@functions {
+protected override void OnInit()
+{
+    this.Model = new StandaloneApp.Models.TestModel();
+        this.Model.Email = "pp";
+    base.OnInit();
+}
+}
