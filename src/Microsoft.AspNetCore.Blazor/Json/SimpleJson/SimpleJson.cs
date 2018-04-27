@@ -1281,29 +1281,6 @@ namespace SimpleJson
         PascalCase
     }
 
-    interface IPropertyNameResolver
-    {
-        string Resolve(string propertyName, bool isFromGetter);
-    }
-
-    class PascalCasePropertyNameResolver : IPropertyNameResolver
-    {
-        public virtual string Resolve(string clrPropertyName, bool isFromGetterFactory)
-        {
-            return clrPropertyName;
-        }
-    }
-
-    class CameCasePropertyNameResolver : IPropertyNameResolver
-    {
-        public virtual string Resolve(string clrPropertyName, bool isFromGetterFactory)
-        {
-            return isFromGetterFactory
-                ? char.ToLowerInvariant(clrPropertyName[0]) + clrPropertyName.Substring(1)
-                : clrPropertyName;
-        }
-    }
-
     [GeneratedCode("simple-json", "1.0.0")]
 #if SIMPLE_JSON_INTERNAL
     internal
