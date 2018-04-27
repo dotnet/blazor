@@ -52,16 +52,12 @@ export class BrowserRenderer {
 		delete this.childComponentLocations[componentId];
 	}
 
-	private applyEdits(componentId: number, parent: BlazorDOMElement, childIndex: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
+    private applyEdits(componentId: number, parent: BlazorDOMElement, childIndex: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
 		let currentDepth = 0;
 		let childIndexAtCurrentDepth = childIndex;
 		const maxEditIndexExcl = editsOffset + editsLength;
 
-		var parentElement = parent as BlazorDOMElement;
-		parentElement.onDOMUpdating();
-
-		var elementStack = new Array();
-		elementStack.push(parentElement);
+		parent.onDOMUpdating();
 
 		for (let editIndex = editsOffset; editIndex < maxEditIndexExcl; editIndex++) {
 			const edit = getRenderTreeEditPtr(edits, editIndex);
@@ -71,19 +67,19 @@ export class BrowserRenderer {
 					const frameIndex = renderTreeEdit.newTreeIndex(edit);
 					const frame = getTreeFramePtr(referenceFrames, frameIndex);
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					this.insertFrame(componentId, parentElement, childIndexAtCurrentDepth + siblingIndex, referenceFrames, frame, frameIndex);
+					this.insertFrame(componentId, parent, childIndexAtCurrentDepth + siblingIndex, referenceFrames, frame, frameIndex);
 					break;
 				}
 				case EditType.removeFrame: {
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					this.removeNodeFromDOM(parentElement, childIndexAtCurrentDepth + siblingIndex);
+					this.removeNodeFromDOM(parent, childIndexAtCurrentDepth + siblingIndex);
 					break;
 				}
 				case EditType.setAttribute: {
 					const frameIndex = renderTreeEdit.newTreeIndex(edit);
 					const frame = getTreeFramePtr(referenceFrames, frameIndex);
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					const element = parentElement.getElementChild(childIndexAtCurrentDepth + siblingIndex) as Element;
+					const element = parent.getElementChild(childIndexAtCurrentDepth + siblingIndex) as Element;
 
 					const blazorElement = createBlazorDOMElement(this, element);
 					blazorElement.applyAttribute(componentId, frame);
@@ -92,39 +88,38 @@ export class BrowserRenderer {
 				}
 				case EditType.removeAttribute: {
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					parent.removeAttribute(childIndexAtCurrentDepth + siblingIndex, renderTreeEdit.removedAttributeName(edit)!);
+                    parent.removeAttribute(childIndexAtCurrentDepth + siblingIndex, renderTreeEdit.removedAttributeName(edit)!);
 					break;
 				}
 				case EditType.updateText: {
 					const frameIndex = renderTreeEdit.newTreeIndex(edit);
 					const frame = getTreeFramePtr(referenceFrames, frameIndex);
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					parentElement.updateText(childIndexAtCurrentDepth + siblingIndex, renderTreeFrame.textContent(frame))
+					parent.updateText(childIndexAtCurrentDepth + siblingIndex, renderTreeFrame.textContent(frame))
 					break;
 				}
 				case EditType.stepIn: {
 					const siblingIndex = renderTreeEdit.siblingIndex(edit);
-					const stepInElement = parentElement.getElementChild(childIndexAtCurrentDepth + siblingIndex)!;
+					const stepInElement = parent.getElementChild(childIndexAtCurrentDepth + siblingIndex)!;
 
-					elementStack.push(parentElement);
+					// if stepInElement is a simple DOM element, create a element
 					if (stepInElement instanceof BlazorDOMElement == false) {
-						// stepInElement is a simple DOM element, so create 
-						parentElement = createBlazorDOMElement(this, stepInElement as HTMLElement);
+						parent = createBlazorDOMElement(this, stepInElement as HTMLElement);
 					}
-					parentElement.onDOMUpdating();
+					parent.onDOMUpdating();
 
 					currentDepth++;
 					childIndexAtCurrentDepth = 0;
 					break;
 				}
 				case EditType.stepOut: {
-					parentElement.onDOMUpdated();
-					if (parentElement.isComponent() == false) {
+					parent.onDOMUpdated();
+					if (parent.isComponent() == false) {
 						// Dispose if a simple dom element (=BlazorDOMElement)
-						parentElement.dispose();
+						parent.dispose();
 					}
 
-					parentElement = elementStack.pop();
+					//parentElement = elementStack.pop();
 					currentDepth--;
 					childIndexAtCurrentDepth = currentDepth === 0 ? childIndex : 0; // The childIndex is only ever nonzero at zero depth
 					break;
@@ -136,7 +131,7 @@ export class BrowserRenderer {
 			}
 		}
 
-		parentElement.onDOMUpdated();
+		parent.onDOMUpdated();
 	}
 
 	private insertFrame(componentId: number, parent: BlazorDOMElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number): number {
