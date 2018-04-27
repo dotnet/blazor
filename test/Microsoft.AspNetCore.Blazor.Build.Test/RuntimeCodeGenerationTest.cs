@@ -1088,5 +1088,38 @@ namespace Test
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
             CompileToAssembly(generated);
         }
+
+        [Fact]
+        public void Component_WithRef_WithChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent ref=""myInstance"" SomeProp=""val"">
+    Some <el>further</el> content
+</MyComponent>
+
+@functions {
+    private Test.MyComponent myInstance;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
     }
 }

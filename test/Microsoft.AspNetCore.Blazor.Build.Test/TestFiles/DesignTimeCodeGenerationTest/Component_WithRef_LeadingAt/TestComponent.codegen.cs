@@ -24,14 +24,14 @@ global::System.Object __typeHelper = "*, TestAssembly";
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
+            builder.AddAttribute(-1, "ChildContent", (Microsoft.AspNetCore.Blazor.RenderFragment)((builder2) => {
+            }
+            ));
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                         myInstance = default(Test.MyComponent);
 
 #line default
 #line hidden
-            builder.AddAttribute(-1, "ChildContent", (Microsoft.AspNetCore.Blazor.RenderFragment)((builder2) => {
-            }
-            ));
         }
         #pragma warning restore 1998
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"

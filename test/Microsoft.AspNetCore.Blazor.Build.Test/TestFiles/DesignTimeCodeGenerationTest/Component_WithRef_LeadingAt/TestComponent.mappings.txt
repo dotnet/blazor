@@ -5,7 +5,7 @@ Generated Location: (468:14,38 [15] )
 
 Source Location: (71:1,40 [10] x:\dir\subdir\Test\TestComponent.cshtml)
 |myInstance|
-Generated Location: (986:27,40 [10] )
+Generated Location: (1133:30,40 [10] )
 |myInstance|
 
 Source Location: (120:3,12 [133] x:\dir\subdir\Test\TestComponent.cshtml)

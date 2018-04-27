@@ -28,8 +28,8 @@ Document -
                     ComponentAttributeExtensionNode -  - ParamAfter - 
                         HtmlContent - (93:1,62 [5] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (93:1,62 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - after
-                    RefExtensionNode - (72:1,41 [6] x:\dir\subdir\Test\TestComponent.cshtml) - @class - Test.MyComponent
                     ComponentBodyExtensionNode - 
+                    RefExtensionNode - (72:1,41 [6] x:\dir\subdir\Test\TestComponent.cshtml) - @class - Test.MyComponent
                     ComponentCloseExtensionNode - 
                 HtmlContent - (102:1,71 [4] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (102:1,71 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n

@@ -3,12 +3,17 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
 {
     internal class RefLoweringPass : IntermediateNodePassBase, IRazorOptimizationPass
     {
+        // Run after our other passes
+        public override int Order => 1000;
+
         protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
         {
             var @namespace = documentNode.FindPrimaryNamespace();
@@ -50,11 +55,28 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // Determine whether this is an element capture or a component capture, and
                 // if applicable the type name that will appear in the resulting capture code
                 var componentTagHelper = node.TagHelpers.FirstOrDefault(x => x.IsComponentTagHelper());
-                var refExtensionNode = componentTagHelper == null
-                    ? new RefExtensionNode(identifierToken)
-                    : new RefExtensionNode(identifierToken, componentTagHelper.GetTypeName());
-
-                node.Children.Add(refExtensionNode);
+                if (componentTagHelper != null)
+                {
+                    // For components, the RefExtensionNode must go after all ComponentAttributeExtensionNode
+                    // and ComponentBodyExtensionNode siblings because they translate to AddAttribute calls.
+                    // We can therefore put it immediately before the ComponentCloseExtensionNode.
+                    var componentCloseNodePosition = LastIndexOf(node.Children, n => n is ComponentCloseExtensionNode);
+                    if (componentCloseNodePosition < 0)
+                    {
+                        // Should never happen - would imply we're running the lowering passes in the wrong order
+                        throw new InvalidOperationException($"Cannot find {nameof(ComponentCloseExtensionNode)} among ref node siblings.");
+                    }
+                    
+                    var refExtensionNode = new RefExtensionNode(identifierToken, componentTagHelper.GetTypeName());
+                    node.Children.Insert(componentCloseNodePosition, refExtensionNode);
+                }
+                else
+                {
+                    // For elements, it doesn't matter how the RefExtensionNode is positioned
+                    // among the children, as the node writer takes care of emitting the
+                    // code at the right point after the AddAttribute calls
+                    node.Children.Add(new RefExtensionNode(identifierToken));
+                }
             }
         }
 
@@ -78,6 +100,19 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
             
             return !string.IsNullOrWhiteSpace(foundToken?.Content) ? foundToken : null;
+        }
+
+        private static int LastIndexOf<T>(IList<T> items, Predicate<T> predicate)
+        {
+            for (var index = items.Count - 1; index >= 0; index--)
+            {
+                if (predicate(items[index]))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
     }
 }
