@@ -598,12 +598,14 @@ namespace SimpleJson
 
         public static T DeserializeObject<T>(string json)
         {
-            return (T)DeserializeObject(json, typeof(T), null, DefaultPropertyNamingScheme);
+            var serializationStrategy = new PocoJsonSerializerStrategy(ConstructorMainCache, GetMainCache, SetMainCache);
+            return (T)DeserializeObject(json, typeof(T), serializationStrategy, DefaultPropertyNamingScheme);
         }
 
         public static T DeserializeObject<T>(string json, PropertyNaming propertyNaming)
         {
-            return (T)DeserializeObject(json, typeof(T), CurrentJsonSerializerStrategy, propertyNaming);
+            var serializationStrategy = new PocoJsonSerializerStrategy(ConstructorMainCache, GetMainCache, SetMainCache);
+            return (T)DeserializeObject(json, typeof(T), serializationStrategy, propertyNaming);
         }
 
         /// <summary>
@@ -622,7 +624,7 @@ namespace SimpleJson
 
         public static string SerializeObject(object json)
         {
-            var serializationStrategy = new PocoJsonSerializerStrategy();
+            var serializationStrategy = new PocoJsonSerializerStrategy(ConstructorMainCache, GetMainCache, SetMainCache);
             return SerializeObject(json, serializationStrategy, DefaultPropertyNamingScheme);
         }
 
