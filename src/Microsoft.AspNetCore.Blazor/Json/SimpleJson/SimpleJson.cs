@@ -535,10 +535,6 @@ namespace SimpleJson
             EscapeTable['\n'] = 'n';
             EscapeTable['\r'] = 'r';
             EscapeTable['\t'] = 't';
-
-            ConstructorMainCache = new ReflectionUtils.ThreadSafeDictionary<Type, ReflectionUtils.ConstructorDelegate>(PocoJsonSerializerStrategy.ConstructorDelegateFactory);
-            GetMainCache = new ReflectionUtils.ThreadSafeDictionary<(Type, PropertyNaming), IDictionary<string, ReflectionUtils.GetDelegate>>(PocoJsonSerializerStrategy.GetterValueFactory);
-            SetMainCache = new ReflectionUtils.ThreadSafeDictionary<(Type, PropertyNaming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>>(PocoJsonSerializerStrategy.SetterValueFactory);
         }
 
         /// <summary>
@@ -1315,9 +1311,9 @@ namespace SimpleJson
             IDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>> getCache,
             IDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>> setCache)
         {
-            ConstructorCache = constructorCache;
-            GetCache = getCache;
-            SetCache = setCache;
+            ConstructorCache = constructorCache ?? new ReflectionUtils.ThreadSafeDictionary<Type, ReflectionUtils.ConstructorDelegate>(ConstructorDelegateFactory);
+            GetCache = getCache ?? new ReflectionUtils.ThreadSafeDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>>(GetterValueFactory);
+            SetCache = setCache ?? new ReflectionUtils.ThreadSafeDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>>(SetterValueFactory);
         }
 
         protected virtual string MapClrMemberNameToJsonFieldName(string clrPropertyName, bool isFromGetterFactory, PropertyNaming naming)
