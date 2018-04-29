@@ -1505,7 +1505,7 @@ namespace SimpleJson
                             foreach (KeyValuePair<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> setter in SetCache[(type, naming)])
                             {
                                 object jsonValue;
-                                if (jsonObject.TryGetValue(naming == PropertyNaming.CamelCase ? GetCamelCasePropertyName(setter.Key) : setter.Key, out jsonValue))
+                                if (jsonObject.TryGetValue(ResolvePropertyName(setter.Key, naming), out jsonValue))
                                 {
                                     jsonValue = DeserializeObject(jsonValue, setter.Value.Key, naming);
                                     setter.Value.Value(obj, jsonValue);
@@ -1546,9 +1546,11 @@ namespace SimpleJson
             return obj;
         }
 
-        internal virtual string GetCamelCasePropertyName(string propertyName)
+        internal virtual string ResolvePropertyName(string propertyName, PropertyNaming naming)
         {
-            return char.ToLower(propertyName[0]) + propertyName.Substring(1); ;
+            return naming == PropertyNaming.CamelCase
+                ? char.ToLower(propertyName[0]) + propertyName.Substring(1)
+                : propertyName;
         }
 
         protected virtual object SerializeEnum(Enum p)
