@@ -28,7 +28,7 @@ namespace Test
         public void SetParameters(ParameterCollection parameters) { }
 
         [Parameter]
-        public string MyProperty { get; set; }
+        private string MyProperty { get; set; }
     }
 }
 
@@ -332,7 +332,10 @@ namespace Test
     public class MyComponent : MyBase
     {
         [Parameter]
-        public string NoPublicGetter { private get; set; }
+        public string NoSetter { get; }
+
+        [Parameter]
+        public static string StaticProperty { get; set; }
 
         public string NoParameterAttribute { get; set; }
 

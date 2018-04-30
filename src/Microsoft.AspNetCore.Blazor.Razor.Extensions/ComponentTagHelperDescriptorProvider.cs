@@ -138,14 +138,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             return descriptor;
         }
 
-        // Does a walk up the inheritance chain to determine the set of 'visible' properties by using
+        // Does a walk up the inheritance chain to determine the set of parameters by using
         // a dictionary keyed on property name.
         //
-        // Note that we're only interested in a property if all of the above are true:
-        // - visible (not shadowed)
-        // - has public getter
-        // - has public setter
-        // - is not an indexer
+        // We consider parameters to be defined by properties satisfying all of the following:
+        // - are visible (not shadowed)
+        // - have the [Parameter] attribute
+        // - have a setter, even if private
+        // - are not indexers
         private IEnumerable<(IPropertySymbol property, PropertyKind kind)> GetProperties(INamedTypeSymbol type, INamedTypeSymbol parameterSymbol)
         {
             var properties = new Dictionary<string, (IPropertySymbol, PropertyKind)>(StringComparer.Ordinal);
@@ -174,15 +174,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         kind = PropertyKind.Ignored;
                     }
 
-                    if (property.GetMethod?.DeclaredAccessibility != Accessibility.Public)
+                    if (property.SetMethod == null)
                     {
-                        // Non-public getter or no getter
+                        // No setter
                         kind = PropertyKind.Ignored;
                     }
 
-                    if (property.SetMethod?.DeclaredAccessibility != Accessibility.Public)
+                    if (property.IsStatic)
                     {
-                        // Non-public setter or no setter
                         kind = PropertyKind.Ignored;
                     }
 
