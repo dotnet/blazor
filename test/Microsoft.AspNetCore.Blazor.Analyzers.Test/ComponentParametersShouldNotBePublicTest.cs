@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using TestHelper;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Analyzers.Test
+namespace Microsoft.AspNetCore.Blazor.Analyzers.Test
 {
     public class ComponentParametersShouldNotBePublic : CodeFixVerifier
     {

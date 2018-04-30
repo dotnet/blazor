@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Analyzers
+namespace Microsoft.AspNetCore.Blazor.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ComponentParametersShouldNotBePublicAnalyzer : DiagnosticAnalyzer

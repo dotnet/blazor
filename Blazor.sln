@@ -95,9 +95,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorLibrary-CSharp", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorLibrary-CSharp\BlazorLibrary-CSharp.csproj", "{3A457B14-D91B-4FFF-A81A-8F350BDB911F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Blazor.Build.Analyzers", "src\Microsoft.AspNetCore.Blazor.Build.Analyzers\Microsoft.AspNetCore.Blazor.Build.Analyzers.csproj", "{6DDD6A29-0A3E-417F-976C-5FE3FDA74055}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Analyzers", "src\Microsoft.AspNetCore.Blazor.Analyzers\Microsoft.AspNetCore.Blazor.Analyzers.csproj", "{6DDD6A29-0A3E-417F-976C-5FE3FDA74055}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Blazor.Build.Analyzers.Test", "test\Microsoft.AspNetCore.Blazor.Build.Analyzers.Test\Microsoft.AspNetCore.Blazor.Build.Analyzers.Test.csproj", "{CF3B5990-7A05-4993-AACA-D2C8D7AFF6E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Analyzers.Test", "test\Microsoft.AspNetCore.Blazor.Analyzers.Test\Microsoft.AspNetCore.Blazor.Analyzers.Test.csproj", "{CF3B5990-7A05-4993-AACA-D2C8D7AFF6E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

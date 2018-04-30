@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Build.Analyzers\Microsoft.AspNetCore.Blazor.Build.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Analyzers\Microsoft.AspNetCore.Blazor.Analyzers.csproj" />
   </ItemGroup>
 
 </Project>
