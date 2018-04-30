@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void DeclaredParametersVaryOnlyByType_Throws()
+        public void DeclaredParametersVaryOnlyByCase_Throws()
         {
             // Arrange
             var parameterCollection = new ParameterCollectionBuilder().Build();
