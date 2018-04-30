@@ -36,6 +36,42 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void IncomingParameterMatchesDeclaredParameterCaseInsensitively_SetsValue()
+        {
+            // Arrange
+            var parameterCollection = new ParameterCollectionBuilder
+            {
+                { nameof(HasPublicInstanceProperties.IntProp).ToLowerInvariant(), 123 }
+            }.Build();
+            var target = new HasPublicInstanceProperties();
+
+            // Act
+            parameterCollection.AssignToProperties(target);
+
+            // Assert
+            Assert.Equal(123, target.IntProp);
+        }
+
+        [Fact]
+        public void IncomingParameterMatchesInheritedDeclaredParameter_SetsValue()
+        {
+            // Arrange
+            var parameterCollection = new ParameterCollectionBuilder
+            {
+                { nameof(HasInheritedProperties.IntProp), 123 },
+                { nameof(HasInheritedProperties.DerivedClassIntProp), 456 },
+            }.Build();
+            var target = new HasInheritedProperties();
+
+            // Act
+            parameterCollection.AssignToProperties(target);
+
+            // Assert
+            Assert.Equal(123, target.IntProp);
+            Assert.Equal(456, target.DerivedClassIntProp);
+        }
+
+        [Fact]
         public void NoIncomingParameterMatchesDeclaredParameter_LeavesValueUnchanged()
         {
             // Arrange
@@ -144,6 +180,50 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 ex.Message);
         }
 
+        [Fact]
+        public void DeclaredParametersVaryOnlyByType_Throws()
+        {
+            // Arrange
+            var parameterCollection = new ParameterCollectionBuilder().Build();
+            var target = new HasParametersVaryingOnlyByCase();
+
+            // Act
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                parameterCollection.AssignToProperties(target));
+
+            // Assert
+            Assert.Equal(
+                $"The type '{typeof(HasParametersVaryingOnlyByCase).FullName}' declares more than one parameter matching the " +
+                $"name '{nameof(HasParametersVaryingOnlyByCase.MyValue).ToLowerInvariant()}'. Parameter names are case-insensitive and must be unique.",
+                ex.Message);
+        }
+
+        [Fact]
+        public void DeclaredParameterClashesWithInheritedParameter_Throws()
+        {
+            // Even when the developer uses 'new' to shadow an inherited property, this is not
+            // an allowed scenario because there would be no way for the consumer to specify
+            // both property values, and it's no good leaving the shadowed one unset because the
+            // base class can legitimately depend on it for correct functioning.
+            
+            // Arrange
+            var parameterCollection = new ParameterCollectionBuilder().Build();
+            var target = new HasParameterClashingWithInherited();
+
+            // Act
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                parameterCollection.AssignToProperties(target));
+
+            // Assert
+            Assert.Equal(
+                $"The type '{typeof(HasParameterClashingWithInherited).FullName}' declares more than one parameter matching the " +
+                $"name '{nameof(HasParameterClashingWithInherited.IntProp).ToLowerInvariant()}'. Parameter names are case-insensitive and must be unique.",
+                ex.Message);
+        }
+
+        // Throws for property name clashes by shadowing?
+
+
         class HasPublicInstanceProperties
         {
             [Parameter] public int IntProp { get; set; }
@@ -164,6 +244,22 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 get => string.Empty;
                 set => throw new InvalidOperationException("This setter throws");
             }
+        }
+
+        class HasInheritedProperties : HasPublicInstanceProperties
+        {
+            [Parameter] public int DerivedClassIntProp { get; set; }
+        }
+
+        class HasParametersVaryingOnlyByCase
+        {
+            [Parameter] public object MyValue { get; set; }
+            [Parameter] public object Myvalue { get; set; }
+        }
+
+        class HasParameterClashingWithInherited : HasPublicInstanceProperties
+        {
+            [Parameter] public new int IntProp { get; set; }
         }
 
         class ParameterCollectionBuilder : IEnumerable

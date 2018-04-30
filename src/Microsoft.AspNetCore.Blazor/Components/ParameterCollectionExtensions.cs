@@ -74,7 +74,15 @@ namespace Microsoft.AspNetCore.Blazor.Components
             {
                 var propertySetter = MemberAssignment.CreatePropertySetter(targetType, propertyInfo);
 
-                result.Add(propertyInfo.Name, (ref RenderTreeFrame frame, object target) =>
+                var propertyName = propertyInfo.Name;
+                if (result.ContainsKey(propertyName))
+                {
+                    throw new InvalidOperationException(
+                        $"The type '{targetType.FullName}' declares more than one parameter matching the " +
+                        $"name '{propertyName.ToLowerInvariant()}'. Parameter names are case-insensitive and must be unique.");
+                }
+
+                result.Add(propertyName, (ref RenderTreeFrame frame, object target) =>
                 {
                     propertySetter.SetValue(target, frame.AttributeValue);
                 });
