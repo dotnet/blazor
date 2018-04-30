@@ -147,13 +147,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             // Sanitize the base namespace, but leave the dots.
             var segments = baseNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
             builder.Append(CSharpIdentifier.SanitizeClassName(segments[0]));
-            if (segments.Length > 1)
+            for (var i = 1; i < segments.Length; i++)
             {
-                for (var i = 1; i < segments.Length; i++)
-                {
-                    builder.Append('.');
-                    builder.Append(CSharpIdentifier.SanitizeClassName(segments[i]));
-                }
+                builder.Append('.');
+                builder.Append(CSharpIdentifier.SanitizeClassName(segments[i]));
             }
 
             segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
