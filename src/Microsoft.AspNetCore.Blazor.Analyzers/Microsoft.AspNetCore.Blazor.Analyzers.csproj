@@ -29,4 +29,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\shared\BlazorApi.cs" Link="shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+  
 </Project>

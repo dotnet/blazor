@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -11,13 +12,13 @@ namespace Microsoft.AspNetCore.Blazor.Analyzers.Test
 {
     public class ComponentParametersShouldNotBePublic : CodeFixVerifier
     {
-        const string BlazorParameterSource = @"
-    namespace Microsoft.AspNetCore.Blazor
-    {
-        public class ParameterAttribute : System.Attribute
-        {
-        }
-    }
+        static string BlazorParameterSource = $@"
+    namespace {typeof(ParameterAttribute).Namespace}
+    {{
+        public class {typeof(ParameterAttribute).Name} : System.Attribute
+        {{
+        }}
+    }}
 ";
 
         [Fact]
@@ -41,7 +42,7 @@ namespace Microsoft.AspNetCore.Blazor.Analyzers.Test
             var test = @"
     namespace ConsoleApplication1
     {
-        using Microsoft.AspNetCore.Blazor;
+        using " + typeof(ParameterAttribute).Namespace + @";
 
         class TypeName
         {
@@ -61,7 +62,7 @@ namespace Microsoft.AspNetCore.Blazor.Analyzers.Test
             var test = @"
     namespace ConsoleApplication1
     {
-        using Microsoft.AspNetCore.Blazor;
+        using " + typeof(ParameterAttribute).Namespace + @";
 
         class TypeName
         {
@@ -95,7 +96,7 @@ namespace Microsoft.AspNetCore.Blazor.Analyzers.Test
             VerifyCSharpFix(test, @"
     namespace ConsoleApplication1
     {
-        using Microsoft.AspNetCore.Blazor;
+        using " + typeof(ParameterAttribute).Namespace + @";
 
         class TypeName
         {
