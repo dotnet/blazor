@@ -4,9 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
@@ -17,6 +19,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             SymbolDisplayFormat.FullyQualifiedFormat
                 .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
                 .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions & (~SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
+
+        private static MethodInfo WithMetadataImportOptionsMethodInfo =
+            typeof(CSharpCompilationOptions)
+                .GetMethod("WithMetadataImportOptions", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         public bool IncludeDocumentation { get; set; }
 
@@ -35,6 +41,11 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // No compilation, nothing to do.
                 return;
             }
+
+            // We need to see private members too
+            var newCompilationOptions = (CSharpCompilationOptions)WithMetadataImportOptionsMethodInfo
+                .Invoke(compilation.Options, new object[] { /* All */ (byte)2 });
+            compilation = compilation.WithOptions(newCompilationOptions);
 
             var componentSymbol = compilation.GetTypeByMetadataName(BlazorApi.IComponent.MetadataName);
             if (componentSymbol == null)
