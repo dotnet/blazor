@@ -14,17 +14,17 @@ namespace Microsoft.AspNetCore.Blazor.Test
     public class ParameterCollectionAssignmentExtensionsTest
     {
         [Fact]
-        public void IncomingParameterMatchesDeclaredParameter_SetsValue()
+        public void IncomingParameterMatchesAnnotatedPrivateProperty_SetsValue()
         {
             // Arrange
             var someObject = new object();
             var parameterCollection = new ParameterCollectionBuilder
             {
-                { nameof(HasPublicInstanceProperties.IntProp), 123 },
-                { nameof(HasPublicInstanceProperties.StringProp), "Hello" },
-                { nameof(HasPublicInstanceProperties.ObjectProp), someObject },
+                { nameof(HasInstanceProperties.IntProp), 123 },
+                { nameof(HasInstanceProperties.StringProp), "Hello" },
+                { HasInstanceProperties.ObjectPropName, someObject },
             }.Build();
-            var target = new HasPublicInstanceProperties();
+            var target = new HasInstanceProperties();
 
             // Act
             parameterCollection.AssignToProperties(target);
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Assert
             Assert.Equal(123, target.IntProp);
             Assert.Equal("Hello", target.StringProp);
-            Assert.Same(someObject, target.ObjectProp);
+            Assert.Same(someObject, target.ObjectPropCurrentValue);
         }
 
         [Fact]
@@ -41,9 +41,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             var parameterCollection = new ParameterCollectionBuilder
             {
-                { nameof(HasPublicInstanceProperties.IntProp).ToLowerInvariant(), 123 }
+                { nameof(HasInstanceProperties.IntProp).ToLowerInvariant(), 123 }
             }.Build();
-            var target = new HasPublicInstanceProperties();
+            var target = new HasInstanceProperties();
 
             // Act
             parameterCollection.AssignToProperties(target);
@@ -76,11 +76,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var existingObjectValue = new object();
-            var target = new HasPublicInstanceProperties
+            var target = new HasInstanceProperties
             {
                 IntProp = 456,
                 StringProp = "Existing value",
-                ObjectProp = existingObjectValue
+                ObjectPropCurrentValue = existingObjectValue
             };
 
             var parameterCollection = new ParameterCollectionBuilder().Build();
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Assert
             Assert.Equal(456, target.IntProp);
             Assert.Equal("Existing value", target.StringProp);
-            Assert.Same(existingObjectValue, target.ObjectProp);
+            Assert.Same(existingObjectValue, target.ObjectPropCurrentValue);
         }
 
         [Fact]
@@ -144,9 +144,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var someObject = new object();
             var parameterCollection = new ParameterCollectionBuilder
             {
-                { nameof(HasPublicInstanceProperties.IntProp), "string value" },
+                { nameof(HasInstanceProperties.IntProp), "string value" },
             }.Build();
-            var target = new HasPublicInstanceProperties();
+            var target = new HasInstanceProperties();
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(
@@ -154,8 +154,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Assert
             Assert.Equal(
-                $"Unable to set property '{nameof(HasPublicInstanceProperties.IntProp)}' on object of " +
-                $"type '{typeof(HasPublicInstanceProperties).FullName}'. The error was: {ex.InnerException.Message}",
+                $"Unable to set property '{nameof(HasInstanceProperties.IntProp)}' on object of " +
+                $"type '{typeof(HasInstanceProperties).FullName}'. The error was: {ex.InnerException.Message}",
                 ex.Message);
         }
 
@@ -221,45 +221,55 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 ex.Message);
         }
 
-        // Throws for property name clashes by shadowing?
 
-
-        class HasPublicInstanceProperties
+        class HasInstanceProperties
         {
-            [Parameter] public int IntProp { get; set; }
-            [Parameter] public string StringProp { get; set; }
-            [Parameter] public object ObjectProp { get; set; }
+            // "internal" to show we're not requiring public accessors, but also
+            // to keep the assertions simple in the tests
+            
+            [Parameter] internal int IntProp { get; set; }
+            [Parameter] internal string StringProp { get; set; }
+
+            // Also a truly private one to show there's nothing special about 'internal'
+            [Parameter] private object ObjectProp { get; set; }
+
+            public static string ObjectPropName => nameof(ObjectProp);
+            public object ObjectPropCurrentValue
+            {
+                get => ObjectProp;
+                set => ObjectProp = value;
+            }
         }
 
         class HasPropertyWithoutParameterAttribute
         {
-            public int IntProp { get; set; }
+            internal int IntProp { get; set; }
         }
 
         class HasPropertyWhoseSetterThrows
         {
             [Parameter]
-            public string StringProp
+            internal string StringProp
             {
                 get => string.Empty;
                 set => throw new InvalidOperationException("This setter throws");
             }
         }
 
-        class HasInheritedProperties : HasPublicInstanceProperties
+        class HasInheritedProperties : HasInstanceProperties
         {
-            [Parameter] public int DerivedClassIntProp { get; set; }
+            [Parameter] internal int DerivedClassIntProp { get; set; }
         }
 
         class HasParametersVaryingOnlyByCase
         {
-            [Parameter] public object MyValue { get; set; }
-            [Parameter] public object Myvalue { get; set; }
+            [Parameter] internal object MyValue { get; set; }
+            [Parameter] internal object Myvalue { get; set; }
         }
 
-        class HasParameterClashingWithInherited : HasPublicInstanceProperties
+        class HasParameterClashingWithInherited : HasInstanceProperties
         {
-            [Parameter] public new int IntProp { get; set; }
+            [Parameter] new int IntProp { get; set; }
         }
 
         class ParameterCollectionBuilder : IEnumerable

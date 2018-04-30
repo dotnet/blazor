@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
     /// </summary>
     public static class ParameterCollectionExtensions
     {
-        private const BindingFlags _bindablePropertyFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
+        private const BindingFlags _bindablePropertyFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
         private delegate void WriteParameterAction(ref RenderTreeFrame frame, object target);
 
