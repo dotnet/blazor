@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Blazor.Reflection;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using System;
 using System.Collections.Concurrent;
@@ -71,24 +72,20 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
             foreach (var propertyInfo in GetBindableProperties(targetType))
             {
-                // Low-perf reflection-based setter. Will replace shortly.
-                var parameterName = propertyInfo.Name;
-                WriteParameterAction parameterWriter = (ref RenderTreeFrame frame, object target) =>
-                {
-                    propertyInfo.SetValue(target, frame.AttributeValue);
-                };
+                var propertySetter = MemberAssignment.CreatePropertySetter(targetType, propertyInfo);
 
-                result.Add(parameterName, parameterWriter);
+                result.Add(propertyInfo.Name, (ref RenderTreeFrame frame, object target) =>
+                {
+                    propertySetter.SetValue(target, frame.AttributeValue);
+                });
             }
 
             return result;
         }
 
         private static IEnumerable<PropertyInfo> GetBindableProperties(Type targetType)
-        {
-            return targetType.GetProperties(_bindablePropertyFlags)
-                .Where(propertyInfo => propertyInfo.IsDefined(typeof(ParameterAttribute)));
-        }
+            => MemberAssignment.GetPropertiesIncludingInherited(targetType, _bindablePropertyFlags)
+                .Where(property => property.IsDefined(typeof(ParameterAttribute)));
 
         private static void ThrowForUnknownIncomingParameterName(Type targetType, string parameterName)
         {
