@@ -4,11 +4,15 @@
     Initially blank:
     <input id="textbox-initially-blank" bind="textboxInitiallyBlankValue" />
     <span id="textbox-initially-blank-value">@textboxInitiallyBlankValue</span>
+    <input id="textbox-initially-blank-mirror" bind="textboxInitiallyBlankValue" readonly />
+    <button id="textbox-initially-blank-setnull" onclick="@(() => { textboxInitiallyBlankValue = null; })">Set null</button>
 </p>
 <p>
     Initially populated:
     <input id="textbox-initially-populated" bind="textboxInitiallyPopulatedValue" />
     <span id="textbox-initially-populated-value">@textboxInitiallyPopulatedValue</span>
+    <input id="textbox-initially-populated-mirror" bind="textboxInitiallyPopulatedValue" readonly />
+    <button id="textbox-initially-populated-setnull" onclick="@(() => { textboxInitiallyPopulatedValue = null; })">Set null</button>
 </p>
 
 <h2>Text Area</h2>
