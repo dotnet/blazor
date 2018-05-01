@@ -86,6 +86,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         {
             var target = Browser.FindElement(By.Id("checkbox-initially-unchecked"));
             var boundValue = Browser.FindElement(By.Id("checkbox-initially-unchecked-value"));
+            var invertButton = Browser.FindElement(By.Id("checkbox-initially-unchecked-invert"));
             Assert.False(target.Selected);
             Assert.Equal("False", boundValue.Text);
 
@@ -93,6 +94,11 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             target.Click();
             Assert.True(target.Selected);
             Assert.Equal("True", boundValue.Text);
+
+            // Modify data; verify checkbox is updated
+            invertButton.Click();
+            Assert.False(target.Selected);
+            Assert.Equal("False", boundValue.Text);
         }
 
         [Fact]
@@ -100,6 +106,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         {
             var target = Browser.FindElement(By.Id("checkbox-initially-checked"));
             var boundValue = Browser.FindElement(By.Id("checkbox-initially-checked-value"));
+            var invertButton = Browser.FindElement(By.Id("checkbox-initially-checked-invert"));
             Assert.True(target.Selected);
             Assert.Equal("True", boundValue.Text);
 
@@ -107,6 +114,11 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             target.Click();
             Assert.False(target.Selected);
             Assert.Equal("False", boundValue.Text);
+
+            // Modify data; verify checkbox is updated
+            invertButton.Click();
+            Assert.True(target.Selected);
+            Assert.Equal("True", boundValue.Text);
         }
 
         [Fact]

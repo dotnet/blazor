@@ -28,11 +28,13 @@
     Initially unchecked:
     <input id="checkbox-initially-unchecked" bind="checkboxInitiallyUncheckedValue" type="checkbox" />
     <span id="checkbox-initially-unchecked-value">@checkboxInitiallyUncheckedValue</span>
+    <button id="checkbox-initially-unchecked-invert" onclick="@(() => { checkboxInitiallyUncheckedValue = !checkboxInitiallyUncheckedValue; })">Invert</button>
 </p>
 <p>
     Initially checked:
     <input id="checkbox-initially-checked" bind="checkboxInitiallyCheckedValue" type="checkbox" />
     <span id="checkbox-initially-checked-value">@checkboxInitiallyCheckedValue</span>
+    <button id="checkbox-initially-checked-invert" onclick="@(() => { checkboxInitiallyCheckedValue = !checkboxInitiallyCheckedValue; })">Invert</button>
 </p>
 
 <h2>Select</h2>
