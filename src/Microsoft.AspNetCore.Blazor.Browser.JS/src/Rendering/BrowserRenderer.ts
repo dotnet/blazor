@@ -224,18 +224,14 @@ export class BrowserRenderer {
       case 'INPUT':
       case 'SELECT':
       case 'TEXTAREA':
-        if (isCheckbox(element)) {
-          (element as HTMLInputElement).checked = value === '';
-        } else {
-          (element as any).value = value;
+        (element as any).value = value;
 
-          if (element.tagName === 'SELECT') {
-            // <select> is special, in that anything we write to .value will be lost if there
-            // isn't yet a matching <option>. To maintain the expected behavior no matter the
-            // element insertion/update order, preserve the desired value separately so
-            // we can recover it when inserting any matching <option>.
-            element[selectValuePropname] = value;
-          }
+        if (element.tagName === 'SELECT') {
+          // <select> is special, in that anything we write to .value will be lost if there
+          // isn't yet a matching <option>. To maintain the expected behavior no matter the
+          // element insertion/update order, preserve the desired value separately so
+          // we can recover it when inserting any matching <option>.
+          element[selectValuePropname] = value;
         }
         return true;
       case 'OPTION':
@@ -279,10 +275,6 @@ function countDescendantFrames(frame: RenderTreeFramePointer): number {
     default:
       return 0;
   }
-}
-
-function isCheckbox(element: Element) {
-  return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
 }
 
 function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
