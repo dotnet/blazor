@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
 {
-    public class EventTest : BasicTestAppTestBase
+    public class EventBubblingTest : BasicTestAppTestBase
     {
         // Note that currently we only support custom events if they have bubble:true.
         // That's because the event delegator doesn't know which custom events bubble and which don't,
@@ -19,14 +19,14 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         // a problem, we could consider registering both types of handler and just bailing out from
         // the one that doesn't match the 'bubbles' flag on the received event object.
 
-        public EventTest(
+        public EventBubblingTest(
             BrowserFixture browserFixture, 
             DevHostServerFixture<Program> serverFixture,
             ITestOutputHelper output)
             : base(browserFixture, serverFixture, output)
         {
             Navigate(ServerPathBase, noReload: true);
-            MountTestComponent<EventCasesComponent>();
+            MountTestComponent<EventBubblingComponent>();
         }
         
         [Fact]
