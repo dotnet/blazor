@@ -44,7 +44,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             => new RenderFragment[]
             {
                 builder => builder.AddContent(0, "Hello"),
-                builder => builder.OpenElement(0, "Some Element"),
+                builder =>
+                {
+                    builder.OpenElement(0, "Some Element");
+                    builder.CloseElement();
+                },
                 builder =>
                 {
                     builder.OpenElement(0, "Some Element");
@@ -421,9 +425,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void RecognizesAttributeEventHandlerValuesChanged()
         {
             // Arrange
-            UIEventHandler retainedHandler = _ => { };
-            UIEventHandler removedHandler = _ => { };
-            UIEventHandler addedHandler = _ => { };
+            Action<UIEventArgs> retainedHandler = _ => { };
+            Action<UIEventArgs> removedHandler = _ => { };
+            Action<UIEventArgs> addedHandler = _ => { };
             oldTree.OpenElement(0, "My element");
             oldTree.AddAttribute(1, "onfoo", retainedHandler);
             oldTree.AddAttribute(2, "onbar", removedHandler);
@@ -1159,7 +1163,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void PreservesEventHandlerIdsForRetainedEventHandlers()
         {
             // Arrange
-            UIEventHandler retainedHandler = _ => { };
+            Action<UIEventArgs> retainedHandler = _ => { };
             oldTree.OpenElement(0, "My element");
             oldTree.AddAttribute(1, "ontest", retainedHandler);
             oldTree.CloseElement();
@@ -1185,7 +1189,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void PreservesEventHandlerIdsForRetainedEventHandlers_SlowPath()
         {
             // Arrange
-            UIEventHandler retainedHandler = _ => { };
+            Action<UIEventArgs> retainedHandler = _ => { };
             oldTree.OpenElement(0, "My element");
             oldTree.AddAttribute(0, "ontest", retainedHandler);
             oldTree.CloseElement();
@@ -1323,6 +1327,137 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(new[] { 0, 1 }, batchBuilder.ComponentDisposalQueue);
         }
 
+        [Fact]
+        public void AssignsDistinctIdToNewElementReferenceCaptures()
+        {
+            // Arrange
+            ElementRef ref1 = default, ref2 = default;
+            Action<ElementRef> capture1 = val => { ref1 = val; };
+            Action<ElementRef> capture2 = val => { ref2 = val; };
+            newTree.OpenElement(0, "My element");
+            newTree.AddElementReferenceCapture(1, capture1);
+            newTree.AddElementReferenceCapture(2, capture2);
+            newTree.CloseElement();
+
+            // Act
+            var (diff, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert: Distinct nonzero IDs
+            Assert.NotEqual(0, ref1.Id);
+            Assert.NotEqual(0, ref2.Id);
+            Assert.NotEqual(ref1.Id, ref2.Id);
+
+            // Assert: Also specified in diff
+            Assert.Collection(diff.Edits, edit =>
+            {
+                AssertEdit(edit, RenderTreeEditType.PrependFrame, 0);
+                Assert.Equal(0, edit.ReferenceFrameIndex);
+            });
+            Assert.Collection(referenceFrames,
+                frame => AssertFrame.Element(frame, "My element", 3),
+                frame =>
+                {
+                    AssertFrame.ElementReferenceCapture(frame, capture1);
+                    Assert.Equal(ref1.Id, frame.ElementReferenceCaptureId);
+                },
+                frame =>
+                {
+                    AssertFrame.ElementReferenceCapture(frame, capture2);
+                    Assert.Equal(ref2.Id, frame.ElementReferenceCaptureId);
+                });
+        }
+
+        [Fact]
+        public void PreservesIdsOnRetainedElementReferenceCaptures()
+        {
+            // Arrange
+            var refWriteCount = 0;
+            ElementRef ref1 = default;
+            Action<ElementRef> capture1 = val => { ref1 = val; refWriteCount++; };
+            oldTree.OpenElement(0, "My element");
+            oldTree.AddElementReferenceCapture(1, capture1);
+            oldTree.CloseElement();
+            newTree.OpenElement(0, "My element");
+            newTree.AddElementReferenceCapture(1, capture1);
+            newTree.CloseElement();
+
+            // Act
+            var (diff, referenceFrames) = GetSingleUpdatedComponent(initializeFromFrames: true);
+
+            // Assert: Did not invoke the capture action a second time
+            // Note: We're not preserving the ReferenceCaptureId on the actual RenderTreeFrames in the same
+            //       way we do for event handler IDs, simply because there's no need to do so. We only do
+            //       anything with ReferenceCaptureId when frames are first inserted into the document.
+            Assert.NotEqual(0, ref1.Id);
+            Assert.Equal(1, refWriteCount);
+            Assert.Empty(diff.Edits);
+            Assert.Empty(referenceFrames);
+        }
+
+        [Fact]
+        public void InvokesAssignerForComponentReferenceCapturesOnInsertion()
+        {
+            // Arrange
+            FakeComponent capturedInstance1 = null, capturedInstance2 = null;
+            Action<object> assigner1 = val => { capturedInstance1 = (FakeComponent)val; };
+            Action<object> assigner2 = val => { capturedInstance2 = (FakeComponent)val; };
+            newTree.OpenComponent<FakeComponent>(0);
+            newTree.AddComponentReferenceCapture(1, assigner1);
+            newTree.AddComponentReferenceCapture(2, assigner2);
+            newTree.CloseComponent();
+
+            // Act
+            var (diff, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert: Assigned references
+            Assert.NotNull(capturedInstance1);
+            Assert.NotNull(capturedInstance2);
+            Assert.IsType<FakeComponent>(capturedInstance1);
+            Assert.IsType<FakeComponent>(capturedInstance2);
+            Assert.Same(capturedInstance1, capturedInstance2);
+
+            // Assert: Also in diff, even though we have no use for it there
+            // (it would be costly to exclude given how the array range is copied)
+            Assert.Collection(diff.Edits, edit =>
+            {
+                AssertEdit(edit, RenderTreeEditType.PrependFrame, 0);
+                Assert.Equal(0, edit.ReferenceFrameIndex);
+            });
+            Assert.Collection(referenceFrames,
+                frame =>
+                {
+                    AssertFrame.Component<FakeComponent>(frame, 3, 0);
+                    Assert.Same(capturedInstance1, frame.Component);
+                },
+                frame => AssertFrame.ComponentReferenceCapture(frame, assigner1, 1),
+                frame => AssertFrame.ComponentReferenceCapture(frame, assigner2, 2));
+        }
+
+        [Fact]
+        public void DoesNotInvokeAssignerAgainForRetainedComponents()
+        {
+            // Arrange
+            var refWriteCount = 0;
+            FakeComponent capturedInstance = null;
+            Action<object> assigner = val => { capturedInstance = (FakeComponent)val; refWriteCount++; };
+            oldTree.OpenComponent<FakeComponent>(0);
+            oldTree.AddComponentReferenceCapture(1, assigner);
+            oldTree.CloseComponent();
+            newTree.OpenComponent<FakeComponent>(0);
+            newTree.AddComponentReferenceCapture(1, assigner);
+            newTree.CloseComponent();
+
+            // Act
+            var (diff, referenceFrames) = GetSingleUpdatedComponent(initializeFromFrames: true);
+
+            // Assert: Did not invoke the capture action a second time
+            Assert.NotNull(capturedInstance);
+            Assert.IsType<FakeComponent>(capturedInstance);
+            Assert.Equal(1, refWriteCount);
+            Assert.Empty(diff.Edits);
+            Assert.Empty(referenceFrames);
+        }
+
         private (RenderTreeDiff, RenderTreeFrame[]) GetSingleUpdatedComponent(bool initializeFromFrames = false)
         {
             var result = GetSingleUpdatedComponentWithBatch(initializeFromFrames);
@@ -1368,11 +1503,22 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
         private class FakeComponent : IComponent
         {
-            public int IntProperty { get; set; }
-            public string StringProperty { get; set; }
-            public object ObjectProperty { get; set; }
-            public string ReadonlyProperty { get; private set; }
-            private string PrivateProperty { get; set; }
+            [Parameter]
+            internal int IntProperty { get; set; }
+
+            [Parameter]
+            internal string StringProperty { get; set; }
+
+            [Parameter]
+            internal object ObjectProperty { get; set; }
+
+            [Parameter]
+            internal string ReadonlyProperty { get; private set; }
+
+            [Parameter]
+            string PrivateProperty { get; set; }
+
+            public string NonParameterProperty { get; set; }
 
             public void Init(RenderHandle renderHandle) { }
             public void SetParameters(ParameterCollection parameters)

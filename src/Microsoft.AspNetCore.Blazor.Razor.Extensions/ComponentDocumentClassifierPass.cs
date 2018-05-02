@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -24,6 +25,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         private static readonly object BuildRenderTreeBaseCallAnnotation = new object();
 
         private static readonly char[] PathSeparators = new char[] { '/', '\\' };
+
+        private static readonly char[] NamespaceSeparators = new char[] { '.' };
 
         /// <summary>
         /// The base namespace.
@@ -141,9 +144,17 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
 
             var builder = new StringBuilder();
-            builder.Append(baseNamespace); // Don't sanitize, we expect it to contain dots.
 
-            var segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
+            // Sanitize the base namespace, but leave the dots.
+            var segments = baseNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
+            builder.Append(CSharpIdentifier.SanitizeClassName(segments[0]));
+            for (var i = 1; i < segments.Length; i++)
+            {
+                builder.Append('.');
+                builder.Append(CSharpIdentifier.SanitizeClassName(segments[i]));
+            }
+
+            segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
 
             // Skip the last segment because it's the FileName.
             for (var i = 0; i < segments.Length - 1; i++)

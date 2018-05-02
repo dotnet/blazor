@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         /// <summary>
         /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Element"/>,
-        /// gets a name representing the type of the element. Otherwise, the value is <see langword="null"/>.
+        /// gets a name representing the type of the element. Otherwise, the value is undefined.
         /// </summary>
         [FieldOffset(16)] public readonly string ElementName;
 
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         /// <summary>
         /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Text"/>,
-        /// gets the content of the text frame. Otherwise, the value is <see langword="null"/>.
+        /// gets the content of the text frame. Otherwise, the value is undefined.
         /// </summary>
         [FieldOffset(16)] public readonly string TextContent;
 
@@ -79,13 +79,13 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         /// <summary>
         /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Attribute"/>,
-        /// gets the attribute name. Otherwise, the value is <see langword="null"/>.
+        /// gets the attribute name. Otherwise, the value is undefined.
         /// </summary>
         [FieldOffset(16)] public readonly string AttributeName;
 
         /// <summary>
         /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Attribute"/>,
-        /// gets the attribute value. Otherwise, the value is <see langword="null"/>.
+        /// gets the attribute value. Otherwise, the value is undefined.
         /// </summary>
         [FieldOffset(24)] public readonly object AttributeValue;
 
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         /// <summary>
         /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Component"/>,
-        /// gets the child component instance. Otherwise, the value is <see langword="null"/>.
+        /// gets the child component instance. Otherwise, the value is undefined.
         /// </summary>
         [FieldOffset(24)] public readonly IComponent Component;
 
@@ -133,6 +133,44 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         /// The value is zero if the frame has not yet been closed.
         /// </summary>
         [FieldOffset(8)] public readonly int RegionSubtreeLength;
+
+        // --------------------------------------------------------------------------------
+        // RenderTreeFrameType.ElementReferenceCapture
+        // --------------------------------------------------------------------------------
+
+        /// <summary>
+        /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.ElementReferenceCapture"/>,
+        /// gets the ID of the reference capture. Otherwise, the value is undefined.
+        /// </summary>
+        [FieldOffset(8)] public readonly int ElementReferenceCaptureId;
+
+        /// <summary>
+        /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.ElementReferenceCapture"/>,
+        /// gets the action that writes the reference to its target. Otherwise, the value is undefined.
+        /// </summary>
+        [FieldOffset(16)] public readonly Action<ElementRef> ElementReferenceCaptureAction;
+
+        // --------------------------------------------------------------------------------
+        // RenderTreeFrameType.ComponentReferenceCapture
+        // --------------------------------------------------------------------------------
+
+        /// <summary>
+        /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.ComponentReferenceCapture"/>,
+        /// gets the index of the parent frame representing the component being captured. Otherwise, the value is undefined.
+        /// WARNING: This index can only be used in the context of the frame's original render tree. If the frame is
+        ///          copied elsewhere, such as to the ReferenceFrames buffer of a RenderTreeDiff, then the index will
+        ///          not relate to entries in that other buffer.
+        ///          Currently there's no scenario where this matters, but if there was, we could change all of the subtree
+        ///          initialization logic in RenderTreeDiffBuilder to walk the frames hierarchically, then it would know
+        ///          the parent index at the point where it wants to initialize the ComponentReferenceCapture frame.
+        /// </summary>
+        [FieldOffset(8)] public readonly int ComponentReferenceCaptureParentFrameIndex;
+
+        /// <summary>
+        /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.ComponentReferenceCapture"/>,
+        /// gets the action that writes the reference to its target. Otherwise, the value is undefined.
+        /// </summary>
+        [FieldOffset(16)] public readonly Action<object> ComponentReferenceCaptureAction;
 
         private RenderTreeFrame(int sequence, string elementName, int elementSubtreeLength)
             : this()
@@ -150,7 +188,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
             Sequence = sequence;
             ComponentType = componentType;
             ComponentSubtreeLength = componentSubtreeLength;
-						CustomComponentType = ComponentFactory.GetRegisteredCustomComponent(componentType);
+						CustomComponentType = ComponentFactoryRegister.GetRegisteredCustomComponent(componentType);
 				}
 
 				private RenderTreeFrame(int sequence, Type componentType, int subtreeLength, int componentId, IComponent component)
@@ -195,13 +233,31 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
             RegionSubtreeLength = regionSubtreeLength;
         }
 
+        private RenderTreeFrame(int sequence, Action<ElementRef> elementReferenceCaptureAction, int elementReferenceCaptureId)
+            : this()
+        {
+            FrameType = RenderTreeFrameType.ElementReferenceCapture;
+            Sequence = sequence;
+            ElementReferenceCaptureAction = elementReferenceCaptureAction;
+            ElementReferenceCaptureId = elementReferenceCaptureId;
+        }
+
+        private RenderTreeFrame(int sequence, Action<object> componentReferenceCaptureAction, int parentFrameIndex)
+            : this()
+        {
+            FrameType = RenderTreeFrameType.ComponentReferenceCapture;
+            Sequence = sequence;
+            ComponentReferenceCaptureAction = componentReferenceCaptureAction;
+            ComponentReferenceCaptureParentFrameIndex = parentFrameIndex;
+        }
+
         internal static RenderTreeFrame Element(int sequence, string elementName)
             => new RenderTreeFrame(sequence, elementName: elementName, elementSubtreeLength: 0);
 
         internal static RenderTreeFrame Text(int sequence, string textContent)
             => new RenderTreeFrame(sequence, textContent: textContent);
 
-        internal static RenderTreeFrame Attribute(int sequence, string name, UIEventHandler value)
+        internal static RenderTreeFrame Attribute(int sequence, string name, MulticastDelegate value)
              => new RenderTreeFrame(sequence, attributeName: name, attributeValue: value);
 
         internal static RenderTreeFrame Attribute(int sequence, string name, object value)
@@ -212,6 +268,12 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         internal static RenderTreeFrame Region(int sequence)
             => new RenderTreeFrame(sequence, regionSubtreeLength: 0);
+
+        internal static RenderTreeFrame ElementReferenceCapture(int sequence, Action<ElementRef> elementReferenceCaptureAction)
+            => new RenderTreeFrame(sequence, elementReferenceCaptureAction: elementReferenceCaptureAction, elementReferenceCaptureId: 0);
+
+        internal static RenderTreeFrame ComponentReferenceCapture(int sequence, Action<object> componentReferenceCaptureAction, int parentFrameIndex)
+            => new RenderTreeFrame(sequence, componentReferenceCaptureAction: componentReferenceCaptureAction, parentFrameIndex: parentFrameIndex);
 
         internal RenderTreeFrame WithElementSubtreeLength(int elementSubtreeLength)
             => new RenderTreeFrame(Sequence, elementName: ElementName, elementSubtreeLength: elementSubtreeLength);
@@ -230,6 +292,9 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         internal RenderTreeFrame WithRegionSubtreeLength(int regionSubtreeLength)
             => new RenderTreeFrame(Sequence, regionSubtreeLength: regionSubtreeLength);
+
+        internal RenderTreeFrame WithElementReferenceCaptureId(int elementReferenceCaptureId)
+            => new RenderTreeFrame(Sequence, ElementReferenceCaptureAction, elementReferenceCaptureId);
 
         /// <inheritdoc />
         // Just to be nice for debugging and unit tests.
@@ -251,6 +316,9 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
                 case RenderTreeFrameType.Text:
                     return $"Text: (seq={Sequence}, len=n/a) {EscapeNewlines(TextContent)}";
+
+                case RenderTreeFrameType.ElementReferenceCapture:
+                    return $"ElementReferenceCapture: (seq={Sequence}, len=n/a) {ElementReferenceCaptureAction}";
             }
 
             return base.ToString();

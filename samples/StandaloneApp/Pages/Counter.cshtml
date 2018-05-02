@@ -4,13 +4,14 @@
 
 <p>Current count: @currentCount</p>
 
-<button class="btn btn-primary" onclick="@IncrementCount">Click me</button>
+<button ref="pippo" class="btn btn-primary" onclick="@IncrementCount">Click me</button>
 
 @functions {
-    int currentCount = 0;
+	int currentCount = 0;
+	ElementRef pippo;
 
-    void IncrementCount()
-    {
-        currentCount++;
-    }
+	void IncrementCount()
+	{
+		currentCount++;
+	}
 }

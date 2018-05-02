@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 				builder.AddAttribute(sequence++, "name", property.Name);
 				builder.AddAttribute(sequence++, "id", property.Name);
 				builder.AddAttribute(sequence++, "value", (string)currentValue);
-				builder.AddAttribute(sequence++, "onchange", (UIChangeEventHandler)(( e ) => {
+				builder.AddAttribute(sequence++, "onchange", new Action<UIChangeEventArgs>(( e ) => {
 					form.ModelState.SetValue(property, e.Value);
 				}));
 

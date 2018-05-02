@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         public void ChildComponent_Simple()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -40,7 +40,7 @@ namespace Test
         public void ChildComponent_WithParameters()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -51,10 +51,10 @@ namespace Test
 
     public class MyComponent : BlazorComponent
     {
-        public int IntProperty { get; set; }
-        public bool BoolProperty { get; set; }
-        public string StringProperty { get; set; }
-        public SomeType ObjectProperty { get; set; }
+        [Parameter] int IntProperty { get; set; }
+        [Parameter] bool BoolProperty { get; set; }
+        [Parameter] string StringProperty { get; set; }
+        [Parameter] SomeType ObjectProperty { get; set; }
     }
 }
 "));
@@ -78,14 +78,15 @@ namespace Test
         public void ChildComponent_WithExplicitStringParameter()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public string StringProperty { get; set; }
+        [Parameter]
+        string StringProperty { get; set; }
     }
 }
 "));
@@ -105,7 +106,7 @@ namespace Test
         public void ChildComponent_WithNonPropertyAttributes()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -132,7 +133,7 @@ namespace Test
         public void ChildComponent_WithLambdaEventHandler()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -141,7 +142,8 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public UIEventHandler OnClick { get; set; }
+        [Parameter]
+        Action<UIEventArgs> OnClick { get; set; }
     }
 }
 "));
@@ -168,7 +170,7 @@ namespace Test
         public void ChildComponent_WithExplicitEventHandler()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -177,7 +179,8 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public UIEventHandler OnClick { get; set; }
+        [Parameter]
+        Action<UIEventArgs> OnClick { get; set; }
     }
 }
 "));
@@ -205,7 +208,7 @@ namespace Test
         public void ChildComponent_WithChildContent()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -213,9 +216,11 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public string MyAttr { get; set; }
+        [Parameter]
+        string MyAttr { get; set; }
 
-        public RenderFragment ChildContent { get; set; }
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
     }
 }
 "));
@@ -235,7 +240,7 @@ namespace Test
         public void ChildComponent_WithPageDirective()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -367,6 +372,88 @@ namespace Test
         }
 
         [Fact]
+        public void AsyncEventHandler_OnElement_Action_MethodGroup()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Blazor
+<input onclick=""@OnClick"" />
+@functions {
+    Task OnClick() 
+    {
+        return Task.CompletedTask;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void AsyncEventHandler_OnElement_ActionEventArgs_MethodGroup()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Blazor
+<input onclick=""@OnClick"" />
+@functions {
+    Task OnClick(UIMouseEventArgs e) 
+    {
+        return Task.CompletedTask;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void AsyncEventHandler_OnElement_Action_Lambda()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Blazor
+<input onclick=""async (e) => await Task.Delay(10)"" />
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void AsyncEventHandler_OnElement_ActionEventArgs_Lambda()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Blazor
+<input onclick=""async (e) => await Task.Delay(10)"" />
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void ScriptTag_WithErrorSuppressed()
         {
             // Arrange/Act
@@ -421,7 +508,7 @@ namespace Test
         public void LeadingWhiteSpace_WithComponent()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -484,7 +571,7 @@ namespace Test
         public void TrailingWhiteSpace_WithComponent()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -514,7 +601,7 @@ namespace Test
         public void Regression_597()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -545,7 +632,7 @@ namespace Test
         public void BindToComponent_SpecifiesValue_WithMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -553,9 +640,11 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public int Value { get; set; }
+        [Parameter]
+        int Value { get; set; }
 
-        public Action<int> ValueChanged { get; set; }
+        [Parameter]
+        Action<int> ValueChanged { get; set; }
     }
 }"));
 
@@ -577,7 +666,7 @@ namespace Test
         public void BindToComponent_SpecifiesValue_WithoutMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -609,7 +698,7 @@ namespace Test
         public void BindToComponent_SpecifiesValueAndChangeEvent_WithMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -617,9 +706,11 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public int Value { get; set; }
+        [Parameter]
+        int Value { get; set; }
 
-        public Action<int> OnChanged { get; set; }
+        [Parameter]
+        Action<int> OnChanged { get; set; }
     }
 }"));
             // Act
@@ -640,7 +731,7 @@ namespace Test
         public void BindToComponent_SpecifiesValueAndChangeEvent_WithoutMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -671,7 +762,7 @@ namespace Test
         public void BindToElement_WritesAttributes()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -701,7 +792,7 @@ namespace Test
         public void BindToElementWithSuffix_WritesAttributes()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -854,6 +945,88 @@ namespace Test
 @functions {
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
 }");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Element_WithRef()
+        {
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+<elem attributebefore=""before"" ref=""myElem"" attributeafter=""after"">Hello</elem>
+
+@functions {
+    private Microsoft.AspNetCore.Blazor.ElementRef myElem;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithRef()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent ParamBefore=""before"" ref=""myInstance"" ParamAfter=""after"" />
+
+@functions {
+    private Test.MyComponent myInstance;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithRef_WithChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+    }
+}
+"));
+
+            // Arrange/Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent ref=""myInstance"" SomeProp=""val"">
+    Some <el>further</el> content
+</MyComponent>
+
+@functions {
+    private Test.MyComponent myInstance;
+}
+");
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

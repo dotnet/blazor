@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         public void Render_ChildComponent_Simple()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -46,7 +46,7 @@ namespace Test
         public void Render_ChildComponent_WithParameters()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -57,10 +57,10 @@ namespace Test
 
     public class MyComponent : BlazorComponent
     {
-        public int IntProperty { get; set; }
-        public bool BoolProperty { get; set; }
-        public string StringProperty { get; set; }
-        public SomeType ObjectProperty { get; set; }
+        [Parameter] int IntProperty { get; set; }
+        [Parameter] bool BoolProperty { get; set; }
+        [Parameter] string StringProperty { get; set; }
+        [Parameter] SomeType ObjectProperty { get; set; }
     }
 }
 "));
@@ -91,17 +91,48 @@ namespace Test
         }
 
         [Fact]
-        public void Render_ChildComponent_WithExplicitStringParameter()
+        public void Render_ChildComponent_TriesToSetNonParamter()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public string StringProperty { get; set; }
+        public int IntProperty { get; set; }
+    }
+}
+"));
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+<MyComponent  IntProperty=""123"" />");
+
+            // Act
+            var ex = Assert.Throws<InvalidOperationException>(() => GetRenderTree(component));
+
+            // Assert
+            Assert.Equal(
+                "Object of type 'Test.MyComponent' has a property matching the name 'IntProperty', " +
+                    "but it does not have [ParameterAttribute] applied.",
+                ex.Message);
+        }
+
+        [Fact]
+        public void Render_ChildComponent_WithExplicitStringParameter()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        string StringProperty { get; set; }
     }
 }
 "));
@@ -124,7 +155,7 @@ namespace Test
         public void Render_ChildComponent_WithNonPropertyAttributes()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
@@ -165,7 +196,7 @@ namespace Test
         public void Render_ChildComponent_WithEventHandler(string expression)
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -174,7 +205,8 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public UIMouseEventHandler OnClick { get; set; }
+        [Parameter]
+        Action<UIMouseEventArgs> OnClick { get; set; }
     }
 }
 "));
@@ -203,7 +235,7 @@ namespace Test
                     AssertFrame.Attribute(frame, "OnClick", 1);
 
                     // The handler will have been assigned to a lambda
-                    var handler = Assert.IsType<UIMouseEventHandler>(frame.AttributeValue);
+                    var handler = Assert.IsType<Action<UIMouseEventArgs>>(frame.AttributeValue);
                     Assert.Equal("Test.TestComponent", handler.Target.GetType().FullName);
                 });
         }
@@ -212,7 +244,7 @@ namespace Test
         public void Render_ChildComponent_WithExplicitEventHandler()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -221,7 +253,8 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public UIEventHandler OnClick { get; set; }
+        [Parameter]
+        Action<UIEventArgs> OnClick { get; set; }
     }
 }
 "));
@@ -250,7 +283,7 @@ namespace Test
                     AssertFrame.Attribute(frame, "OnClick", 1);
 
                     // The handler will have been assigned to a lambda
-                    var handler = Assert.IsType<UIEventHandler>(frame.AttributeValue);
+                    var handler = Assert.IsType<Action<UIEventArgs>>(frame.AttributeValue);
                     Assert.Equal("Test.TestComponent", handler.Target.GetType().FullName);
                     Assert.Equal("Increment", handler.Method.Name);
                 });
@@ -260,14 +293,15 @@ namespace Test
         public void Render_ChildComponent_WithMinimizedBoolAttribute()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public bool BoolProperty { get; set; }
+        [Parameter]
+        bool BoolProperty { get; set; }
     }
 }"));
 
@@ -289,15 +323,18 @@ namespace Test
         public void Render_ChildComponent_WithChildContent()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
 namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public string MyAttr { get; set; }
-        public RenderFragment ChildContent { get; set; }
+        [Parameter]
+        string MyAttr { get; set; }
+
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
     }
 }
 "));
@@ -330,7 +367,7 @@ namespace Test
         public void Render_ChildComponent_Nested()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -338,7 +375,8 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public RenderFragment ChildContent { get; set; }
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
     }
 }
 "));

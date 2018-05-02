@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Blazor.Reflection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,10 +10,7 @@ using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Components
 {
-		/// <summary>
-		/// ComponentFactory
-		/// </summary>
-    public class ComponentFactory
+    internal class ComponentFactory
     {
         private readonly static BindingFlags _injectablePropertyBindingFlags
             = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -21,13 +19,13 @@ namespace Microsoft.AspNetCore.Blazor.Components
         private readonly IDictionary<Type, Action<IComponent>> _cachedInitializers
             = new ConcurrentDictionary<Type, Action<IComponent>>();
 
-        internal ComponentFactory(IServiceProvider serviceProvider)
+        public ComponentFactory(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider
                 ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        internal IComponent InstantiateComponent(Type componentType)
+        public IComponent InstantiateComponent(Type componentType)
         {
             if (!typeof(IComponent).IsAssignableFrom(componentType))
             {
@@ -59,26 +57,14 @@ namespace Microsoft.AspNetCore.Blazor.Components
         {
             // Do all the reflection up front
             var injectableProperties =
-                GetPropertiesIncludingInherited(type, _injectablePropertyBindingFlags)
+                MemberAssignment.GetPropertiesIncludingInherited(type, _injectablePropertyBindingFlags)
                 .Where(p => p.GetCustomAttribute<InjectAttribute>() != null);
             var injectables = injectableProperties.Select(property =>
-            {
-                if (property.SetMethod == null)
-                {
-                    throw new InvalidOperationException($"Cannot provide a value for property " +
-                        $"'{property.Name}' on type '{type.FullName}' because the property " +
-                        $"has no setter.");
-                }
-
-                return
-                (
-                    propertyName: property.Name,
-                    propertyType: property.PropertyType,
-                    setter: (IPropertySetter)Activator.CreateInstance(
-                        typeof(PropertySetter<,>).MakeGenericType(type, property.PropertyType),
-                        property.SetMethod)
-                );
-            }).ToArray();
+            (
+                propertyName: property.Name,
+                propertyType: property.PropertyType,
+                setter: MemberAssignment.CreatePropertySetter(type, property)
+            )).ToArray();
 
             // Return an action whose closure can write all the injected properties
             // without any further reflection calls (just typecasts)
@@ -98,75 +84,5 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 }
             };
         }
-
-        private interface IPropertySetter
-        {
-            void SetValue(object target, object value);
-        }
-
-        private class PropertySetter<TTarget, TValue> : IPropertySetter
-        {
-            private readonly Action<TTarget, TValue> _setterDelegate;
-
-            public PropertySetter(MethodInfo setMethod)
-            {
-                _setterDelegate = (Action<TTarget, TValue>)Delegate.CreateDelegate(
-                    typeof(Action<TTarget, TValue>), setMethod);
-            }
-
-            public void SetValue(object target, object value)
-                => _setterDelegate((TTarget)target, (TValue)value);
-        }
-
-        private static IEnumerable<PropertyInfo> GetPropertiesIncludingInherited(
-            Type type, BindingFlags bindingFlags)
-        {
-            while (type != null)
-            {
-                var properties = type.GetProperties(bindingFlags)
-                    .Where(prop => prop.DeclaringType == type);
-                foreach (var property in properties)
-                {
-                    yield return property;
-                }
-
-                type = type.BaseType;
-            }
-        }
-
-				private static List<Type> _RegisteredCustomDOMElement = new List<Type>();
-
-				/// <summary>
-				/// Register a javascript implementation of Blazor Component.
-				/// </summary>
-				/// <param name="ComponentType">Type of Blazor Component</param>
-				/// <returns>
-				/// Returns a value that bind javascript implementation with .net component. 
-				/// (That value is used in BrowserRenderer's getRegisteredCustomDOMElement)
-				/// </returns>
-				public static short RegisterCustomComponent( Type ComponentType )
-				{
-					// need check for ComponentType
-					if (_RegisteredCustomDOMElement.Contains(ComponentType) == false)
-						_RegisteredCustomDOMElement.Add(ComponentType);
-
-					var componentId = (short)(_RegisteredCustomDOMElement.IndexOf(ComponentType) + 1);
-					return componentId;
-				}
-
-				/// <summary>
-				/// Get the registrered custom BlazorDOMComponent
-				/// </summary>
-				/// <param name="ComponentType">BlazorComponent Type</param>
-				/// <returns>
-				/// A short for CustomComponentType for RenderTreeFrameType.Component
-				/// </returns>
-				public static short GetRegisteredCustomComponent( Type ComponentType )
-				{
-					if (_RegisteredCustomDOMElement.Contains(ComponentType) == false)
-						return 0;
-
-					return (short)(_RegisteredCustomDOMElement.IndexOf(ComponentType) + 1);
-				}
-	}
+    }
 }

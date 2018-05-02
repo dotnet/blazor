@@ -10,11 +10,14 @@
     Select test:
     <select onchange="mountTestComponent(event.target.value)">
       <option value="">Choose...</option>
+      <option value="BasicTestApp.AsyncEventHandlerComponent">Async event handlers</option>
       <option value="BasicTestApp.AddRemoveChildComponents">Add/remove child components</option>
       <option value="BasicTestApp.CounterComponent">Counter</option>
       <option value="BasicTestApp.CounterComponentUsingChild">Counter using child component</option>
       <option value="BasicTestApp.CounterComponentWrapper">Counter wrapped in parent</option>
+      <option value="BasicTestApp.FocusEventComponent">Focus events</option>
       <option value="BasicTestApp.KeyPressEventComponent">Key press event</option>
+      <option value="BasicTestApp.MouseEventComponent">Mouse events</option>
       <option value="BasicTestApp.ParentChildComponent">Parent component with child</option>
       <option value="BasicTestApp.PropertiesChangedHandlerParent">Parent component that changes parameters on child</option>
       <option value="BasicTestApp.RedTextComponent">Red text</option>
@@ -27,6 +30,11 @@
       <option value="BasicTestApp.ExternalContentPackage">External content package</option>
       <option value="BasicTestApp.SvgComponent">SVG</option>
       <option value="BasicTestApp.SvgWithChildComponent">SVG with child component</option>
+      <option value="BasicTestApp.LogicalElementInsertionCases">Logical element insertion cases</option>
+      <option value="BasicTestApp.ElementRefComponent">Element ref component</option>
+      <option value="BasicTestApp.ComponentRefComponent">Component ref component</option>
+      <option value="BasicTestApp.AfterRenderInteropComponent">After-render interop component</option>
+      <option value="BasicTestApp.EventCasesComponent">Event cases</option>
       <!--<option value="BasicTestApp.RouterTest.Default">Router</option> Excluded because it requires additional setup to work correctly when loaded manually -->
     </select>
     &nbsp;
@@ -52,6 +60,11 @@
       var method = Blazor.platform.findMethod('BasicTestApp', 'BasicTestApp', 'Program', 'MountTestComponent');
       Blazor.platform.callMethod(method, null, [Blazor.platform.toDotNetString(typeName)]);
     }
+
+    // Used by ElementRefComponent
+    Blazor.registerFunction('setElementValue', function (element, newValue) {
+      element.value = newValue;
+    });
   </script>
 </body>
 </html>

@@ -37,12 +37,12 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Components
 		/// <summary>
 		/// 
 		/// </summary>
-		public UIEventHandler OnFileAdded { get; set; }
+		public Action<UICustomEventArgs> OnFileAdded { get; set; }
 
 		/// <summary>
 		/// 
 		/// </summary>
-		public UIEventHandler OnFileRemoved { get; set; }
+		public Action<UICustomEventArgs> OnFileRemoved { get; set; }
 
 		/// <inheritdoc />
 		protected override void BuildRenderTree( RenderTreeBuilder builder )
