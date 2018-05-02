@@ -20,6 +20,7 @@
     <WebpackInputs Remove="src\Rendering\BlazorDOMComponent.ts" />
     <WebpackInputs Remove="src\Rendering\BlazorDOMElement.ts" />
     <WebpackInputs Remove="src\Rendering\Elements\BlazorINPUTElement.ts" />
+    <WebpackInputs Remove="src\Rendering\Elements\ElementCreators.ts" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\ReferenceFromSource.props" />

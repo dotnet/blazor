@@ -1,31 +1,41 @@
 ﻿import { BrowserRenderer } from '../BrowserRenderer';
 import { renderTreeFrame, RenderTreeFramePointer } from '../RenderTreeFrame';
+import { getRegisteredCustomTag } from '../../Interop/RenderingFunction';
+import { BlazorINPUTElement } from './BlazorINPUTElement';
+
+const logicalBlazorDomElementPropname = createSymbolOrFallback('_blazorDomElement');
+//const logicalBlazorDomChildArrayPropname = createSymbolOrFallback('_blazorDomChildArrayPropname');
 
 export class BlazorDOMElement {
-    private Range: Range;
     protected readonly browserRenderer: BrowserRenderer;
+    private _elements: Node[] = [];
+
+    private startContainer: Node;
+    private endContainer: Node | null;
 
     constructor(browserRendeder: BrowserRenderer, start: Node, end: Node | null = null) {
         this.browserRenderer = browserRendeder;
-        this.Range = document.createRange();
-        this.Range.setStart(start, 0);
-        if (end !== null) this.Range.setEnd(end, 0);
+
+        this.startContainer = start;
+        this.endContainer = end;
+
+        this.startContainer[logicalBlazorDomElementPropname] = this;
     }
 
-    public isComponent(): boolean {
-        return !this.Range.collapsed;
+    protected isComponent(): boolean {
+        return false;
     }
 
-    public getParentDOMElement(): Node {
-        return this.Range.commonAncestorContainer;
+    public getClosestDomElement(): Node {
+        return this.startContainer;
     }
 
     protected getDOMElement(): HTMLElement {
-        return this.Range.startContainer as HTMLElement;
+        return this.startContainer as HTMLElement;
     }
 
     public getLogicalChild(childIndex: number): Node | BlazorDOMElement | null {
-        let element: Node | null = this.Range.startContainer;
+        let element: Node | null = this.startContainer;
         if (this.isComponent() === false)
             element = element.firstChild;
         else
@@ -38,11 +48,11 @@ export class BlazorDOMElement {
         else {
             while (childIndex > 0) {
                 // skip if is this.Range
-                if (element !== this.Range.startContainer) {
+                if (element !== this.startContainer) {
                     // is a component ?
                     let blazorDom = this.getComponentFromNode(element);
                     if (blazorDom != null) {
-                        element = blazorDom.Range.endContainer;
+                        element = blazorDom.endContainer;
                     }
                 }
 
@@ -62,30 +72,22 @@ export class BlazorDOMElement {
     }
 
     private getComponentFromNode(element: Node): BlazorDOMElement | null {
-        if (element.nodeType == Node.COMMENT_NODE) { // check for performance
-            for (let index in this.browserRenderer.childComponentLocations) {
-                let component = this.browserRenderer.childComponentLocations[index];
-                if (component.isComponent() && component.Range.startContainer === element)
-                    return component;
-            }
-
-            // old code, question: is better?
-            //let nodeValue: string = element.nodeValue!;
-            //if (nodeValue.startsWith("blazor-component-start.")) {
-            //	let componentId: number = parseInt(nodeValue.split(".")[1]);
-            //	let blazorDom = this.br.childComponentLocations[componentId];
-            //	return blazorDom;
-            //}
-        }
+        let component = element[logicalBlazorDomElementPropname] as BlazorDOMElement;
+        if (component !== null && component !== undefined && component.isComponent() === true) return component;
         return null;
     }
 
     public insertNodeIntoDOM(node: Node, childIndex: number) {
-        let parentElement = this.getParentDOMElement();
+        let parentElement = this.getClosestDomElement();
 
         let realSibling = this.getLogicalChild(childIndex);
         if (realSibling === null) {
-            parentElement.appendChild(node);
+            if (this.isComponent() == false) {
+                parentElement.appendChild(node);
+            }
+            else {
+                parentElement.insertBefore(node, this.endContainer);
+            }
         }
         else {
             parentElement.insertBefore(node, realSibling as Node);
@@ -95,11 +97,13 @@ export class BlazorDOMElement {
     public removeFromDom(childIndex: number | null = null) {
         if (childIndex === null) {
             // Adjust range to whole component
-            this.Range.setStartBefore(this.Range.startContainer);
-            this.Range.setEndAfter(this.Range.endContainer);
+            var range = document.createRange();
+            range.setStartBefore(this.startContainer);
+            range.setEndAfter(this.endContainer!);
 
             // Clear whole range
-            this.Range.deleteContents();
+            range.deleteContents();
+            range.detach();
         }
         else {
             const element = this.getLogicalChild(childIndex)!;
@@ -143,20 +147,13 @@ export class BlazorDOMElement {
     }
 
     protected setAttribute(attributeName: string, attributeValue: string | null) {
-        const toDomElement = this.Range.startContainer as Element;
+        const toDomElement = this.startContainer as Element;
 
         if (attributeValue == null) {
-            // or better delete the attribute?
-            toDomElement.setAttribute(
-                attributeName,
-                ""
-            );
+            toDomElement.removeAttribute(attributeName);
         }
         else {
-            toDomElement.setAttribute(
-                attributeName,
-                attributeValue
-            );
+            toDomElement.setAttribute(attributeName, attributeValue);
         }
     }
 
@@ -166,8 +163,8 @@ export class BlazorDOMElement {
     }
 
     protected applyEvent(attributeName: string, componentId: number, eventHandlerId: number): boolean {
-        const toDomElement = this.Range.startContainer as Element;
-        const browserRendererId = this.browserRenderer.browserRendererId;
+        const toDomElement = this.startContainer as Element;
+        //const browserRendererId = this.browserRenderer.browserRendererId;
 
         if (eventHandlerId) {
             const firstTwoChars = attributeName.substring(0, 2);
@@ -186,6 +183,13 @@ export class BlazorDOMElement {
     public onDOMUpdated() { }
 
     public dispose() {
-        this.Range.detach();
     }
+}
+
+export function getBlazorDomElement(container: Node) {
+	return container[logicalBlazorDomElementPropname];
+}
+
+function createSymbolOrFallback(fallback: string): symbol | string {
+    return typeof Symbol === 'function' ? Symbol() : fallback;
 }

@@ -4,25 +4,36 @@ import { getTreeFramePtr, renderTreeFrame, FrameType, RenderTreeFramePointer } f
 import { platform } from '../Environment';
 import { EventDelegator } from './EventDelegator';
 import { EventForDotNet, UIEventArgs } from './EventForDotNet';
-import { LogicalElement, toLogicalElement, insertLogicalChild, removeLogicalChild, getLogicalParent, getLogicalChild, createAndInsertLogicalContainer, isSvgElement } from './LogicalElements';
-const selectValuePropname = '_blazorSelectValue';
+
+import { BlazorDOMElement } from './Elements/BlazorDOMElement';
+import { createBlazorDOMComponent, createBlazorDOMElement } from './Elements/ElementCreators';
+
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
 
 export class BrowserRenderer {
-    private eventDelegator: EventDelegator;
-    private childComponentLocations: { [componentId: number]: LogicalElement } = {};
+    // private is better (todo: I don't like it!)
+    public eventDelegator: EventDelegator;
+    private readonly childComponentLocations: { [componentId: number]: BlazorDOMElement } = {};
 
-    constructor(private browserRendererId: number) {
+    public readonly browserRendererId: number;
+
+    constructor(rendererId: number) {
+        this.browserRendererId = rendererId;
         this.eventDelegator = new EventDelegator((event, componentId, eventHandlerId, eventArgs) => {
             raiseEvent(event, this.browserRendererId, componentId, eventHandlerId, eventArgs);
         });
     }
 
     public attachRootComponentToElement(componentId: number, element: Element) {
-        this.attachComponentToElement(componentId, toLogicalElement(element));
+        this.attachComponentToElement(componentId, element);
     }
 
+    private attachComponentToElement(componentId: number, element: Node) {
+        let blazorElement = new BlazorDOMElement(this, element);
+        this.attachBlazorComponentToElement(componentId, blazorElement);
+    }
+    
     public updateComponent(componentId: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
         const element = this.childComponentLocations[componentId];
         if (!element) {
@@ -33,21 +44,25 @@ export class BrowserRenderer {
     }
 
     public disposeComponent(componentId: number) {
+        this.childComponentLocations[componentId].dispose();
         delete this.childComponentLocations[componentId];
     }
 
-    public disposeEventHandler(eventHandlerId: number) {
-        this.eventDelegator.removeListener(eventHandlerId);
-    }
-
-    private attachComponentToElement(componentId: number, element: LogicalElement) {
+    private attachBlazorComponentToElement(componentId: number, element: BlazorDOMElement) {
         this.childComponentLocations[componentId] = element;
     }
 
-    private applyEdits(componentId: number, parent: LogicalElement, childIndex: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
+    private applyEdits(componentId: number, parent: BlazorDOMElement, childIndex: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
+
         let currentDepth = 0;
         let childIndexAtCurrentDepth = childIndex;
         const maxEditIndexExcl = editsOffset + editsLength;
+
+        parent.onDOMUpdating();
+
+        var elementStack = new Array();
+        elementStack.push(parent);
+
         for (let editIndex = editsOffset; editIndex < maxEditIndexExcl; editIndex++) {
             const edit = getRenderTreeEditPtr(edits, editIndex);
             const editType = renderTreeEdit.type(edit);
@@ -61,55 +76,55 @@ export class BrowserRenderer {
                 }
                 case EditType.removeFrame: {
                     const siblingIndex = renderTreeEdit.siblingIndex(edit);
-                    removeLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+                    this.removeNodeFromDOM(parent, childIndexAtCurrentDepth + siblingIndex);
                     break;
                 }
                 case EditType.setAttribute: {
                     const frameIndex = renderTreeEdit.newTreeIndex(edit);
                     const frame = getTreeFramePtr(referenceFrames, frameIndex);
                     const siblingIndex = renderTreeEdit.siblingIndex(edit);
-                    const element = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
-                    if (element instanceof HTMLElement) {
-                        this.applyAttribute(componentId, element, frame);
-                    } else {
-                        throw new Error(`Cannot set attribute on non-element child`);
-                    }
+                    const element = parent.getLogicalChild(childIndexAtCurrentDepth + siblingIndex) as Element;
+
+                    const blazorElement = createBlazorDOMElement(this, element);
+                    blazorElement.applyAttribute(componentId, frame);
+                    blazorElement.dispose();
                     break;
                 }
                 case EditType.removeAttribute: {
-                    // Note that we don't have to dispose the info we track about event handlers here, because the
-                    // disposed event handler IDs are delivered separately (in the 'disposedEventHandlerIds' array)
                     const siblingIndex = renderTreeEdit.siblingIndex(edit);
-                    const element = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
-                    if (element instanceof HTMLElement) {
-                        const attributeName = renderTreeEdit.removedAttributeName(edit)!;
-                        element.removeAttribute(attributeName);
-                    } else {
-                        throw new Error(`Cannot remove attribute from non-element child`);
-                    }
+                    parent.removeAttribute(childIndexAtCurrentDepth + siblingIndex, renderTreeEdit.removedAttributeName(edit)!);
                     break;
                 }
                 case EditType.updateText: {
                     const frameIndex = renderTreeEdit.newTreeIndex(edit);
                     const frame = getTreeFramePtr(referenceFrames, frameIndex);
                     const siblingIndex = renderTreeEdit.siblingIndex(edit);
-                    const textNode = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
-                    if (textNode instanceof Text) {
-                        textNode.textContent = renderTreeFrame.textContent(frame);
-                    } else {
-                        throw new Error(`Cannot set text content on non-text child`);
-                    }
+                    parent.updateText(childIndexAtCurrentDepth + siblingIndex, renderTreeFrame.textContent(frame))
                     break;
                 }
                 case EditType.stepIn: {
                     const siblingIndex = renderTreeEdit.siblingIndex(edit);
-                    parent = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+                    const stepInElement = parent.getLogicalChild(childIndexAtCurrentDepth + siblingIndex)!;
+
+                    elementStack.push(parent);
+                    // if stepInElement is a simple DOM element, create a element
+                    if (stepInElement instanceof BlazorDOMElement == false) {
+                        parent = createBlazorDOMElement(this, stepInElement as HTMLElement);
+                    }
+                    parent.onDOMUpdating();
+
                     currentDepth++;
                     childIndexAtCurrentDepth = 0;
                     break;
                 }
                 case EditType.stepOut: {
-                    parent = getLogicalParent(parent)!;
+                    parent.onDOMUpdated();
+                    //if (parent.isComponent() == false) {
+                    //    // Dispose if a simple dom element (=BlazorDOMElement)
+                    //    parent.dispose();
+                    //}
+
+                    parent = elementStack.pop();
                     currentDepth--;
                     childIndexAtCurrentDepth = currentDepth === 0 ? childIndex : 0; // The childIndex is only ever nonzero at zero depth
                     break;
@@ -120,9 +135,11 @@ export class BrowserRenderer {
                 }
             }
         }
+
+        parent.onDOMUpdated();
     }
 
-    private insertFrame(componentId: number, parent: LogicalElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number): number {
+    private insertFrame(componentId: number, parent: BlazorDOMElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number): number {
         const frameType = renderTreeFrame.frameType(frame);
         switch (frameType) {
             case FrameType.element:
@@ -134,7 +151,7 @@ export class BrowserRenderer {
             case FrameType.attribute:
                 throw new Error('Attribute frames should only be present as leading children of element frames.');
             case FrameType.component:
-                this.insertComponent(parent, childIndex, frame);
+                this.insertComponent(parent, childIndex, frame, frames, frameIndex);
                 return 1;
             case FrameType.region:
                 return this.insertFrameRange(componentId, parent, childIndex, frames, frameIndex + 1, frameIndex + renderTreeFrame.subtreeLength(frame));
@@ -144,107 +161,62 @@ export class BrowserRenderer {
         }
     }
 
-    private insertElement(componentId: number, parent: LogicalElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number) {
+    private insertElement(componentId: number, parent: BlazorDOMElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number) {
         const tagName = renderTreeFrame.elementName(frame)!;
-        const newDomElementRaw = tagName === 'svg' || isSvgElement(parent) ?
-            document.createElementNS('http://www.w3.org/2000/svg', tagName) :
-            document.createElement(tagName);
-        const newElement = toLogicalElement(newDomElementRaw);
-        insertLogicalChild(newDomElementRaw, parent, childIndex);
+        const newDomElement = this.createElement(tagName, parent);
+        parent.insertNodeIntoDOM(newDomElement, childIndex);
+
+        let blazorElement = createBlazorDOMElement(this, newDomElement);
 
         // Apply attributes
         const descendantsEndIndexExcl = frameIndex + renderTreeFrame.subtreeLength(frame);
         for (let descendantIndex = frameIndex + 1; descendantIndex < descendantsEndIndexExcl; descendantIndex++) {
             const descendantFrame = getTreeFramePtr(frames, descendantIndex);
+
             if (renderTreeFrame.frameType(descendantFrame) === FrameType.attribute) {
-                this.applyAttribute(componentId, newDomElementRaw, descendantFrame);
+                blazorElement.applyAttribute(componentId, descendantFrame);
             } else {
                 // As soon as we see a non-attribute child, all the subsequent child frames are
                 // not attributes, so bail out and insert the remnants recursively
-                this.insertFrameRange(componentId, newElement, 0, frames, descendantIndex, descendantsEndIndexExcl);
+                this.insertFrameRange(componentId, blazorElement, 0, frames, descendantIndex, descendantsEndIndexExcl);
                 break;
             }
         }
+
+        blazorElement.onDOMUpdated();
+        blazorElement.dispose();
     }
 
-    private insertComponent(parent: LogicalElement, childIndex: number, frame: RenderTreeFramePointer) {
-        const containerElement = createAndInsertLogicalContainer(parent, childIndex);
-
+    private insertComponent(parent: BlazorDOMElement, childIndex: number, frame: RenderTreeFramePointer, frames: System_Array<RenderTreeFramePointer>, frameIndex: number) {
         // All we have to do is associate the child component ID with its location. We don't actually
         // do any rendering here, because the diff for the child will appear later in the render batch.
         const childComponentId = renderTreeFrame.componentId(frame);
-        this.attachComponentToElement(childComponentId, containerElement);
-    }
+        const customComponentType = renderTreeFrame.customComponentType(frame);
+        const blazorElement = createBlazorDOMComponent(this, childComponentId, parent, childIndex, customComponentType);
+        this.attachBlazorComponentToElement(childComponentId, blazorElement);
 
-    private insertText(parent: LogicalElement, childIndex: number, textFrame: RenderTreeFramePointer) {
-        const textContent = renderTreeFrame.textContent(textFrame)!;
-        const newTextNode = document.createTextNode(textContent);
-        insertLogicalChild(newTextNode, parent, childIndex);
-    }
+        if (customComponentType != 0) {
+            // Apply attributes
+            const descendantsEndIndexExcl = frameIndex + renderTreeFrame.subtreeLength(frame);
+            for (let descendantIndex = frameIndex + 1; descendantIndex < descendantsEndIndexExcl; descendantIndex++) {
+                const descendantFrame = getTreeFramePtr(frames, descendantIndex);
 
-    private applyAttribute(componentId: number, toDomElement: Element, attributeFrame: RenderTreeFramePointer) {
-        const attributeName = renderTreeFrame.attributeName(attributeFrame)!;
-        const browserRendererId = this.browserRendererId;
-        const eventHandlerId = renderTreeFrame.attributeEventHandlerId(attributeFrame);
-
-        if (eventHandlerId) {
-            const firstTwoChars = attributeName.substring(0, 2);
-            const eventName = attributeName.substring(2);
-            if (firstTwoChars !== 'on' || !eventName) {
-                throw new Error(`Attribute has nonzero event handler ID, but attribute name '${attributeName}' does not start with 'on'.`);
-            }
-            this.eventDelegator.setListener(toDomElement, eventName, componentId, eventHandlerId);
-            return;
-        }
-
-        if (attributeName === 'value') {
-            if (this.tryApplyValueProperty(toDomElement, renderTreeFrame.attributeValue(attributeFrame))) {
-                return; // If this DOM element type has special 'value' handling, don't also write it as an attribute
-            }
-        }
-
-        // Treat as a regular string-valued attribute
-        toDomElement.setAttribute(
-            attributeName,
-            renderTreeFrame.attributeValue(attributeFrame)!
-        );
-    }
-
-    private tryApplyValueProperty(element: Element, value: string | null) {
-        // Certain elements have built-in behaviour for their 'value' property
-        switch (element.tagName) {
-            case 'INPUT':
-            case 'SELECT':
-            case 'TEXTAREA':
-                if (isCheckbox(element)) {
-                    (element as HTMLInputElement).checked = value === '';
+                if (renderTreeFrame.frameType(descendantFrame) === FrameType.attribute) {
+                    blazorElement.applyAttribute(childComponentId, descendantFrame);
                 } else {
-                    (element as any).value = value;
-
-                    if (element.tagName === 'SELECT') {
-                        // <select> is special, in that anything we write to .value will be lost if there
-                        // isn't yet a matching <option>. To maintain the expected behavior no matter the
-                        // element insertion/update order, preserve the desired value separately so
-                        // we can recover it when inserting any matching <option>.
-                        element[selectValuePropname] = value;
-                    }
+                    break;
                 }
-                return true;
-            case 'OPTION':
-                element.setAttribute('value', value!);
-                // See above for why we have this special handling for <select>/<option>
-                const parentElement = element.parentElement;
-                if (parentElement && (selectValuePropname in parentElement) && parentElement[selectValuePropname] === value) {
-                    this.tryApplyValueProperty(parentElement, value);
-                    delete parentElement[selectValuePropname];
-                }
-                return true;
-            default:
-                return false;
+            }
         }
     }
 
-    private insertFrameRange(componentId: number, parent: LogicalElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, startIndex: number, endIndexExcl: number): number {
+    private insertText(parent: BlazorDOMElement, childIndex: number, textFrame: RenderTreeFramePointer) {
+        const textContent = renderTreeFrame.textContent(textFrame)!;
+        const newDomTextNode = document.createTextNode(textContent);
+        parent.insertNodeIntoDOM(newDomTextNode, childIndex);
+    }
+
+    private insertFrameRange(componentId: number, parent: BlazorDOMElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, startIndex: number, endIndexExcl: number): number {
         const origChildIndex = childIndex;
         for (let index = startIndex; index < endIndexExcl; index++) {
             const frame = getTreeFramePtr(frames, index);
@@ -260,14 +232,27 @@ export class BrowserRenderer {
 
         return (childIndex - origChildIndex); // Total number of children inserted
     }
+
+    private removeNodeFromDOM(parent: BlazorDOMElement, childIndex: number) {
+        parent.removeFromDom(childIndex);
+    }
+
+    public disposeEventHandler(eventHandlerId: number) {
+        this.eventDelegator.removeListener(eventHandlerId);
+    }
+
+    private createElement(tagName: string, parentElement: BlazorDOMElement): Element {
+        const parent = parentElement.getClosestDomElement();
+        const newDomElement = tagName === 'svg' || parent.namespaceURI === 'http://www.w3.org/2000/svg' ?
+            document.createElementNS('http://www.w3.org/2000/svg', tagName) :
+            document.createElement(tagName);
+        return newDomElement;
+    }
 }
 
-function isCheckbox(element: Element) {
-    return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
-}
-
-function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
-    event.preventDefault();
+export function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
+    if (event.preventDefault !== undefined)
+        event.preventDefault();
 
     if (!raiseEventMethod) {
         raiseEventMethod = platform.findMethod(
