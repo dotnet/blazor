@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void CanDeserializeClassFromJson()
         {
             // Arrange
-            var json = "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}";
+            var json = "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\",\"allergies\":{\"Ducks\":true,\"Geese\":false}}";
 
             // Act
             var person = JsonUtil.Deserialize<Person>(json);
@@ -80,6 +80,35 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(new[] { "Comte de la Fère", "Armand" }, person.Nicknames);
             Assert.Equal(new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)), person.BirthInstant);
             Assert.Equal(new TimeSpan(7665, 1, 30, 0), person.Age);
+            Assert.Equal(new Dictionary<string, object> { { "Ducks", true }, { "Geese", false } }, person.Allergies);
+        }
+
+        [Fact]
+        public void CanDeserializeWithCaseInsensitiveKeys()
+        {
+            // Arrange
+            var json = "{\"ID\":1844,\"NamE\":\"Athos\"}";
+
+            // Act
+            var person = JsonUtil.Deserialize<Person>(json);
+
+            // Assert
+            Assert.Equal(1844, person.Id);
+            Assert.Equal("Athos", person.Name);
+        }
+
+        [Fact]
+        public void DeserializationPrefersPropertiesOverFields()
+        {
+            // Arrange
+            var json = "{\"member1\":\"Hello\"}";
+
+            // Act
+            var person = JsonUtil.Deserialize<PrefersPropertiesOverFields>(json);
+
+            // Assert
+            Assert.Equal("Hello", person.Member1);
+            Assert.Null(person.member1);
         }
 
         [Fact]
@@ -104,7 +133,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void CanDeserializeStructFromJson()
         {
             // Arrange
-            var json = "{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}";
+            var json = "{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}";
 
             //Act
             var simpleError = JsonUtil.Deserialize<SimpleStruct>(json);
@@ -113,6 +142,34 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal("Test", simpleError.StringProperty);
             Assert.True(simpleError.BoolProperty);
             Assert.Equal(1, simpleError.NullableIntProperty);
+        }
+
+        [Fact]
+        public void RejectsTypesWithAmbiguouslyNamedProperties()
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+            {
+                JsonUtil.Deserialize<ClashingProperties>("{}");
+            });
+
+            Assert.Equal($"The type '{typeof(ClashingProperties).FullName}' contains multiple public properties " +
+                $"with names case-insensitively matching '{nameof(ClashingProperties.PROP1).ToLowerInvariant()}'. " +
+                $"Such types cannot be used for JSON deserialization.",
+                ex.Message);
+        }
+
+        [Fact]
+        public void RejectsTypesWithAmbiguouslyNamedFields()
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+            {
+                JsonUtil.Deserialize<ClashingFields>("{}");
+            });
+
+            Assert.Equal($"The type '{typeof(ClashingFields).FullName}' contains multiple public fields " +
+                $"with names case-insensitively matching '{nameof(ClashingFields.Field1).ToLowerInvariant()}'. " +
+                $"Such types cannot be used for JSON deserialization.",
+                ex.Message);
         }
 
         [Fact]
@@ -216,5 +273,25 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 };
             }
         }
+
+#pragma warning disable 0649
+        class ClashingProperties
+        {
+            public string Prop1 { get; set; }
+            public int PROP1 { get; set; }
+        }
+
+        class ClashingFields
+        {
+            public string Field1;
+            public int field1;
+        }
+
+        class PrefersPropertiesOverFields
+        {
+            public string member1;
+            public string Member1 { get; set; }
+        }
+#pragma warning restore 0649
     }
 }
