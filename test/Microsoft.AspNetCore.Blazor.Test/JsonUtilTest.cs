@@ -53,12 +53,13 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 Hobby = Hobbies.Swordfighting,
                 Nicknames = new List<string> { "Comte de la Fère", "Armand" },
                 BirthInstant = new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)),
-                Age = new TimeSpan(7665, 1, 30, 0)
+                Age = new TimeSpan(7665, 1, 30, 0),
+                Allergies = new Dictionary<string, object> { { "Ducks", true }, { "Geese", false } },
             };
 
             // Act/Assert
             Assert.Equal(
-                "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}",
+                "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\",\"allergies\":{\"Ducks\":true,\"Geese\":false}}",
                 JsonUtil.Serialize(person));
         }
 
@@ -96,7 +97,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var result = JsonUtil.Serialize(commandResult);
             
             // Assert
-            Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", result);
+            Assert.Equal("{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}", result);
         }
 
         [Fact]
@@ -199,6 +200,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public IList<string> Nicknames { get; set; }
             public DateTimeOffset BirthInstant { get; set; }
             public TimeSpan Age { get; set; }
+            public IDictionary<string, object> Allergies { get; set; }
         }
 
         enum Hobbies { Reading = 1, Swordfighting = 2 }
