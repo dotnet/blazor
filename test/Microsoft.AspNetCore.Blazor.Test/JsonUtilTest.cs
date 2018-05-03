@@ -143,6 +143,39 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal("{\"key1\":\"value1\",\"key2\":123}", json);
         }
 
+        // Test cases based on https://github.com/JamesNK/Newtonsoft.Json/blob/122afba9908832bd5ac207164ee6c303bfd65cf1/Src/Newtonsoft.Json.Tests/Utilities/StringUtilsTests.cs#L41
+        // The only difference is that our logic doesn't have to handle space-separated words,
+        // because we're only use this for camelcasing .NET member names
+        [Theory]
+        [InlineData("urlValue", "URLValue")]
+        [InlineData("url", "URL")]
+        [InlineData("id", "ID")]
+        [InlineData("i", "I")]
+        [InlineData("", "")]
+        [InlineData(null, null)]
+        [InlineData("person", "Person")]
+        [InlineData("xPhone", "xPhone")]
+        [InlineData("xPhone", "XPhone")]
+        [InlineData("x_Phone", "X_Phone")]
+        [InlineData("x__Phone", "X__Phone")]
+        [InlineData("isCIA", "IsCIA")]
+        [InlineData("vmQ", "VmQ")]
+        [InlineData("xml2Json", "Xml2Json")]
+        [InlineData("snAkEcAsE", "SnAkEcAsE")]
+        [InlineData("snA__kEcAsE", "SnA__kEcAsE")]
+        [InlineData("snA__ kEcAsE", "SnA__ kEcAsE")]
+        [InlineData("already_snake_case_ ", "already_snake_case_ ")]
+        [InlineData("isJSONProperty", "IsJSONProperty")]
+        [InlineData("shoutinG_CASE", "SHOUTING_CASE")]
+        [InlineData("9999-12-31T23:59:59.9999999Z", "9999-12-31T23:59:59.9999999Z")]
+        [InlineData("hi!! This is text. Time to test.", "Hi!! This is text. Time to test.")]
+        [InlineData("building", "BUILDING")]
+        [InlineData("buildingProperty", "BUILDINGProperty")]
+        public void CamelCaseWorks(string expectedOutput, string input)
+        {
+            Assert.Equal(expectedOutput, input.ToCamelCase());
+        }
+
         class NonEmptyConstructorPoco
         {
             public NonEmptyConstructorPoco(int parameter) {}
