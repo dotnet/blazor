@@ -1268,7 +1268,7 @@ namespace SimpleJson
 
         protected virtual string MapClrMemberNameToJsonFieldName(string clrPropertyName)
         {
-            return clrPropertyName.ToCamelCase();
+            return CamelCase.MemberNameToCamelCase(clrPropertyName);
         }
 
         internal virtual ReflectionUtils.ConstructorDelegate ConstructorDelegateFactory(Type key)

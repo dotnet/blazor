@@ -204,13 +204,14 @@ namespace Microsoft.AspNetCore.Blazor.Test
         // Test cases based on https://github.com/JamesNK/Newtonsoft.Json/blob/122afba9908832bd5ac207164ee6c303bfd65cf1/Src/Newtonsoft.Json.Tests/Utilities/StringUtilsTests.cs#L41
         // The only difference is that our logic doesn't have to handle space-separated words,
         // because we're only use this for camelcasing .NET member names
+        //
+        // Not all of the following cases are really valid .NET member names, but we have no reason
+        // to implement more logic to detect invalid member names besides the basics (null or empty).
         [Theory]
         [InlineData("URLValue", "urlValue")]
         [InlineData("URL", "url")]
         [InlineData("ID", "id")]
         [InlineData("I", "i")]
-        [InlineData("", "")]
-        [InlineData(null, null)]
         [InlineData("Person", "person")]
         [InlineData("xPhone", "xPhone")]
         [InlineData("XPhone", "xPhone")]
@@ -228,9 +229,20 @@ namespace Microsoft.AspNetCore.Blazor.Test
         [InlineData("Hi!! This is text. Time to test.", "hi!! This is text. Time to test.")]
         [InlineData("BUILDING", "building")]
         [InlineData("BUILDINGProperty", "buildingProperty")]
-        public void CamelCaseWorks(string input, string expectedOutput)
+        public void MemberNameToCamelCase_Valid(string input, string expectedOutput)
         {
-            Assert.Equal(expectedOutput, input.ToCamelCase());
+            Assert.Equal(expectedOutput, CamelCase.MemberNameToCamelCase(input));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public void MemberNameToCamelCase_Invalid(string input)
+        {
+            var ex = Assert.Throws<ArgumentException>(() =>
+                CamelCase.MemberNameToCamelCase(input));
+            Assert.Equal("value", ex.ParamName);
+            Assert.StartsWith($"The value '{input ?? "null"}' is not a valid member name.", ex.Message);
         }
 
         class NonEmptyConstructorPoco
