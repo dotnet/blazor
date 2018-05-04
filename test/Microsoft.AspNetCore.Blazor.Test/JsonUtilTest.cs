@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Blazor.Json;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Test
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert
             Assert.Equal(
-                "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}",
+                "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\"}",
                 JsonUtil.Serialize(person));
         }
 
@@ -66,7 +67,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void CanDeserializeClassFromJson()
         {
             // Arrange
-            var json = "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}";
+            var json = "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\"}";
 
             // Act
             var person = JsonUtil.Deserialize<Person>(json);
@@ -96,14 +97,14 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var result = JsonUtil.Serialize(commandResult);
             
             // Assert
-            Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", result);
+            Assert.Equal("{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}", result);
         }
 
         [Fact]
         public void CanDeserializeStructFromJson()
         {
             // Arrange
-            var json = "{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}";
+            var json = "{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}";
 
             //Act
             var simpleError = JsonUtil.Deserialize<SimpleStruct>(json);
@@ -112,6 +113,60 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal("Test", simpleError.StringProperty);
             Assert.True(simpleError.BoolProperty);
             Assert.Equal(1, simpleError.NullableIntProperty);
+        }
+
+        [Fact]
+        public void CamelCasePropertyNamingIsTheDefaultPropertyNaming()
+        {
+            // Arrange
+            var classJson = "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\"}";
+
+            // Act
+            var deserializedJson = JsonUtil.Deserialize<Person>(classJson);
+            var serializedJson = JsonUtil.Serialize(deserializedJson);
+
+            // Assert
+            Assert.Equal(1844, deserializedJson.Id);
+            Assert.Equal("Athos", deserializedJson.Name);
+            Assert.Equal(new[] { "Aramis", "Porthos", "D'Artagnan" }, deserializedJson.Pets);
+            Assert.Equal(Hobbies.Swordfighting, deserializedJson.Hobby);
+            Assert.Equal(new[] { "Comte de la Fère", "Armand" }, deserializedJson.Nicknames);
+            Assert.Equal(new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)), deserializedJson.BirthInstant);
+            Assert.Equal(new TimeSpan(7665, 1, 30, 0), deserializedJson.Age);
+            Assert.Equal(
+                "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\"}",
+                serializedJson);
+        }
+
+        [Fact]
+        public void PascalCasePropertyNamingSerializesPropertyNamesToPascalCase()
+        {
+            var person = new Person
+            {
+                Id = 1844,
+                Name = "Athos",
+                Pets = new[] { "Aramis", "Porthos", "D'Artagnan" },
+                Hobby = Hobbies.Swordfighting,
+                Nicknames = new List<string> { "Comte de la Fère", "Armand" },
+                BirthInstant = new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)),
+                Age = new TimeSpan(7665, 1, 30, 0)
+            };
+            var commandResult = new SimpleStruct
+            {
+                StringProperty = "Test",
+                BoolProperty = true,
+                NullableIntProperty = 1
+            };
+
+            // Act
+            var structResult = JsonUtil.Serialize(commandResult, SimpleJson.PropertyNaming.PascalCase);
+            var classResult = JsonUtil.Serialize(person, SimpleJson.PropertyNaming.PascalCase);
+
+            // Assert
+            Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", structResult);
+            Assert.Equal(
+                "{\"Id\":1844,\"Name\":\"Athos\",\"Pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"Hobby\":2,\"Nicknames\":[\"Comte de la Fère\",\"Armand\"],\"BirthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"Age\":\"7665.01:30:00\"}",
+                classResult);
         }
 
         [Fact]
@@ -133,6 +188,63 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 exception.Message);
         }
 
+        [Fact]
+        public void JsonSerializeAndDeserializeIsThreadSafe()
+        {
+            // Arrange
+            var command1 = new SimpleStruct
+            {
+                StringProperty = "Test",
+                BoolProperty = true,
+                NullableIntProperty = 1
+            };
+            var command2 = new SimpleStruct
+            {
+                StringProperty = "Test",
+                BoolProperty = true,
+                NullableIntProperty = 1
+            };
+            var json1 = "{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}";
+            var json2 = "{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}";
+            SimpleStruct structSample1 = default;
+            SimpleStruct structSample2 = default;
+
+            var result1 = string.Empty;
+            var result2 = string.Empty;
+
+            //Act
+
+            var thread1 = new Thread(() =>
+            {
+                structSample1 = JsonUtil.Deserialize<SimpleStruct>(json1, SimpleJson.PropertyNaming.PascalCase);
+                result1 = JsonUtil.Serialize(command1, SimpleJson.PropertyNaming.PascalCase);
+            });
+            var thread2 = new Thread(() =>
+            {
+                structSample2 = JsonUtil.Deserialize<SimpleStruct>(json2);
+                result2 = JsonUtil.Serialize(command2);
+            });
+
+            // Act
+            thread1.Start();
+            thread2.Start();
+
+            thread1.Join();
+            thread2.Join();
+
+            // Assert
+            Assert.Equal("{\"StringProperty\":\"Test\",\"BoolProperty\":true,\"NullableIntProperty\":1}", result1);
+            Assert.Equal("{\"stringProperty\":\"Test\",\"boolProperty\":true,\"nullableIntProperty\":1}", result2);
+
+            Assert.Equal("Test", structSample1.StringProperty);
+            Assert.True(structSample1.BoolProperty);
+            Assert.Equal(1, structSample1.NullableIntProperty);
+
+            Assert.Equal("Test", structSample2.StringProperty);
+            Assert.True(structSample2.BoolProperty);
+            Assert.Equal(1, structSample2.NullableIntProperty);
+        }
+      
         [Fact]
         public void SupportsInternalCustomSerializer()
         {

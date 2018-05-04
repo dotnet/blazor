@@ -519,6 +519,11 @@ namespace SimpleJson
         private static readonly char[] EscapeTable;
         private static readonly char[] EscapeCharacters = new char[] { '"', '\\', '\b', '\f', '\n', '\r', '\t' };
         private static readonly string EscapeCharactersString = new string(EscapeCharacters);
+        private static PropertyNaming DefaultPropertyNamingScheme = PropertyNaming.CamelCase;
+
+        private static IDictionary<Type, ReflectionUtils.ConstructorDelegate> ConstructorMainCache;
+        private static IDictionary<(Type, PropertyNaming), IDictionary<string, ReflectionUtils.GetDelegate>> GetMainCache;
+        private static IDictionary<(Type, PropertyNaming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>> SetMainCache;
 
         static SimpleJson()
         {
@@ -573,27 +578,34 @@ namespace SimpleJson
             return success;
         }
 
-        public static object DeserializeObject(string json, Type type, IJsonSerializerStrategy jsonSerializerStrategy)
+        public static object DeserializeObject(string json, Type type, IJsonSerializerStrategy jsonSerializerStrategy, PropertyNaming naming)
         {
             object jsonObject = DeserializeObject(json);
             return type == null || jsonObject != null && ReflectionUtils.IsAssignableFrom(jsonObject.GetType(), type)
                        ? jsonObject
-                       : (jsonSerializerStrategy ?? CurrentJsonSerializerStrategy).DeserializeObject(jsonObject, type);
+                       : (jsonSerializerStrategy ?? CurrentJsonSerializerStrategy).DeserializeObject(jsonObject, type, naming, out SetMainCache, out ConstructorMainCache);
         }
 
         public static object DeserializeObject(string json, Type type)
         {
-            return DeserializeObject(json, type, null);
+            return DeserializeObject(json, type, null, DefaultPropertyNamingScheme);
         }
 
         public static T DeserializeObject<T>(string json, IJsonSerializerStrategy jsonSerializerStrategy)
         {
-            return (T)DeserializeObject(json, typeof(T), jsonSerializerStrategy);
+            return (T)DeserializeObject(json, typeof(T), jsonSerializerStrategy, DefaultPropertyNamingScheme);
         }
 
         public static T DeserializeObject<T>(string json)
         {
-            return (T)DeserializeObject(json, typeof(T), null);
+            var serializationStrategy = new PocoJsonSerializerStrategy(ConstructorMainCache, GetMainCache, SetMainCache);
+            return (T)DeserializeObject(json, typeof(T), serializationStrategy, DefaultPropertyNamingScheme);
+        }
+
+        public static T DeserializeObject<T>(string json, PropertyNaming propertyNaming)
+        {
+            var serializationStrategy = new PocoJsonSerializerStrategy(ConstructorMainCache, GetMainCache, SetMainCache);
+            return (T)DeserializeObject(json, typeof(T), serializationStrategy, propertyNaming);
         }
 
         /// <summary>
@@ -601,17 +613,25 @@ namespace SimpleJson
         /// </summary>
         /// <param name="json">A IDictionary&lt;string,object> / IList&lt;object></param>
         /// <param name="jsonSerializerStrategy">Serializer strategy to use</param>
+        /// <param name="naming">The Property Naming scheme of the JSON result.</param>
         /// <returns>A JSON encoded string, or null if object 'json' is not serializable</returns>
-        public static string SerializeObject(object json, IJsonSerializerStrategy jsonSerializerStrategy)
+        public static string SerializeObject(object json, IJsonSerializerStrategy jsonSerializerStrategy, PropertyNaming naming)
         {
             StringBuilder builder = new StringBuilder(BUILDER_CAPACITY);
-            bool success = SerializeValue(jsonSerializerStrategy, json, builder);
+            bool success = SerializeValue(jsonSerializerStrategy, json, builder, naming);
             return (success ? builder.ToString() : null);
         }
 
         public static string SerializeObject(object json)
         {
-            return SerializeObject(json, CurrentJsonSerializerStrategy);
+            var serializationStrategy = new PocoJsonSerializerStrategy(ConstructorMainCache, GetMainCache, SetMainCache);
+            return SerializeObject(json, serializationStrategy, DefaultPropertyNamingScheme);
+        }
+
+        public static string SerializeObject(object json, PropertyNaming propertyNaming)
+        {
+            var serializationStrategy = new PocoJsonSerializerStrategy(ConstructorMainCache, GetMainCache, SetMainCache);
+            return SerializeObject(json, serializationStrategy, propertyNaming);
         }
 
         public static string EscapeToJavascriptString(string jsonString)
@@ -877,6 +897,7 @@ namespace SimpleJson
                 success = false;
                 return null;
             }
+
             return s.ToString();
         }
 
@@ -1005,7 +1026,7 @@ namespace SimpleJson
             return TOKEN_NONE;
         }
 
-        static bool SerializeValue(IJsonSerializerStrategy jsonSerializerStrategy, object value, StringBuilder builder)
+        static bool SerializeValue(IJsonSerializerStrategy jsonSerializerStrategy, object value, StringBuilder builder, PropertyNaming naming)
         {
             bool success = true;
             string stringValue = value as string;
@@ -1016,20 +1037,20 @@ namespace SimpleJson
                 IDictionary<string, object> dict = value as IDictionary<string, object>;
                 if (dict != null)
                 {
-                    success = SerializeObject(jsonSerializerStrategy, dict.Keys, dict.Values, builder);
+                    success = SerializeObject(jsonSerializerStrategy, dict.Keys, dict.Values, builder, naming);
                 }
                 else
                 {
                     IDictionary<string, string> stringDictionary = value as IDictionary<string, string>;
                     if (stringDictionary != null)
                     {
-                        success = SerializeObject(jsonSerializerStrategy, stringDictionary.Keys, stringDictionary.Values, builder);
+                        success = SerializeObject(jsonSerializerStrategy, stringDictionary.Keys, stringDictionary.Values, builder, naming);
                     }
                     else
                     {
                         IEnumerable enumerableValue = value as IEnumerable;
                         if (enumerableValue != null)
-                            success = SerializeArray(jsonSerializerStrategy, enumerableValue, builder);
+                            success = SerializeArray(jsonSerializerStrategy, enumerableValue, builder, naming);
                         else if (IsNumeric(value))
                             success = SerializeNumber(value, builder);
                         else if (value is bool)
@@ -1039,9 +1060,9 @@ namespace SimpleJson
                         else
                         {
                             object serializedObject;
-                            success = jsonSerializerStrategy.TrySerializeNonPrimitiveObject(value, out serializedObject);
+                            success = jsonSerializerStrategy.TrySerializeNonPrimitiveObject(value, naming, out serializedObject, out GetMainCache);
                             if (success)
-                                SerializeValue(jsonSerializerStrategy, serializedObject, builder);
+                                SerializeValue(jsonSerializerStrategy, serializedObject, builder, naming);
                         }
                     }
                 }
@@ -1049,7 +1070,7 @@ namespace SimpleJson
             return success;
         }
 
-        static bool SerializeObject(IJsonSerializerStrategy jsonSerializerStrategy, IEnumerable keys, IEnumerable values, StringBuilder builder)
+        static bool SerializeObject(IJsonSerializerStrategy jsonSerializerStrategy, IEnumerable keys, IEnumerable values, StringBuilder builder, PropertyNaming naming)
         {
             builder.Append("{");
             IEnumerator ke = keys.GetEnumerator();
@@ -1065,9 +1086,9 @@ namespace SimpleJson
                 if (stringKey != null)
                     SerializeString(stringKey, builder);
                 else
-                    if (!SerializeValue(jsonSerializerStrategy, value, builder)) return false;
+                    if (!SerializeValue(jsonSerializerStrategy, value, builder, naming)) return false;
                 builder.Append(":");
-                if (!SerializeValue(jsonSerializerStrategy, value, builder))
+                if (!SerializeValue(jsonSerializerStrategy, value, builder, naming))
                     return false;
                 first = false;
             }
@@ -1075,7 +1096,7 @@ namespace SimpleJson
             return true;
         }
 
-        static bool SerializeArray(IJsonSerializerStrategy jsonSerializerStrategy, IEnumerable anArray, StringBuilder builder)
+        static bool SerializeArray(IJsonSerializerStrategy jsonSerializerStrategy, IEnumerable anArray, StringBuilder builder, PropertyNaming naming)
         {
             builder.Append("[");
             bool first = true;
@@ -1083,7 +1104,7 @@ namespace SimpleJson
             {
                 if (!first)
                     builder.Append(",");
-                if (!SerializeValue(jsonSerializerStrategy, value, builder))
+                if (!SerializeValue(jsonSerializerStrategy, value, builder, naming))
                     return false;
                 first = false;
             }
@@ -1233,8 +1254,30 @@ namespace SimpleJson
  interface IJsonSerializerStrategy
     {
         [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate", Justification="Need to support .NET 2")]
-        bool TrySerializeNonPrimitiveObject(object input, out object output);
-        object DeserializeObject(object value, Type type);
+        bool TrySerializeNonPrimitiveObject(object input,
+            PropertyNaming naming, 
+            out object output,
+            out IDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>> getCache);
+        object DeserializeObject(object value,
+            Type type,
+            PropertyNaming naming,
+            out IDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>> setterCache,
+            out IDictionary<Type, ReflectionUtils.ConstructorDelegate> constructorCache);
+    }
+
+    /// <summary>
+    /// Property Naming scheme to be used by simple json when deserializing or serializing JSON.
+    /// </summary>
+    public enum PropertyNaming
+    {
+        /// <summary>
+        /// Camel case JSON property naming scheme.
+        /// </summary>
+        CamelCase,
+        /// <summary>
+        /// Pascal case JSON property naming scheme.
+        /// </summary>
+        PascalCase
     }
 
     [GeneratedCode("simple-json", "1.0.0")]
@@ -1246,8 +1289,8 @@ namespace SimpleJson
  class PocoJsonSerializerStrategy : IJsonSerializerStrategy
     {
         internal IDictionary<Type, ReflectionUtils.ConstructorDelegate> ConstructorCache;
-        internal IDictionary<Type, IDictionary<string, ReflectionUtils.GetDelegate>> GetCache;
-        internal IDictionary<Type, IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>> SetCache;
+        internal IDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>> GetCache;
+        internal IDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>> SetCache;
 
         internal static readonly Type[] EmptyTypes = new Type[0];
         internal static readonly Type[] ArrayConstructorParameterTypes = new Type[] { typeof(int) };
@@ -1258,17 +1301,28 @@ namespace SimpleJson
                                                                  @"yyyy-MM-dd\THH:mm:ss\Z",
                                                                  @"yyyy-MM-dd\THH:mm:ssK"
                                                              };
-
         public PocoJsonSerializerStrategy()
         {
             ConstructorCache = new ReflectionUtils.ThreadSafeDictionary<Type, ReflectionUtils.ConstructorDelegate>(ConstructorDelegateFactory);
-            GetCache = new ReflectionUtils.ThreadSafeDictionary<Type, IDictionary<string, ReflectionUtils.GetDelegate>>(GetterValueFactory);
-            SetCache = new ReflectionUtils.ThreadSafeDictionary<Type, IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>>(SetterValueFactory);
+            GetCache = new ReflectionUtils.ThreadSafeDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>>(GetterValueFactory);
+            SetCache = new ReflectionUtils.ThreadSafeDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>>(SetterValueFactory);
         }
 
-        protected virtual string MapClrMemberNameToJsonFieldName(string clrPropertyName)
+        public PocoJsonSerializerStrategy(
+            IDictionary<Type, ReflectionUtils.ConstructorDelegate> constructorCache,
+            IDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>> getCache,
+            IDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>> setCache)
         {
-            return clrPropertyName;
+            ConstructorCache = constructorCache ?? new ReflectionUtils.ThreadSafeDictionary<Type, ReflectionUtils.ConstructorDelegate>(ConstructorDelegateFactory);
+            GetCache = getCache ?? new ReflectionUtils.ThreadSafeDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>>(GetterValueFactory);
+            SetCache = setCache ?? new ReflectionUtils.ThreadSafeDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>>(SetterValueFactory);
+        }
+
+        protected virtual string MapClrMemberNameToJsonFieldName(string clrPropertyName, bool isFromGetterFactory, PropertyNaming naming)
+        {
+            return naming == PropertyNaming.CamelCase && isFromGetterFactory
+                ? char.ToLowerInvariant(clrPropertyName[0]) + clrPropertyName.Substring(1)
+                : clrPropertyName;
         }
 
         internal virtual ReflectionUtils.ConstructorDelegate ConstructorDelegateFactory(Type key)
@@ -1278,58 +1332,71 @@ namespace SimpleJson
             return ReflectionUtils.GetConstructor(key, needsCapacityArgument ? ArrayConstructorParameterTypes : EmptyTypes);
         }
 
-        internal virtual IDictionary<string, ReflectionUtils.GetDelegate> GetterValueFactory(Type type)
+        internal virtual IDictionary<string, ReflectionUtils.GetDelegate> GetterValueFactory((Type type, PropertyNaming naming) cacheKey)
         {
             IDictionary<string, ReflectionUtils.GetDelegate> result = new Dictionary<string, ReflectionUtils.GetDelegate>();
-            foreach (PropertyInfo propertyInfo in ReflectionUtils.GetProperties(type))
+            foreach (PropertyInfo propertyInfo in ReflectionUtils.GetProperties(cacheKey.type))
             {
                 if (propertyInfo.CanRead)
                 {
                     MethodInfo getMethod = ReflectionUtils.GetGetterMethodInfo(propertyInfo);
                     if (getMethod.IsStatic || !getMethod.IsPublic)
                         continue;
-                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name)] = ReflectionUtils.GetGetMethod(propertyInfo);
+                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name, true, cacheKey.naming)] = ReflectionUtils.GetGetMethod(propertyInfo);
                 }
             }
-            foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(type))
+            foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(cacheKey.type))
             {
                 if (fieldInfo.IsStatic || !fieldInfo.IsPublic)
                     continue;
-                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name)] = ReflectionUtils.GetGetMethod(fieldInfo);
+                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name, true, cacheKey.naming)] = ReflectionUtils.GetGetMethod(fieldInfo);
             }
             return result;
         }
 
-        internal virtual IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> SetterValueFactory(Type type)
+        internal virtual IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> SetterValueFactory((Type type, PropertyNaming naming) cacheKey)
         {
             IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> result = new Dictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>();
-            foreach (PropertyInfo propertyInfo in ReflectionUtils.GetProperties(type))
+            foreach (PropertyInfo propertyInfo in ReflectionUtils.GetProperties(cacheKey.type))
             {
                 if (propertyInfo.CanWrite)
                 {
                     MethodInfo setMethod = ReflectionUtils.GetSetterMethodInfo(propertyInfo);
                     if (setMethod.IsStatic || !setMethod.IsPublic)
                         continue;
-                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(propertyInfo.PropertyType, ReflectionUtils.GetSetMethod(propertyInfo));
+                    result[MapClrMemberNameToJsonFieldName(propertyInfo.Name, false, cacheKey.naming)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(propertyInfo.PropertyType, ReflectionUtils.GetSetMethod(propertyInfo));
                 }
             }
-            foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(type))
+            foreach (FieldInfo fieldInfo in ReflectionUtils.GetFields(cacheKey.type))
             {
                 if (fieldInfo.IsInitOnly || fieldInfo.IsStatic || !fieldInfo.IsPublic)
                     continue;
-                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(fieldInfo.FieldType, ReflectionUtils.GetSetMethod(fieldInfo));
+                result[MapClrMemberNameToJsonFieldName(fieldInfo.Name, false, cacheKey.naming)] = new KeyValuePair<Type, ReflectionUtils.SetDelegate>(fieldInfo.FieldType, ReflectionUtils.GetSetMethod(fieldInfo));
             }
             return result;
         }
 
-        public virtual bool TrySerializeNonPrimitiveObject(object input, out object output)
+        public virtual bool TrySerializeNonPrimitiveObject(object input, PropertyNaming naming,
+            out object output,
+            out IDictionary<(Type key, PropertyNaming naming), IDictionary<string, ReflectionUtils.GetDelegate>> getCache)
         {
-            return TrySerializeKnownTypes(input, out output) || TrySerializeUnknownTypes(input, out output);
+            getCache = GetCache;
+            return TrySerializeKnownTypes(input, out output) || TrySerializeUnknownTypes(input, out output, naming);
+        }
+
+        public virtual object DeserializeObject(object value, Type type, PropertyNaming naming,
+            out IDictionary<(Type key, PropertyNaming naming), IDictionary<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>>> setterCache,
+            out IDictionary<Type, ReflectionUtils.ConstructorDelegate> constructorCache)
+        {
+            constructorCache = ConstructorCache;
+            setterCache = SetCache;
+            return DeserializeObject(value, type, naming);
         }
 
         [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        public virtual object DeserializeObject(object value, Type type)
+        public virtual object DeserializeObject(object value, Type type, PropertyNaming naming)
         {
+            
             if (type == null) throw new ArgumentNullException("type");
             string str = value as string;
 
@@ -1421,7 +1488,7 @@ namespace SimpleJson
                         IDictionary dict = (IDictionary)ConstructorCache[genericType]();
 
                         foreach (KeyValuePair<string, object> kvp in jsonObject)
-                            dict.Add(kvp.Key, DeserializeObject(kvp.Value, valueType));
+                            dict.Add(kvp.Key, DeserializeObject(kvp.Value, valueType, naming, out _, out _));
 
                         obj = dict;
                     }
@@ -1435,12 +1502,12 @@ namespace SimpleJson
                                 ?? throw new InvalidOperationException($"Cannot deserialize JSON into type '{type.FullName}' because it does not have a public parameterless constructor.");
                             obj = constructorDelegate();
 
-                            foreach (KeyValuePair<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> setter in SetCache[type])
+                            foreach (KeyValuePair<string, KeyValuePair<Type, ReflectionUtils.SetDelegate>> setter in SetCache[(type, naming)])
                             {
                                 object jsonValue;
-                                if (jsonObject.TryGetValue(setter.Key, out jsonValue))
+                                if (jsonObject.TryGetValue(ResolvePropertyName(setter.Key, naming), out jsonValue))
                                 {
-                                    jsonValue = DeserializeObject(jsonValue, setter.Value.Key);
+                                    jsonValue = DeserializeObject(jsonValue, setter.Value.Key, naming);
                                     setter.Value.Value(obj, jsonValue);
                                 }
                             }
@@ -1460,14 +1527,14 @@ namespace SimpleJson
                             list = (IList)ConstructorCache[type](jsonObject.Count);
                             int i = 0;
                             foreach (object o in jsonObject)
-                                list[i++] = DeserializeObject(o, type.GetElementType());
+                                list[i++] = DeserializeObject(o, type.GetElementType(), naming);
                         }
                         else if (ReflectionUtils.IsTypeGenericCollectionInterface(type) || ReflectionUtils.IsAssignableFrom(typeof(IList), type))
                         {
                             Type innerType = ReflectionUtils.GetGenericListElementType(type);
                             list = (IList)(ConstructorCache[type] ?? ConstructorCache[typeof(List<>).MakeGenericType(innerType)])(jsonObject.Count);
                             foreach (object o in jsonObject)
-                                list.Add(DeserializeObject(o, innerType));
+                                list.Add(DeserializeObject(o, innerType, naming));
                         }
                         obj = list;
                     }
@@ -1477,6 +1544,13 @@ namespace SimpleJson
             if (ReflectionUtils.IsNullableType(type))
                 return ReflectionUtils.ToNullableType(obj, type);
             return obj;
+        }
+
+        internal virtual string ResolvePropertyName(string propertyName, PropertyNaming naming)
+        {
+            return naming == PropertyNaming.CamelCase
+                ? char.ToLower(propertyName[0]) + propertyName.Substring(1)
+                : propertyName;
         }
 
         protected virtual object SerializeEnum(Enum p)
@@ -1514,7 +1588,7 @@ namespace SimpleJson
             return returnValue;
         }
         [SuppressMessage("Microsoft.Design", "CA1007:UseGenericsWhereAppropriate", Justification="Need to support .NET 2")]
-        protected virtual bool TrySerializeUnknownTypes(object input, out object output)
+        protected virtual bool TrySerializeUnknownTypes(object input, out object output, PropertyNaming naming)
         {
             if (input == null) throw new ArgumentNullException("input");
             output = null;
@@ -1522,11 +1596,11 @@ namespace SimpleJson
             if (type.FullName == null)
                 return false;
             IDictionary<string, object> obj = new JsonObject();
-            IDictionary<string, ReflectionUtils.GetDelegate> getters = GetCache[type];
+            IDictionary<string, ReflectionUtils.GetDelegate> getters = GetCache[(type, naming)];
             foreach (KeyValuePair<string, ReflectionUtils.GetDelegate> getter in getters)
             {
                 if (getter.Value != null)
-                    obj.Add(MapClrMemberNameToJsonFieldName(getter.Key), getter.Value(input));
+                    obj.Add(MapClrMemberNameToJsonFieldName(getter.Key, true, naming), getter.Value(input));
             }
             output = obj;
             return true;

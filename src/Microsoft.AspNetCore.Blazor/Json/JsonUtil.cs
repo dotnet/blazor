@@ -13,12 +13,21 @@ namespace Microsoft.AspNetCore.Blazor
     public static class JsonUtil
     {
         /// <summary>
-        /// Serializes the value as a JSON string.
+        /// Serializes the value as a JSON string using the default property naming scheme <see cref="SimpleJson.PropertyNaming.CamelCase"/>.
         /// </summary>
         /// <param name="value">The value to serialize.</param>
         /// <returns>The JSON string.</returns>
         public static string Serialize(object value)
             => SimpleJson.SimpleJson.SerializeObject(value);
+
+        /// <summary>
+        /// Serializes the value as a JSON string with the specified property naming scheme.
+        /// </summary>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="naming">The property naming scheme for serializing.</param>
+        /// <returns>The JSON string.</returns>
+        public static string Serialize(object value, SimpleJson.PropertyNaming naming)
+            => SimpleJson.SimpleJson.SerializeObject(value, naming);
 
         /// <summary>
         /// Deserializes the JSON string, creating an object of the specified generic type.
@@ -28,5 +37,15 @@ namespace Microsoft.AspNetCore.Blazor
         /// <returns>An object of the specified type.</returns>
         public static T Deserialize<T>(string json)
             => SimpleJson.SimpleJson.DeserializeObject<T>(json);
+
+        /// <summary>
+        /// Deserializes the JSON string, creating an object of the specified generic type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json">The JSON string.</param>
+        /// <param name="propertyNaming">The property naming of the JSON string.</param>
+        /// <returns>An object of the specified type.</returns>
+        public static T Deserialize<T>(string json, SimpleJson.PropertyNaming propertyNaming)
+            => SimpleJson.SimpleJson.DeserializeObject<T>(json, propertyNaming);
     }
 }
