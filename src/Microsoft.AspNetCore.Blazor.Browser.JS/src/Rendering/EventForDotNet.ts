@@ -1,4 +1,4 @@
-﻿export class EventForDotNet<TData extends UIEventArgs> {
+export class EventForDotNet<TData extends UIEventArgs> {
   constructor(public readonly type: EventArgsType, public readonly data: TData) {
   }
 
@@ -38,7 +38,8 @@
       case 'keydown':
       case 'keyup':
       case 'keypress':
-        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', { Type: event.type, Key: (event as any).key });
+        const keyEvent = event as any;
+        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', { Type: keyEvent.type, Char: keyEvent.char, Key: keyEvent.key, Code: keyEvent.code, Location: keyEvent.location, Repeat: keyEvent.repeat, Locale: keyEvent.locale, CtrlKey: keyEvent.ctrlKey, ShiftKey: keyEvent.shiftKey, AltKey: keyEvent.altKey, MetaKey: keyEvent.metaKey });
 
       case 'contextmenu':
       case 'click':
@@ -110,7 +111,16 @@ interface UIFocusEventArgs extends UIEventArgs {
 }
 
 interface UIKeyboardEventArgs extends UIEventArgs {
+  Char: string;
   Key: string;
+  Code: string;
+  Location: number;
+  Repeat: boolean;
+  Locale: string;
+  CtrlKey: boolean;
+  ShiftKey: boolean;
+  AltKey: boolean;
+  MetaKey: boolean;
 }
 
 interface UIMouseEventArgs extends UIEventArgs {
