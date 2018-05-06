@@ -38,6 +38,137 @@ namespace Microsoft.AspNetCore.Blazor
     /// </summary>
     public class UIDragEventArgs : UIEventArgs
     {
+        /// <summary>
+        /// A count of consecutive clicks that happened in a short amount of time, incremented by one.
+        /// </summary>
+        public float Detail { get; set; }
+
+        /// <summary>
+        /// The data that underlies a drag-and-drop operation, known as the drag data store.
+        /// See <see cref="Blazor.DataTransfer"/>.
+        /// </summary>
+        public DataTransfer DataTransfer { get; set; }
+
+        /// <summary>
+        /// The X coordinate of the mouse pointer in global (screen) coordinates.
+        /// </summary>
+        public long ScreenX { get; set; }
+
+        /// <summary>
+        /// The Y coordinate of the mouse pointer in global (screen) coordinates.
+        /// </summary>
+        public long ScreenY { get; set; }
+
+        /// <summary>
+        /// The X coordinate of the mouse pointer in local (DOM content) coordinates.
+        /// </summary>
+        public long ClientX { get; set; }
+
+        /// <summary>
+        /// 	The Y coordinate of the mouse pointer in local (DOM content) coordinates.
+        /// </summary>
+        public long ClientY { get; set; }
+
+        /// <summary>
+        /// The button number that was pressed when the mouse event was fired:
+        /// Left button=0,
+        /// middle button=1 (if present),
+        /// right button=2.
+        /// For mice configured for left handed use in which the button actions are reversed the values are instead read from right to left.
+        /// </summary>
+        public long Button { get; set; }
+
+        /// <summary>
+        /// The buttons being pressed when the mouse event was fired:
+        /// Left button=1,
+        /// Right button=2,
+        /// Middle (wheel) button=4,
+        /// 4th button (typically, "Browser Back" button)=8,
+        /// 5th button (typically, "Browser Forward" button)=16.
+        /// If two or more buttons are pressed, returns the logical sum of the values.
+        /// E.g., if Left button and Right button are pressed, returns 3 (=1 | 2).
+        /// </summary>
+        public long Buttons { get; set; }
+
+        /// <summary>
+        /// The amount of pressure applied to a touch or tabdevice when generating the event;
+        /// this value ranges between 0.0 (minimum pressure) and 1.0 (maximum pressure).
+        /// </summary>
+        public float MozPressure { get; set; }
+
+        /// <summary>
+        /// true if the control key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool CtrlKey { get; set; }
+
+        /// <summary>
+        /// true if the shift key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool ShiftKey { get; set; }
+
+        /// <summary>
+        /// true if the alt key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool AltKey { get; set; }
+
+        /// <summary>
+        /// true if the meta key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool MetaKey { get; set; }
+    }
+
+    /// <summary>
+    /// The <see cref="DataTransfer"/> object is used to hold the data that is being dragged during a drag and drop operation.
+    /// It may hold one or more <see cref="UIDataTransferItem"/>, each of one or more data types.
+    /// For more information about drag and drop, see HTML Drag and Drop API.
+    /// </summary>
+    public class DataTransfer
+    {
+        /// <summary>
+        /// Gets the type of drag-and-drop operation currently selected or sets the operation to a new type.
+        /// The value must be none, copy, link or move.
+        /// </summary>
+        public string DropEffect { get; set; }
+
+        /// <summary>
+        /// Provides all of the types of operations that are possible.
+        /// Must be one of none, copy, copyLink, copyMove, link, linkMove, move, all or uninitialized.
+        /// </summary>
+        public string EffectAllowed { get; set; }
+
+        /// <summary>
+        /// Contains a list of all the local files available on the data transfer.
+        /// If the drag operation doesn't involve dragging files, this property is an empty list.
+        /// </summary>
+        public string[] Files { get; set; }
+
+        /// <summary>
+        /// Gives a <see cref="UIDataTransferItem"/> array which is a list of all of the drag data.
+        /// </summary>
+        public UIDataTransferItem[] Items { get; set; }
+
+        /// <summary>
+        /// An array of <see cref="string"/> giving the formats that were set in the dragstart event.
+        /// </summary>
+        public string[] Types { get; set; }
+    }
+
+    /// <summary>
+    /// The <see cref="UIDataTransferItem"/> object represents one drag data item.
+    /// During a drag operation, each drag event has a dataTransfer property which contains a list of drag data items.
+    /// Each item in the list is a <see cref="UIDataTransferItem"/> object.
+    /// </summary>
+    public class UIDataTransferItem
+    {
+        /// <summary>
+        /// The kind of drag data item, string or file
+        /// </summary>
+        public string Kind { get; set; }
+
+        /// <summary>
+        /// The drag data item's type, typically a MIME type
+        /// </summary>
+        public string Type { get; set; }
     }
 
     /// <summary>

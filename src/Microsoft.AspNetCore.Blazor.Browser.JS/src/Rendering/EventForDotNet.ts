@@ -24,7 +24,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'dragover':
       case 'dragstart':
       case 'drop':
-        return new EventForDotNet<UIDragEventArgs>('drag', { Type: event.type });
+        return new EventForDotNet<UIDragEventArgs>('drag', parseDragEvent(event));
 
       case 'focus':
       case 'blur':
@@ -83,6 +83,25 @@ export class EventForDotNet<TData extends UIEventArgs> {
       default:
         return new EventForDotNet<UIEventArgs>('unknown', { Type: event.type });
     }
+  }
+}
+
+function parseDragEvent(event: any) {
+  return {
+    Type: event.type,
+    Detail: event.detail,
+    DataTransfer: event.dataTransfer,
+    ScreenX: event.screenX,
+    ScreenY: event.screenY,
+    ClientX: event.clientX,
+    ClientY: event.clientY,
+    Button: event.button,
+    Buttons: event.buttons,
+    MozPressure: event.mozPressure,
+    CtrlKey: event.ctrlKey,
+    ShiftKey: event.shiftKey,
+    AltKey: event.altKey,
+    MetaKey: event.metaKey
   }
 }
 
@@ -187,6 +206,32 @@ interface UIClipboardEventArgs extends UIEventArgs {
 }
 
 interface UIDragEventArgs extends UIEventArgs {
+  Detail: number;
+  DataTransfer: UIDataTransfer;
+  ScreenX: number;
+  ScreenY: number;
+  ClientX: number;
+  ClientY: number;
+  Button: number;
+  Buttons: number;
+  MozPressure: number;
+  CtrlKey: boolean;
+  ShiftKey: boolean;
+  AltKey: boolean;
+  MetaKey: boolean;
+}
+
+interface UIDataTransfer {
+  DropEffect: string;
+  EffectAllowed: string;
+  Files: string[];
+  Items: UIDataTransferItem[];
+  Types: string[];
+}
+
+interface UIDataTransferItem {
+  Kind: string;
+  Type: string;
 }
 
 interface UIErrorEventArgs extends UIEventArgs {
