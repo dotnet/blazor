@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Blazor
     /// <summary>
     /// Supplies information about an error event that is being raised.
     /// </summary>
-    public class UIErrorEventArgs : UIEventArgs
+    public class UIErrorEventArgs : UIProgressEventArgs
     {
     }
 
@@ -248,8 +248,24 @@ namespace Microsoft.AspNetCore.Blazor
     /// <summary>
     /// Supplies information about a progress event that is being raised.
     /// </summary>
-    public class UIProgressEventArgs : UIMouseEventArgs
+    public class UIProgressEventArgs : UIEventArgs
     {
+        /// <summary>
+        /// Whether or not the total size of the transfer is known.
+        /// </summary>
+        public bool LengthComputable { get; set; }
+
+        /// <summary>
+        /// The number of bytes transferred since the beginning of the operation.
+        /// This doesn't include headers and other overhead, but only the content itself.
+        /// </summary>
+        public long Loaded { get; set; }
+
+        /// <summary>
+        /// The total number of bytes of content that will be transferred during the operation.
+        /// If the total size is unknown, this value is zero. 
+        /// </summary>
+        public long Total { get; set; }
     }
 
     /// <summary>

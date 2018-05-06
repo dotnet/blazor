@@ -98,11 +98,14 @@ namespace Microsoft.AspNetCore.Blazor.Components
     [EventHandler("onvolumechange", typeof(UIEventArgs))]
     [EventHandler("onwaiting", typeof(UIEventArgs))]
 
-    // Error events
-    [EventHandler("onerror", typeof(UIErrorEventArgs))]
-
     // Progress events
+    [EventHandler("onloadstart", typeof(UIProgressEventArgs))]
+    [EventHandler("ontimeout", typeof(UIProgressEventArgs))]
+    [EventHandler("onabort", typeof(UIProgressEventArgs))]
+    [EventHandler("onload", typeof(UIProgressEventArgs))]
+    [EventHandler("onloadend", typeof(UIProgressEventArgs))]
     [EventHandler("onprogress", typeof(UIProgressEventArgs))]
+    [EventHandler("onerror", typeof(UIErrorEventArgs))]
 
     // General events
     [EventHandler("onabort", typeof(UIEventArgs))]

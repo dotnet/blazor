@@ -26,9 +26,6 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'drop':
         return new EventForDotNet<UIDragEventArgs>('drag', { Type: event.type });
 
-      case 'error':
-        return new EventForDotNet<UIProgressEventArgs>('error', { Type: event.type });
-
       case 'focus':
       case 'blur':
       case 'focusin':
@@ -50,8 +47,14 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'dblclick':
         return new EventForDotNet<UIMouseEventArgs>('mouse', parseMouseEvent(event));
 
+      case 'loadstart':
+      case 'timeout':
+      case 'abort':
+      case 'load':
+      case 'loadend':
+      case 'error':
       case 'progress':
-        return new EventForDotNet<UIProgressEventArgs>('progress', { Type: event.type });
+        return new EventForDotNet<UIProgressEventArgs>('progress', parseProgressEvent(event));
 
       case 'touchcancel':
       case 'touchend':
@@ -83,8 +86,16 @@ export class EventForDotNet<TData extends UIEventArgs> {
   }
 }
 
+function parseProgressEvent(event: any) {
+  return {
+    Type: event.type,
+    LengthComputable: event.legthComputable,
+    Loaded: event.loaded,
+    Total: event.total
+  };
+}
+
 function parseTouchEvent(event: any) {
-  console.log(event);
   return {
     Type: event.type,
     Detail: event.detail,
@@ -95,7 +106,7 @@ function parseTouchEvent(event: any) {
     ShiftKey: event.shiftKey,
     AltKey: event.altKey,
     MetaKey: event.metaKey
-  }
+  };
 }
 
 function parseKeyboardEvent(event: any) {
@@ -111,7 +122,7 @@ function parseKeyboardEvent(event: any) {
     ShiftKey: event.shiftKey,
     AltKey: event.altKey,
     MetaKey: event.metaKey
-  }
+  };
 }
 
 function parsePointerEvent(event: any) {
@@ -143,7 +154,7 @@ function parseMouseEvent(event: any) {
     ShiftKey: event.shiftKey,
     AltKey: event.altKey,
     MetaKey: event.metaKey
-  }
+  };
 }
 
 function isCheckbox(element: Element | null) {
@@ -214,6 +225,9 @@ interface UIPointerEventArgs extends UIMouseEventArgs {
 }
 
 interface UIProgressEventArgs extends UIEventArgs {
+  LengthComputable: boolean;
+  Loaded: number;
+  Total: number;
 }
 
 interface UITouchEventArgs extends UIEventArgs {
