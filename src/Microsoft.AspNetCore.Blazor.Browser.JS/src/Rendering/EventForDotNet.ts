@@ -38,8 +38,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'keydown':
       case 'keyup':
       case 'keypress':
-        const keyEvent = event as any;
-        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', { Type: keyEvent.type, Char: keyEvent.char, Key: keyEvent.key, Code: keyEvent.code, Location: keyEvent.location, Repeat: keyEvent.repeat, Locale: keyEvent.locale, CtrlKey: keyEvent.ctrlKey, ShiftKey: keyEvent.shiftKey, AltKey: keyEvent.altKey, MetaKey: keyEvent.metaKey });
+        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', parseKeyboardEvent(event));
 
       case 'contextmenu':
       case 'click':
@@ -49,7 +48,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'mousedown':
       case 'mouseup':
       case 'dblclick':
-        return new EventForDotNet<UIMouseEventArgs>('mouse', { Type: event.type });
+        return new EventForDotNet<UIMouseEventArgs>('mouse', parseMouseEvent(event));
 
       case 'progress':
         return new EventForDotNet<UIProgressEventArgs>('progress', { Type: event.type });
@@ -70,7 +69,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'pointerout':
       case 'pointerover':
       case 'pointerup':
-        return new EventForDotNet<UIPointerEventArgs>('pointer', { Type: event.type });
+        return new EventForDotNet<UIPointerEventArgs>('pointer', parsePointerEvent(event));
 
       case 'mousewheel':
         return new EventForDotNet<UIWheelEventArgs>('wheel', { Type: event.type });
@@ -79,6 +78,54 @@ export class EventForDotNet<TData extends UIEventArgs> {
       default:
         return new EventForDotNet<UIEventArgs>('unknown', { Type: event.type });
     }
+  }
+}
+
+function parseKeyboardEvent(event: any) {
+  return {
+    Type: event.type,
+    Char: event.char,
+    Key: event.key,
+    Code: event.code,
+    Location: event.location,
+    Repeat: event.repeat,
+    Locale: event.locale,
+    CtrlKey: event.ctrlKey,
+    ShiftKey: event.shiftKey,
+    AltKey: event.altKey,
+    MetaKey: event.metaKey
+  }
+}
+
+function parsePointerEvent(event: any) {
+  return Object.assign(parseMouseEvent(event),
+    {
+      PointerId: event.pointerId,
+      Width: event.width,
+      Height: event.height,
+      Pressure: event.pressure,
+      TiltX: event.tiltX,
+      TiltY: event.tiltY,
+      PointerType: event.pointerType,
+      IsPrimary: event.isPrimary
+    });
+}
+
+function parseMouseEvent(event: any) {
+  return {
+    Type: event.type,
+    Detail: event.detail,
+    ScreenX: event.screenX,
+    ScreenY: event.screenY,
+    ClientX: event.clientX,
+    ClientY: event.clientY,
+    Button: event.button,
+    Buttons: event.buttons,
+    MozPressure: event.mozPressure,
+    CtrlKey: event.ctrlKey,
+    ShiftKey: event.shiftKey,
+    AltKey: event.altKey,
+    MetaKey: event.metaKey
   }
 }
 
@@ -124,9 +171,29 @@ interface UIKeyboardEventArgs extends UIEventArgs {
 }
 
 interface UIMouseEventArgs extends UIEventArgs {
+  Detail: number;
+  ScreenX: number;
+  ScreenY: number;
+  ClientX: number;
+  ClientY: number;
+  Button: number;
+  Buttons: number;
+  MozPressure: number;
+  CtrlKey: boolean;
+  ShiftKey: boolean;
+  AltKey: boolean;
+  MetaKey: boolean;
 }
 
 interface UIPointerEventArgs extends UIMouseEventArgs {
+  PointerId: number;
+  Width: number;
+  Height: number;
+  Pressure: number;
+  TiltX: number;
+  TiltY: number;
+  PointerType: string;
+  IsPrimary: boolean;
 }
 
 interface UIProgressEventArgs extends UIEventArgs {
