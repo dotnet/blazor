@@ -24,6 +24,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
     [EventHandler("onmouseup", typeof(UIMouseEventArgs))]
     [EventHandler("onclick", typeof(UIMouseEventArgs))]
     [EventHandler("ondblclick", typeof(UIMouseEventArgs))]
+    [EventHandler("onwheel", typeof(UIWheelEventArgs))]
     [EventHandler("onmousewheel", typeof(UIWheelEventArgs))]
     [EventHandler("oncontextmenu", typeof(UIMouseEventArgs))]
 

@@ -76,14 +76,24 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'pointerup':
         return new EventForDotNet<UIPointerEventArgs>('pointer', parsePointerEvent(event));
 
+      case 'wheel':
       case 'mousewheel':
-        return new EventForDotNet<UIWheelEventArgs>('wheel', { Type: event.type });
-
+        return new EventForDotNet<UIWheelEventArgs>('wheel', parseWheelEvent(event));
 
       default:
         return new EventForDotNet<UIEventArgs>('unknown', { Type: event.type });
     }
   }
+}
+
+function parseWheelEvent(event: any) {
+  return Object.assign(parseMouseEvent(event),
+    {
+      DeltaX: event.deltaX,
+      DeltaY: event.deltaY,
+      DeltaZ: event.deltaZ,
+      DeltaMode: event.deltaMode
+    });
 }
 
 function parseProgressEvent(event: any) {
@@ -251,5 +261,9 @@ interface UITouchPoint {
   PageY: number;
 }
 
-interface UIWheelEventArgs extends UIEventArgs {
+interface UIWheelEventArgs extends UIMouseEventArgs {
+  DeltaX: number;
+  DeltaY: number;
+  DeltaZ: number;
+  DeltaMode: number;
 }
