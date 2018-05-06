@@ -257,6 +257,94 @@ namespace Microsoft.AspNetCore.Blazor
     /// </summary>
     public class UITouchEventArgs : UIEventArgs
     {
+        /// <summary>
+        /// A count of consecutive clicks that happened in a short amount of time, incremented by one.
+        /// </summary>
+        public float Detail { get; set; }
+
+        /// <summary>
+        /// A list of <see cref="UITouchPoint"/> for every point of contact currently touching the surface.
+        /// </summary>
+        public UITouchPoint[] Touches { get; set; }
+
+        /// <summary>
+        /// A list of <see cref="UITouchPoint"/> for every point of contact that is touching the surface and started on the element that is the target of the current event.
+        /// </summary>
+        public UITouchPoint[] TargetTouches { get; set; }
+
+        /// <summary>
+        /// A list of Touches for every point of contact which contributed to the event.
+        /// For the touchstart event this must be a list of the touch points that just became active with the current event.
+        /// For the touchmove event this must be a list of the touch points that have moved since the last event.
+        /// For the touchend and touchcancel events this must be a list of the touch points that have just been removed from the surface.
+        /// </summary>
+        public UITouchPoint[] ChangedTouches { get; set; }
+
+        /// <summary>
+        /// true if the control key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool CtrlKey { get; set; }
+
+        /// <summary>
+        /// true if the shift key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool ShiftKey { get; set; }
+
+        /// <summary>
+        /// true if the alt key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool AltKey { get; set; }
+
+        /// <summary>
+        /// true if the meta key was down when the event was fired. false otherwise.
+        /// </summary>
+        public bool MetaKey { get; set; }
+    }
+
+    /// <summary>
+    /// Represents a single contact point on a touch-sensitive device.
+    /// The contact point is commonly a finger or stylus and the device may be a touchscreen or trackpad.
+    /// </summary>
+    public class UITouchPoint
+    {
+        /// <summary>
+        /// A unique identifier for this Touch object.
+        /// A given touch point (say, by a finger) will have the same identifier for the duration of its movement around the surface.
+        /// This lets you ensure that you're tracking the same touch all the time.
+        /// </summary>
+        public long Identifier { get; set; }
+
+        /// <summary>
+        /// The X coordinate of the touch point relative to the left edge of the screen.
+        /// </summary>
+        public long ScreenX { get; set; }
+
+        /// <summary>
+        /// The Y coordinate of the touch point relative to the top edge of the screen.
+        /// </summary>
+        public long ScreenY { get; set; }
+
+        /// <summary>
+        /// The X coordinate of the touch point relative to the left edge of the browser viewport, not including any scroll offset.
+        /// </summary>
+        public long ClientX { get; set; }
+
+        /// <summary>
+        /// The Y coordinate of the touch point relative to the top edge of the browser viewport, not including any scroll offset.
+        /// </summary>
+        public long ClientY { get; set; }
+
+        /// <summary>
+        /// The X coordinate of the touch point relative to the left edge of the document.
+        /// Unlike <see cref="ClientX"/>, this value includes the horizontal scroll offset, if any.
+        /// </summary>
+        public long PageX { get; set; }
+
+        /// <summary>
+        /// The Y coordinate of the touch point relative to the top of the document.
+        /// Unlike <see cref="ClientY"/>, this value includes the vertical scroll offset, if any.
+        /// </summary>
+        public long PageY { get; set; }
     }
 
     /// <summary>

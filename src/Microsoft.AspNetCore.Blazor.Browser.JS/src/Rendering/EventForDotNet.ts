@@ -56,8 +56,10 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'touchcancel':
       case 'touchend':
       case 'touchmove':
+      case 'touchenter':
+      case 'touchleave':
       case 'touchstart':
-        return new EventForDotNet<UITouchEventArgs>('touch', { Type: event.type });
+        return new EventForDotNet<UITouchEventArgs>('touch', parseTouchEvent(event));
 
       case 'gotpointercapture':
       case 'lostpointercapture':
@@ -78,6 +80,21 @@ export class EventForDotNet<TData extends UIEventArgs> {
       default:
         return new EventForDotNet<UIEventArgs>('unknown', { Type: event.type });
     }
+  }
+}
+
+function parseTouchEvent(event: any) {
+  console.log(event);
+  return {
+    Type: event.type,
+    Detail: event.detail,
+    Touches: event.touches,
+    TargetTouches: event.targetTouches,
+    ChangedTouches: event.changedTouches,
+    CtrlKey: event.ctrlKey,
+    ShiftKey: event.shiftKey,
+    AltKey: event.altKey,
+    MetaKey: event.metaKey
   }
 }
 
@@ -200,6 +217,24 @@ interface UIProgressEventArgs extends UIEventArgs {
 }
 
 interface UITouchEventArgs extends UIEventArgs {
+  Detail: number;
+  Touches: UITouchPoint[];
+  TargetTouches: UITouchPoint[];
+  ChangedTouches: UITouchPoint[];
+  CtrlKey: boolean;
+  ShiftKey: boolean;
+  AltKey: boolean;
+  MetaKey: boolean;
+}
+
+interface UITouchPoint {
+  Identifier: number;
+  ScreenX: number;
+  ScreenY: number;
+  ClientX: number;
+  ClientY: number;
+  PageX: number;
+  PageY: number;
 }
 
 interface UIWheelEventArgs extends UIEventArgs {

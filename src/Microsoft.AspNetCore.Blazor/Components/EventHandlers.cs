@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -64,6 +64,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
     [EventHandler("ontouchend", typeof(UITouchEventArgs))]
     [EventHandler("ontouchmove", typeof(UITouchEventArgs))]
     [EventHandler("ontouchstart", typeof(UITouchEventArgs))]
+    [EventHandler("ontouchenter", typeof(UITouchEventArgs))]
+    [EventHandler("ontouchleave", typeof(UITouchEventArgs))]
 
     // Pointer events
     [EventHandler("gotpointercapture", typeof(UIPointerEventArgs))]
