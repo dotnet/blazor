@@ -3,7 +3,9 @@
 
 using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Blazor.Server.AutoRebuild;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +21,37 @@ namespace Microsoft.AspNetCore.Builder
         private static string[] _includedSuffixes = new[] { ".cs", ".cshtml", "index.html" };
         private static string[] _excludedDirectories = new[] { "obj", "bin" };
 
-        public static void UseAutoRebuild(this IApplicationBuilder appBuilder, BlazorConfig config)
+        public static void UseHostedAutoRebuild(this IApplicationBuilder appBuilder, BlazorConfig config, string hostAppContentRootPath)
+        {
+            var isFirstFileWrite = true;
+            WatchFileSystem(config, () =>
+            {
+                if (isFirstFileWrite)
+                {
+                    try
+                    {
+                        var fileToTouch = FindFirstFileInDirectoryRecursive(hostAppContentRootPath, "*.cs");
+                        if (!string.IsNullOrEmpty(fileToTouch))
+                        {
+                            File.SetLastWriteTime(fileToTouch, DateTime.Now);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // If we don't have permission to write these files, autorebuild will not be enabled
+                        var loggerFactory = (ILoggerFactory)appBuilder.ApplicationServices.GetService(typeof(ILoggerFactory));
+                        var logger = loggerFactory?.CreateLogger(typeof (AutoRebuildExtensions));
+                        logger?.LogInformation(ex,
+                            "Cannot autorebuild because there was an error when writing to a file in '{0}'.",
+                            hostAppContentRootPath);
+                    }
+
+                    isFirstFileWrite = false;
+                }
+            });
+        }
+
+        public static void UseDevServerAutoRebuild(this IApplicationBuilder appBuilder, BlazorConfig config)
         {
             // Currently this only supports VS for Windows. Later on we can add
             // an IRebuildService implementation for VS for Mac, etc.
@@ -76,6 +108,12 @@ namespace Microsoft.AspNetCore.Builder
                 await next();
             });
         }
+
+        private static string FindFirstFileInDirectoryRecursive(string rootDirectory, string pattern)
+            => Directory.GetFiles(rootDirectory, pattern).FirstOrDefault()
+            ?? Directory.GetDirectories(rootDirectory)
+                .Select(dir => FindFirstFileInDirectoryRecursive(dir, pattern))
+                .FirstOrDefault();
 
         private static void WatchFileSystem(BlazorConfig config, Action onWrite)
         {
