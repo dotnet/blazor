@@ -77,7 +77,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted-CSharp.Client"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted-CSharp.Server", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorHosted-CSharp\BlazorHosted-CSharp.Server\BlazorHosted-CSharp.Server.csproj", "{78ED9932-0912-4F36-8F82-33DE850E7A33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorHosted-CSharp.Shared", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorHosted-CSharp\BlazorHosted-CSharp.Shared\BlazorHosted-CSharp.Shared.csproj", "{F3E02B21-1127-431A-B832-0E53CB72097B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted-CSharp.Shared", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorHosted-CSharp\BlazorHosted-CSharp.Shared\BlazorHosted-CSharp.Shared.csproj", "{F3E02B21-1127-431A-B832-0E53CB72097B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Prerendering", "Prerendering", "{0A6A1E7D-2236-4695-A5B1-0A82EEED0B6C}"
 EndProject
@@ -299,19 +299,31 @@ Global
 		{F3E02B21-1127-431A-B832-0E53CB72097B}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
 		{F3E02B21-1127-431A-B832-0E53CB72097B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3E02B21-1127-431A-B832-0E53CB72097B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3E02B21-1127-431A-B832-0E53CB72097B}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
 		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C424433-8AA6-452B-BA9E-01ACD2852176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{9C424433-8AA6-452B-BA9E-01ACD2852176}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
 		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{034F0B11-DBA2-44A9-932E-BFCD94DB5F7D}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
 		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F3E02B21-1127-431A-B832-0E53CB72097B}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{A61788D9-3764-4BC5-A5BB-118D4A10BBEB}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 		{FF25111E-5A3E-48A3-96D8-08A2C5A2A91C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FF25111E-5A3E-48A3-96D8-08A2C5A2A91C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF25111E-5A3E-48A3-96D8-08A2C5A2A91C}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU

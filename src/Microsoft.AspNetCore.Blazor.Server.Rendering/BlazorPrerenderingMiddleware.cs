@@ -11,8 +11,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class BlazorPrerenderingMiddleware
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="spaBuilder"></param>
+        /// <param name="entryTagName"></param>
+        /// <param name="configure"></param>
         public static void Attach<T>(ISpaBuilder spaBuilder, string entryTagName, Action<IServiceCollection> configure)
         {
             if (spaBuilder == null)

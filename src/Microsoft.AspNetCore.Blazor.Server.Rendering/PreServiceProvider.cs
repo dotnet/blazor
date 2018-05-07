@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class PreServiceProvider : IServiceProvider
     {
         private readonly IServiceProvider _underlyingProvider;

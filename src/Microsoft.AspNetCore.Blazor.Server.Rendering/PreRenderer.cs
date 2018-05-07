@@ -8,19 +8,34 @@ using Microsoft.AspNetCore.Blazor.RenderTree;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Rendering
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class PreRenderer : Renderer
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public PreRenderer() : this(new PreServiceProvider())
         {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="serviceProvider"></param>
         public PreRenderer(IServiceProvider serviceProvider) : base(serviceProvider)
         {
         }
 
         private StringBuilder _sb;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TComponent"></typeparam>
+        /// <returns></returns>
         public string Render<TComponent>()
         {
             _sb = new StringBuilder();
@@ -30,6 +45,10 @@ namespace Microsoft.AspNetCore.Blazor.Server.Rendering
             return _sb.ToString();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="renderBatch"></param>
         protected override void UpdateDisplay(RenderBatch renderBatch)
         {
             foreach (var u in renderBatch.UpdatedComponents)

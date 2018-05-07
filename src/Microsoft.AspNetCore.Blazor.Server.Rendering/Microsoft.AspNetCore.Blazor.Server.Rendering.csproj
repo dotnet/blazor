@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -14,13 +14,17 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <ProjectReference Include="..\anglesharp\AngleSharpBuilder\AngleSharpBuilder.csproj">
       <Name>AngleSharpBuilder</Name>
       <Private>False</Private>
       <SetTargetFramework>TargetFramework=netcoreapp2.0</SetTargetFramework>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <Reference Include="..\anglesharp\AngleSharpBuilder\dist\Microsoft.AspNetCore.Blazor.AngleSharp.dll" />
+  </ItemGroup>-->
+
+  <ItemGroup>
     <Reference Include="..\anglesharp\AngleSharpBuilder\dist\Microsoft.AspNetCore.Blazor.AngleSharp.dll" />
   </ItemGroup>
 </Project>
