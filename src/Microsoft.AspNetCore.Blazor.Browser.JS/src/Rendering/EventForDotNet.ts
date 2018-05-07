@@ -125,12 +125,31 @@ function parseProgressEvent(event: any) {
 }
 
 function parseTouchEvent(event: any) {
+
+  function parseTouch(touchList: TouchList) {
+    const touches: UITouchPoint[] = [];
+    for (let i = 0; i < touchList.length; i++)
+    {
+      const touch = touchList[i];
+      touches.push({
+        Identifier: touch.identifier,
+        ClientX: touch.clientX,
+        ClientY: touch.clientY,
+        ScreenX: touch.screenX,
+        ScreenY: touch.screenY,
+        PageX: touch.pageX,
+        PageY: touch.pageY
+      });
+    }
+    return touches;
+  }
+
   return {
     Type: event.type,
     Detail: event.detail,
-    Touches: event.touches,
-    TargetTouches: event.targetTouches,
-    ChangedTouches: event.changedTouches,
+    Touches: parseTouch(event.touches),
+    TargetTouches: parseTouch(event.targetTouches),
+    ChangedTouches: parseTouch(event.changedTouches),
     CtrlKey: event.ctrlKey,
     ShiftKey: event.shiftKey,
     AltKey: event.altKey,
