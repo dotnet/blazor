@@ -1,28 +1,28 @@
 ﻿<h1>Prerendering Sample</h1>
 
-@*<h3>Input component</h3>
-<c:MyInput />
+<h3>Input component</h3>
+<MyInput />
 
 <h3>List component</h3>
-<c:MyList />
+<MyList />
 
 <h3>Input element</h3>
 <input type="text" />
 
 <div>
     <h3>Bound inputs</h3>
-    <input type="text" @bind(test) />
-    <input type="text" @bind(test) />
+    <input type="text" bind=@test />
+    <input type="text" bind=@test />
 </div>
 
 <h3>Consume same service on client and server</h3>
-<c:ConsumeService />*@
+<ConsumeService />
 
 <h3>Consume different service on client and server</h3>
 <FetchData />
 
 @functions {
 
-    //string test = "hello";
+    string test = "hello";
 
 }
