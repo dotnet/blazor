@@ -234,7 +234,7 @@ interface UIDataTransferItem {
   Type: string;
 }
 
-interface UIErrorEventArgs extends UIEventArgs {
+interface UIErrorEventArgs extends UIProgressEventArgs {
 }
 
 interface UIFocusEventArgs extends UIEventArgs {
