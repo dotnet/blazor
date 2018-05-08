@@ -9,13 +9,13 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'change': {
         const targetIsCheckbox = isCheckbox(element);
         const newValue = targetIsCheckbox ? !!element['checked'] : element['value'];
-        return new EventForDotNet<UIChangeEventArgs>('change', { Type: event.type, Value: newValue });
+        return new EventForDotNet<UIChangeEventArgs>('change', { type: event.type, value: newValue });
       }
 
       case 'copy':
       case 'cut':
       case 'paste':
-        return new EventForDotNet<UIClipboardEventArgs>('clipboard', { Type: event.type });
+        return new EventForDotNet<UIClipboardEventArgs>('clipboard', { type: event.type });
 
       case 'drag':
       case 'dragend':
@@ -30,7 +30,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'blur':
       case 'focusin':
       case 'focusout':
-        return new EventForDotNet<UIFocusEventArgs>('focus', { Type: event.type });
+        return new EventForDotNet<UIFocusEventArgs>('focus', { type: event.type });
 
       case 'keydown':
       case 'keyup':
@@ -81,46 +81,46 @@ export class EventForDotNet<TData extends UIEventArgs> {
         return new EventForDotNet<UIWheelEventArgs>('wheel', parseWheelEvent(event));
 
       default:
-        return new EventForDotNet<UIEventArgs>('unknown', { Type: event.type });
+        return new EventForDotNet<UIEventArgs>('unknown', { type: event.type });
     }
   }
 }
 
 function parseDragEvent(event: any) {
   return {
-    Type: event.type,
-    Detail: event.detail,
-    DataTransfer: event.dataTransfer,
-    ScreenX: event.screenX,
-    ScreenY: event.screenY,
-    ClientX: event.clientX,
-    ClientY: event.clientY,
-    Button: event.button,
-    Buttons: event.buttons,
-    MozPressure: event.mozPressure,
-    CtrlKey: event.ctrlKey,
-    ShiftKey: event.shiftKey,
-    AltKey: event.altKey,
-    MetaKey: event.metaKey
+    type: event.type,
+    detail: event.detail,
+    dataTransfer: event.dataTransfer,
+    screenX: event.screenX,
+    screenY: event.screenY,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    button: event.button,
+    buttons: event.buttons,
+    mozPressure: event.mozPressure,
+    ctrlKey: event.ctrlKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    metaKey: event.metaKey
   }
 }
 
 function parseWheelEvent(event: any) {
   return Object.assign(parseMouseEvent(event),
     {
-      DeltaX: event.deltaX,
-      DeltaY: event.deltaY,
-      DeltaZ: event.deltaZ,
-      DeltaMode: event.deltaMode
+      deltaX: event.deltaX,
+      deltaY: event.deltaY,
+      deltaZ: event.deltaZ,
+      deltaMode: event.deltaMode
     });
 }
 
 function parseProgressEvent(event: any) {
   return {
-    Type: event.type,
-    LengthComputable: event.legthComputable,
-    Loaded: event.loaded,
-    Total: event.total
+    type: event.type,
+    lengthComputable: event.legthComputable,
+    loaded: event.loaded,
+    total: event.total
   };
 }
 
@@ -132,76 +132,76 @@ function parseTouchEvent(event: any) {
     {
       const touch = touchList[i];
       touches.push({
-        Identifier: touch.identifier,
-        ClientX: touch.clientX,
-        ClientY: touch.clientY,
-        ScreenX: touch.screenX,
-        ScreenY: touch.screenY,
-        PageX: touch.pageX,
-        PageY: touch.pageY
+        identifier: touch.identifier,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        screenX: touch.screenX,
+        screenY: touch.screenY,
+        pageX: touch.pageX,
+        pageY: touch.pageY
       });
     }
     return touches;
   }
 
   return {
-    Type: event.type,
-    Detail: event.detail,
-    Touches: parseTouch(event.touches),
-    TargetTouches: parseTouch(event.targetTouches),
-    ChangedTouches: parseTouch(event.changedTouches),
-    CtrlKey: event.ctrlKey,
-    ShiftKey: event.shiftKey,
-    AltKey: event.altKey,
-    MetaKey: event.metaKey
+    type: event.type,
+    detail: event.detail,
+    touches: parseTouch(event.touches),
+    targetTouches: parseTouch(event.targetTouches),
+    changedTouches: parseTouch(event.changedTouches),
+    ctrlKey: event.ctrlKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    metaKey: event.metaKey
   };
 }
 
 function parseKeyboardEvent(event: any) {
   return {
-    Type: event.type,
-    Char: event.char,
-    Key: event.key,
-    Code: event.code,
-    Location: event.location,
-    Repeat: event.repeat,
-    Locale: event.locale,
-    CtrlKey: event.ctrlKey,
-    ShiftKey: event.shiftKey,
-    AltKey: event.altKey,
-    MetaKey: event.metaKey
+    type: event.type,
+    char: event.char,
+    key: event.key,
+    code: event.code,
+    location: event.location,
+    repeat: event.repeat,
+    locale: event.locale,
+    ctrlKey: event.ctrlKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    metaKey: event.metaKey
   };
 }
 
 function parsePointerEvent(event: any) {
   return Object.assign(parseMouseEvent(event),
     {
-      PointerId: event.pointerId,
-      Width: event.width,
-      Height: event.height,
-      Pressure: event.pressure,
-      TiltX: event.tiltX,
-      TiltY: event.tiltY,
-      PointerType: event.pointerType,
-      IsPrimary: event.isPrimary
+      pointerId: event.pointerId,
+      width: event.width,
+      height: event.height,
+      pressure: event.pressure,
+      tiltX: event.tiltX,
+      tiltY: event.tiltY,
+      pointerType: event.pointerType,
+      isPrimary: event.isPrimary
     });
 }
 
 function parseMouseEvent(event: any) {
   return {
-    Type: event.type,
-    Detail: event.detail,
-    ScreenX: event.screenX,
-    ScreenY: event.screenY,
-    ClientX: event.clientX,
-    ClientY: event.clientY,
-    Button: event.button,
-    Buttons: event.buttons,
-    MozPressure: event.mozPressure,
-    CtrlKey: event.ctrlKey,
-    ShiftKey: event.shiftKey,
-    AltKey: event.altKey,
-    MetaKey: event.metaKey
+    type: event.type,
+    detail: event.detail,
+    screenX: event.screenX,
+    screenY: event.screenY,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    button: event.button,
+    buttons: event.buttons,
+    mozPressure: event.mozPressure,
+    ctrlKey: event.ctrlKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    metaKey: event.metaKey
   };
 }
 
@@ -214,43 +214,43 @@ function isCheckbox(element: Element | null) {
 type EventArgsType = 'change' | 'clipboard' | 'drag' | 'error' | 'focus' | 'keyboard' | 'mouse' | 'pointer' | 'progress' | 'touch' | 'unknown' | 'wheel';
 
 export interface UIEventArgs {
-  Type: string;
+  type: string;
 }
 
 interface UIChangeEventArgs extends UIEventArgs {
-  Value: string | boolean;
+  value: string | boolean;
 }
 
 interface UIClipboardEventArgs extends UIEventArgs {
 }
 
 interface UIDragEventArgs extends UIEventArgs {
-  Detail: number;
-  DataTransfer: UIDataTransfer;
-  ScreenX: number;
-  ScreenY: number;
-  ClientX: number;
-  ClientY: number;
-  Button: number;
-  Buttons: number;
-  MozPressure: number;
-  CtrlKey: boolean;
-  ShiftKey: boolean;
-  AltKey: boolean;
-  MetaKey: boolean;
+  detail: number;
+  dataTransfer: UIDataTransfer;
+  screenX: number;
+  screenY: number;
+  clientX: number;
+  clientY: number;
+  button: number;
+  buttons: number;
+  mozPressure: number;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
 }
 
 interface UIDataTransfer {
-  DropEffect: string;
-  EffectAllowed: string;
-  Files: string[];
-  Items: UIDataTransferItem[];
-  Types: string[];
+  dropEffect: string;
+  effectAllowed: string;
+  files: string[];
+  items: UIDataTransferItem[];
+  types: string[];
 }
 
 interface UIDataTransferItem {
-  Kind: string;
-  Type: string;
+  kind: string;
+  type: string;
 }
 
 interface UIErrorEventArgs extends UIProgressEventArgs {
@@ -260,74 +260,74 @@ interface UIFocusEventArgs extends UIEventArgs {
 }
 
 interface UIKeyboardEventArgs extends UIEventArgs {
-  Char: string;
-  Key: string;
-  Code: string;
-  Location: number;
-  Repeat: boolean;
-  Locale: string;
-  CtrlKey: boolean;
-  ShiftKey: boolean;
-  AltKey: boolean;
-  MetaKey: boolean;
+  char: string;
+  key: string;
+  code: string;
+  location: number;
+  repeat: boolean;
+  locale: string;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
 }
 
 interface UIMouseEventArgs extends UIEventArgs {
-  Detail: number;
-  ScreenX: number;
-  ScreenY: number;
-  ClientX: number;
-  ClientY: number;
-  Button: number;
-  Buttons: number;
-  MozPressure: number;
-  CtrlKey: boolean;
-  ShiftKey: boolean;
-  AltKey: boolean;
-  MetaKey: boolean;
+  detail: number;
+  screenX: number;
+  screenY: number;
+  clientX: number;
+  clientY: number;
+  button: number;
+  buttons: number;
+  mozPressure: number;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
 }
 
 interface UIPointerEventArgs extends UIMouseEventArgs {
-  PointerId: number;
-  Width: number;
-  Height: number;
-  Pressure: number;
-  TiltX: number;
-  TiltY: number;
-  PointerType: string;
-  IsPrimary: boolean;
+  pointerId: number;
+  width: number;
+  height: number;
+  pressure: number;
+  tiltX: number;
+  tiltY: number;
+  pointerType: string;
+  isPrimary: boolean;
 }
 
 interface UIProgressEventArgs extends UIEventArgs {
-  LengthComputable: boolean;
-  Loaded: number;
-  Total: number;
+  lengthComputable: boolean;
+  loaded: number;
+  total: number;
 }
 
 interface UITouchEventArgs extends UIEventArgs {
-  Detail: number;
-  Touches: UITouchPoint[];
-  TargetTouches: UITouchPoint[];
-  ChangedTouches: UITouchPoint[];
-  CtrlKey: boolean;
-  ShiftKey: boolean;
-  AltKey: boolean;
-  MetaKey: boolean;
+  detail: number;
+  touches: UITouchPoint[];
+  targetTouches: UITouchPoint[];
+  changedTouches: UITouchPoint[];
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
 }
 
 interface UITouchPoint {
-  Identifier: number;
-  ScreenX: number;
-  ScreenY: number;
-  ClientX: number;
-  ClientY: number;
-  PageX: number;
-  PageY: number;
+  identifier: number;
+  screenX: number;
+  screenY: number;
+  clientX: number;
+  clientY: number;
+  pageX: number;
+  pageY: number;
 }
 
 interface UIWheelEventArgs extends UIMouseEventArgs {
-  DeltaX: number;
-  DeltaY: number;
-  DeltaZ: number;
-  DeltaMode: number;
+  deltaX: number;
+  deltaY: number;
+  deltaZ: number;
+  deltaMode: number;
 }
