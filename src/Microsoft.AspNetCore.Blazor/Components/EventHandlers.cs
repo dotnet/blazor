@@ -109,7 +109,6 @@ namespace Microsoft.AspNetCore.Blazor.Components
     [EventHandler("onerror", typeof(UIErrorEventArgs))]
 
     // General events
-    [EventHandler("onabort", typeof(UIEventArgs))]
     [EventHandler("onactivate", typeof(UIEventArgs))]
     [EventHandler("onbeforeactivate", typeof(UIEventArgs))]
     [EventHandler("onbeforedeactivate", typeof(UIEventArgs))]
@@ -117,10 +116,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
     [EventHandler("onended", typeof(UIEventArgs))]
     [EventHandler("onfullscreenchange", typeof(UIEventArgs))]
     [EventHandler("onfullscreenerror", typeof(UIEventArgs))]
-    [EventHandler("onload", typeof(UIEventArgs))]
     [EventHandler("onloadeddata", typeof(UIEventArgs))]
     [EventHandler("onloadedmetadata", typeof(UIEventArgs))]
-    [EventHandler("onloadstart", typeof(UIEventArgs))]
     [EventHandler("onpointerlockchange", typeof(UIEventArgs))]
     [EventHandler("onpointerlockerror", typeof(UIEventArgs))]
     [EventHandler("onreadystatechange", typeof(UIEventArgs))]
