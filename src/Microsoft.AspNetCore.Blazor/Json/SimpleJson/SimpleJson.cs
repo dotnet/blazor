@@ -1497,6 +1497,12 @@ namespace SimpleJson
                             foreach (object o in jsonObject)
                                 list.Add(DeserializeObject(o, innerType));
                         }
+                        else if (type == typeof(object))
+                        {
+                            list = new List<IDictionary<string, object>>();
+                            foreach (object o in jsonObject)
+                                list.Add(DeserializeObject(o, typeof(IDictionary<string, object>)));
+                        }
                         obj = list;
                     }
                 }

@@ -197,8 +197,20 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange/Act
             var json = JsonUtil.Serialize(new WithCustomSerializer());
 
-            // Asssert
+            // Assert
             Assert.Equal("{\"key1\":\"value1\",\"key2\":123}", json);
+        }
+
+        [Fact]
+        public void SupportsDictionaryArrayDeserialization()
+        {
+            // Arrange/Act
+            var result = JsonUtil.Deserialize<IDictionary<string, object>>("{\"array1\":[{\"key1\":\"value1\"},{\"key1\":\"value2\"}]}");
+
+            // Assert
+            var array1 = result["array1"] as IList<IDictionary<string, object>>;
+            Assert.Equal("value1", array1[0]["key1"]);
+            Assert.Equal("value2", array1[1]["key1"]);
         }
 
         // Test cases based on https://github.com/JamesNK/Newtonsoft.Json/blob/122afba9908832bd5ac207164ee6c303bfd65cf1/Src/Newtonsoft.Json.Tests/Utilities/StringUtilsTests.cs#L41
