@@ -6,6 +6,7 @@ const httpClientNamespace = `${httpClientAssembly}.Http`;
 const httpClientTypeName = 'BrowserHttpMessageHandler';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
 let receiveResponseMethod: MethodHandle;
+let allocateArrayMethod: MethodHandle;
 
 registerFunction(`${httpClientFullTypeName}.Send`, (id: number, body: System_Array<any>, jsonFetchArgs: System_String) => {
   sendAsync(id, body, jsonFetchArgs);
@@ -13,7 +14,7 @@ registerFunction(`${httpClientFullTypeName}.Send`, (id: number, body: System_Arr
 
 async function sendAsync(id: number, body: System_Array<any>, jsonFetchArgs: System_String) {
   let response: Response;
-  let responseText: string;
+  let responseData: ArrayBuffer;
 
   const fetchOptions: FetchOptions = JSON.parse(platform.toJavaScriptString(jsonFetchArgs));
   const requestInit: RequestInit = Object.assign(fetchOptions.requestInit, fetchOptions.requestInitOverrides);
@@ -30,10 +31,10 @@ async function sendAsync(id: number, body: System_Array<any>, jsonFetchArgs: Sys
     return;
   }
 
-  dispatchSuccessResponse(id, response, responseText);
+  dispatchSuccessResponse(id, response, responseData);
 }
 
-function dispatchSuccessResponse(id: number, response: Response, responseText: string) {
+function dispatchSuccessResponse(id: number, response: Response, responseData: ArrayBuffer) {
   const responseDescriptor: ResponseDescriptor = {
     statusCode: response.status,
     statusText: response.statusText,
@@ -43,10 +44,28 @@ function dispatchSuccessResponse(id: number, response: Response, responseText: s
     responseDescriptor.headers.push([name, value]);
   });
 
+  if (!allocateArrayMethod) {
+    allocateArrayMethod = platform.findMethod(
+      httpClientAssembly,
+      httpClientNamespace,
+      httpClientTypeName,
+      'AllocateArray'
+    );
+  }
+
+  // allocate a managed byte[] of the right size
+  const dotNetArray = platform.callMethod(allocateArrayMethod, null, [platform.toDotNetString(responseData.byteLength.toString())]) as System_Array<any>;
+
+  // get an Uint8Array view of it
+  const array = platform.toUint8Array(dotNetArray);
+
+  // copy the responseData to our managed byte[]
+  array.set(new Uint8Array(responseData));
+
   dispatchResponse(
     id,
     platform.toDotNetString(JSON.stringify(responseDescriptor)),
-    platform.toDotNetString(responseText), // TODO: Consider how to handle non-string responses
+    dotNetArray,
     /* errorMessage */ null
   );
 }
@@ -60,7 +79,7 @@ function dispatchErrorResponse(id: number, errorMessage: string) {
   );
 }
 
-function dispatchResponse(id: number, responseDescriptor: System_String | null, responseText: System_String | null, errorMessage: System_String | null) {
+function dispatchResponse(id: number, responseDescriptor: System_String | null, responseData: System_Array<any> | null, errorMessage: System_String | null) {
   if (!receiveResponseMethod) {
     receiveResponseMethod = platform.findMethod(
       httpClientAssembly,
@@ -73,7 +92,7 @@ function dispatchResponse(id: number, responseDescriptor: System_String | null, 
   platform.callMethod(receiveResponseMethod, null, [
     platform.toDotNetString(id.toString()),
     responseDescriptor,
-    responseText,
+    responseData,
     errorMessage,
   ]);
 }

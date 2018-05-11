@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         private static void ReceiveResponse(
             string id,
             string responseDescriptorJson,
-            string responseBodyText,
+            byte[] responseBodyData,
             string errorText)
         {
             TaskCompletionSource<HttpResponseMessage> tcs;
@@ -99,10 +99,15 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
             else
             {
                 var responseDescriptor = JsonUtil.Deserialize<ResponseDescriptor>(responseDescriptorJson);
-                var responseContent = responseBodyText == null ? null : new StringContent(responseBodyText);
+                var responseContent = responseBodyData == null ? null : new ByteArrayContent(responseBodyData);
                 var responseMessage = responseDescriptor.ToResponseMessage(responseContent);
                 tcs.SetResult(responseMessage);
             }
+        }
+
+        private static byte[] AllocateArray(string length)
+        {
+            return new byte[int.Parse(length)];
         }
 
         private static string GetDefaultCredentialsString()
