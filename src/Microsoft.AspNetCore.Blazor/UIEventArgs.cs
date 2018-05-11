@@ -13,6 +13,22 @@ namespace Microsoft.AspNetCore.Blazor
         /// Gets or sets the type of the event.
         /// </summary>
         public string Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether the event bubbles up through the DOM or not.
+        /// </summary>
+        public bool Bubbles { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that indicates if the event can be canceled, and therefore prevented as if the event never happened. 
+        /// If the event is not cancelable, then its cancelable property will be false and the event listener cannot stop the event from occurring.
+        /// </summary>
+        public bool Cancelable { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether or not the event will propagate across the shadow DOM boundary into the standard DOM.
+        /// </summary>
+        public bool Composed { get; set; }
     }
 
     /// <summary>
