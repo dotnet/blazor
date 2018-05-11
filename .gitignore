@@ -7,4 +7,3 @@ artifacts/
 msbuild.binlog
 .vscode/
 BenchmarkDotNet.Artifacts/
-node_modules/

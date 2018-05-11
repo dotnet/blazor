@@ -89,13 +89,7 @@ namespace Microsoft.AspNetCore.Blazor
         /// E.g., if Left button and Right button are pressed, returns 3 (=1 | 2).
         /// </summary>
         public long Buttons { get; set; }
-
-        /// <summary>
-        /// The amount of pressure applied to a touch or tabdevice when generating the event;
-        /// this value ranges between 0.0 (minimum pressure) and 1.0 (maximum pressure).
-        /// </summary>
-        public float MozPressure { get; set; }
-
+        
         /// <summary>
         /// true if the control key was down when the event was fired. false otherwise.
         /// </summary>
@@ -223,11 +217,6 @@ namespace Microsoft.AspNetCore.Blazor
         public bool Repeat { get; set; }
 
         /// <summary>
-        /// The language code for the key event, if available; otherwise, the empty string.
-        /// </summary>
-        public string Locale { get; set; }
-
-        /// <summary>
         /// true if the control key was down when the event was fired. false otherwise.
         /// </summary>
         public bool CtrlKey { get; set; }
@@ -298,12 +287,6 @@ namespace Microsoft.AspNetCore.Blazor
         /// E.g., if Left button and Right button are pressed, returns 3 (=1 | 2).
         /// </summary>
         public long Buttons { get; set; }
-
-        /// <summary>
-        /// The amount of pressure applied to a touch or tabdevice when generating the event;
-        /// this value ranges between 0.0 (minimum pressure) and 1.0 (maximum pressure).
-        /// </summary>
-        public float MozPressure { get; set; }
 
         /// <summary>
         /// true if the control key was down when the event was fired. false otherwise.

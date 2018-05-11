@@ -35,7 +35,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'keydown':
       case 'keyup':
       case 'keypress':
-        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', parseKeyboardEvent(event));
+        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', parseKeyboardEvent(<KeyboardEvent>event));
 
       case 'contextmenu':
       case 'click':
@@ -45,7 +45,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'mousedown':
       case 'mouseup':
       case 'dblclick':
-        return new EventForDotNet<UIMouseEventArgs>('mouse', parseMouseEvent(event));
+        return new EventForDotNet<UIMouseEventArgs>('mouse', parseMouseEvent(<MouseEvent>event));
 
       case 'loadstart':
       case 'timeout':
@@ -54,7 +54,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'loadend':
       case 'error':
       case 'progress':
-        return new EventForDotNet<UIProgressEventArgs>('progress', parseProgressEvent(event));
+        return new EventForDotNet<UIProgressEventArgs>('progress', parseProgressEvent(<ProgressEvent>event));
 
       case 'touchcancel':
       case 'touchend':
@@ -62,7 +62,7 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'touchenter':
       case 'touchleave':
       case 'touchstart':
-        return new EventForDotNet<UITouchEventArgs>('touch', parseTouchEvent(event));
+        return new EventForDotNet<UITouchEventArgs>('touch', parseTouchEvent(<TouchEvent>event));
 
       case 'gotpointercapture':
       case 'lostpointercapture':
@@ -74,11 +74,11 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'pointerout':
       case 'pointerover':
       case 'pointerup':
-        return new EventForDotNet<UIPointerEventArgs>('pointer', parsePointerEvent(event));
+        return new EventForDotNet<UIPointerEventArgs>('pointer', parsePointerEvent(<PointerEvent>event));
 
       case 'wheel':
       case 'mousewheel':
-        return new EventForDotNet<UIWheelEventArgs>('wheel', parseWheelEvent(event));
+        return new EventForDotNet<UIWheelEventArgs>('wheel', parseWheelEvent(<WheelEvent>event));
 
       default:
         return new EventForDotNet<UIEventArgs>('unknown', { type: event.type });
@@ -97,7 +97,6 @@ function parseDragEvent(event: any) {
     clientY: event.clientY,
     button: event.button,
     buttons: event.buttons,
-    mozPressure: event.mozPressure,
     ctrlKey: event.ctrlKey,
     shiftKey: event.shiftKey,
     altKey: event.altKey,
@@ -105,31 +104,31 @@ function parseDragEvent(event: any) {
   }
 }
 
-function parseWheelEvent(event: any) {
-  return Object.assign(parseMouseEvent(event),
-    {
-      deltaX: event.deltaX,
-      deltaY: event.deltaY,
-      deltaZ: event.deltaZ,
-      deltaMode: event.deltaMode
-    });
+function parseWheelEvent(event: WheelEvent) {
+  return {
+    ...parseMouseEvent(event),
+    deltaX: event.deltaX,
+    deltaY: event.deltaY,
+    deltaZ: event.deltaZ,
+    deltaMode: event.deltaMode
+  };
 }
 
-function parseProgressEvent(event: any) {
+function parseProgressEvent(event: ProgressEvent) {
   return {
     type: event.type,
-    lengthComputable: event.legthComputable,
+    lengthComputable: event.lengthComputable,
     loaded: event.loaded,
     total: event.total
   };
 }
 
-function parseTouchEvent(event: any) {
+function parseTouchEvent(event: TouchEvent) {
 
   function parseTouch(touchList: TouchList) {
     const touches: UITouchPoint[] = [];
-    for (let i = 0; i < touchList.length; i++)
-    {
+    
+    for (let i = 0; i < touchList.length; i++) {
       const touch = touchList[i];
       touches.push({
         identifier: touch.identifier,
@@ -157,7 +156,7 @@ function parseTouchEvent(event: any) {
   };
 }
 
-function parseKeyboardEvent(event: any) {
+function parseKeyboardEvent(event: KeyboardEvent) {
   return {
     type: event.type,
     char: event.char,
@@ -165,7 +164,6 @@ function parseKeyboardEvent(event: any) {
     code: event.code,
     location: event.location,
     repeat: event.repeat,
-    locale: event.locale,
     ctrlKey: event.ctrlKey,
     shiftKey: event.shiftKey,
     altKey: event.altKey,
@@ -173,21 +171,21 @@ function parseKeyboardEvent(event: any) {
   };
 }
 
-function parsePointerEvent(event: any) {
-  return Object.assign(parseMouseEvent(event),
-    {
-      pointerId: event.pointerId,
-      width: event.width,
-      height: event.height,
-      pressure: event.pressure,
-      tiltX: event.tiltX,
-      tiltY: event.tiltY,
-      pointerType: event.pointerType,
-      isPrimary: event.isPrimary
-    });
+function parsePointerEvent(event: PointerEvent) {
+  return {
+    ...parseMouseEvent(event),
+    pointerId: event.pointerId,
+    width: event.width,
+    height: event.height,
+    pressure: event.pressure,
+    tiltX: event.tiltX,
+    tiltY: event.tiltY,
+    pointerType: event.pointerType,
+    isPrimary: event.isPrimary
+  };
 }
 
-function parseMouseEvent(event: any) {
+function parseMouseEvent(event: MouseEvent) {
   return {
     type: event.type,
     detail: event.detail,
@@ -197,7 +195,6 @@ function parseMouseEvent(event: any) {
     clientY: event.clientY,
     button: event.button,
     buttons: event.buttons,
-    mozPressure: event.mozPressure,
     ctrlKey: event.ctrlKey,
     shiftKey: event.shiftKey,
     altKey: event.altKey,
@@ -233,7 +230,6 @@ interface UIDragEventArgs extends UIEventArgs {
   clientY: number;
   button: number;
   buttons: number;
-  mozPressure: number;
   ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
@@ -265,7 +261,6 @@ interface UIKeyboardEventArgs extends UIEventArgs {
   code: string;
   location: number;
   repeat: boolean;
-  locale: string;
   ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
@@ -280,7 +275,6 @@ interface UIMouseEventArgs extends UIEventArgs {
   clientY: number;
   button: number;
   buttons: number;
-  mozPressure: number;
   ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
