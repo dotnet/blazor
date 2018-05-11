@@ -1,29 +1,30 @@
 ﻿import { registerFunction } from '../Interop/RegisteredFunction';
 import { platform } from '../Environment';
-import { MethodHandle, System_String } from '../Platform/Platform';
+import { MethodHandle, System_String, System_Array } from '../Platform/Platform';
 const httpClientAssembly = 'Microsoft.AspNetCore.Blazor.Browser';
 const httpClientNamespace = `${httpClientAssembly}.Http`;
 const httpClientTypeName = 'BrowserHttpMessageHandler';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
 let receiveResponseMethod: MethodHandle;
 
-registerFunction(`${httpClientFullTypeName}.Send`, (id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, fetchArgs: RequestInit | null) => {
-  sendAsync(id, method, requestUri, body, headersJson, fetchArgs);
+registerFunction(`${httpClientFullTypeName}.Send`, (id: number, body: System_Array<any>, jsonFetchArgs: System_String) => {
+  sendAsync(id, body, jsonFetchArgs);
 });
 
-async function sendAsync(id: number, method: string, requestUri: string, body: string | null, headersJson: string | null, fetchArgs: RequestInit | null) {
+async function sendAsync(id: number, body: System_Array<any>, jsonFetchArgs: System_String) {
   let response: Response;
   let responseText: string;
 
-  const requestInit: RequestInit = fetchArgs || {};
-  requestInit.method = method;
-  requestInit.body = body || undefined;
+  const fetchOptions: FetchOptions = JSON.parse(platform.toJavaScriptString(jsonFetchArgs));
+  const requestInit: RequestInit = Object.assign(fetchOptions.requestInit, fetchOptions.requestInitOverrides);
+
+  if (body) {
+    requestInit.body = platform.toUint8Array(body);
+  }
 
   try {
-    requestInit.headers = headersJson ? (JSON.parse(headersJson) as string[][]) : undefined;
-
-    response = await fetch(requestUri, requestInit);
-    responseText = await response.text();
+    response = await fetch(fetchOptions.requestUri, requestInit);
+    responseData = await response.arrayBuffer();
   } catch (ex) {
     dispatchErrorResponse(id, ex.toString());
     return;
@@ -35,6 +36,7 @@ async function sendAsync(id: number, method: string, requestUri: string, body: s
 function dispatchSuccessResponse(id: number, response: Response, responseText: string) {
   const responseDescriptor: ResponseDescriptor = {
     statusCode: response.status,
+    statusText: response.statusText,
     headers: []
   };
   response.headers.forEach((value, name) => {
@@ -76,11 +78,18 @@ function dispatchResponse(id: number, responseDescriptor: System_String | null, 
   ]);
 }
 
-// Keep this in sync with the .NET equivalent in HttpClient.cs
+// Keep these in sync with the .NET equivalent in BrowserHttpMessageHandler.cs
+interface FetchOptions {
+  requestUri: string;
+  requestInit: RequestInit;
+  requestInitOverrides: RequestInit;
+}
+
 interface ResponseDescriptor {
   // We don't have BodyText in here because if we did, then in the JSON-response case (which
   // is the most common case), we'd be double-encoding it, since the entire ResponseDescriptor
   // also gets JSON encoded. It would work but is twice the amount of string processing.
   statusCode: number;
+  statusText: string;
   headers: string[][];
 }
