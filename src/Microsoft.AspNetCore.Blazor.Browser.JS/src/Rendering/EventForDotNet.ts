@@ -38,7 +38,7 @@
       case 'keydown':
       case 'keyup':
       case 'keypress':
-        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', { Type: event.type, Key: (event as any).key });
+        return new EventForDotNet<UIKeyboardEventArgs>('keyboard', { Type: event.type, Key: (event as any).key, Code: (event as any).code, Location: (event as any).location, CtrlKey: (event as any).ctrlKey, ShiftKey: (event as any).shiftKey, AltKey: (event as any).altKey, MetaKey: (event as any).metaKey, Repeat: (event as any).repeat, IsComposing: (event as any).isComposing});
 
       case 'contextmenu':
       case 'click':
@@ -110,7 +110,15 @@ interface UIFocusEventArgs extends UIEventArgs {
 }
 
 interface UIKeyboardEventArgs extends UIEventArgs {
-  Key: string;
+    Key: string;
+    Code: string;
+    Location: number;
+    CtrlKey: boolean;
+    ShiftKey: boolean;
+    AltKey: boolean;
+    MetaKey: boolean;
+    Repeat: boolean;
+    IsComposing: boolean;
 }
 
 interface UIMouseEventArgs extends UIEventArgs {
