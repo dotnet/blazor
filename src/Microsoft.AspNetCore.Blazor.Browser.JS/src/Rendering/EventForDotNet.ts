@@ -98,7 +98,19 @@
           Type: event.type,
           Bubbles: event.bubbles,
           Cancelable: event.cancelable,
-          Composed: (event as any).composed
+          Composed: (event as any).composed,
+          ScreenX: (event as any).screenX,
+          ScreenY: (event as any).screenY,
+          ClientX: (event as any).clientX,
+          ClientY: (event as any).clientY,
+          CtrlKey: (event as any).ctrlKey,
+          ShiftKey: (event as any).shiftKey,
+          AltKey: (event as any).altKey,
+          MetaKey: (event as any).metaKey,
+          Button: (event as any).button,
+          Buttons: (event as any).buttons,
+          RelatedTarget: (event as any).relatedTarget,
+          Region: (event as any).region
         });
       }
 
@@ -137,7 +149,29 @@
           Type: event.type,
           Bubbles: event.bubbles,
           Cancelable: event.cancelable,
-          Composed: (event as any).composed
+          Composed: (event as any).composed,
+          ScreenX: (event as any).screenX,
+          ScreenY: (event as any).screenY,
+          ClientX: (event as any).clientX,
+          ClientY: (event as any).clientY,
+          CtrlKey: (event as any).ctrlKey,
+          ShiftKey: (event as any).shiftKey,
+          AltKey: (event as any).altKey,
+          MetaKey: (event as any).metaKey,
+          Button: (event as any).button,
+          Buttons: (event as any).buttons,
+          RelatedTarget: (event as any).relatedTarget,
+          Region: (event as any).region,
+          PointerId: (event as any).pointerId,
+          Width: (event as any).width,
+          Height: (event as any).height,
+          Pressure: (event as any).pressure,
+          TangentialPressure: (event as any).tangentialPressure,
+          TiltX: (event as any).tiltX,
+          TiltY: (event as any).tiltY,
+          Twist: (event as any).twist,
+          PointerType: (event as any).pointerType,
+          IsPrimary: (event as any).isPrimary,
         });
       }
 
@@ -195,21 +229,43 @@ interface UIFocusEventArgs extends UIEventArgs {
 }
 
 interface UIKeyboardEventArgs extends UIEventArgs {
-    Key: string;
-    Code: string;
-    Location: number;
-    CtrlKey: boolean;
-    ShiftKey: boolean;
-    AltKey: boolean;
-    MetaKey: boolean;
-    Repeat: boolean;
-    IsComposing: boolean;
+  Key: string;
+  Code: string;
+  Location: number;
+  CtrlKey: boolean;
+  ShiftKey: boolean;
+  AltKey: boolean;
+  MetaKey: boolean;
+  Repeat: boolean;
+  IsComposing: boolean;
 }
 
 interface UIMouseEventArgs extends UIEventArgs {
+  ScreenX: number;
+  ScreenY: number;
+  ClientX: number;
+  ClientY: number;
+  CtrlKey: boolean;
+  ShiftKey: boolean;
+  AltKey: boolean;
+  MetaKey: boolean;
+  Button: number;
+  Buttons: number;
+  RelatedTarget: EventTarget;
+  Region: string;
 }
 
 interface UIPointerEventArgs extends UIMouseEventArgs {
+  PointerId: number;
+  Width: number;
+  Height: number;
+  Pressure: number;
+  TangentialPressure: number;
+  TiltX: number;
+  TiltY: number;
+  Twist: number;
+  PointerType: string;
+  IsPrimary: boolean;
 }
 
 interface UIProgressEventArgs extends UIEventArgs {
