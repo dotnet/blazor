@@ -187,12 +187,6 @@ namespace Microsoft.AspNetCore.Blazor
     public class UIKeyboardEventArgs : UIEventArgs
     {
         /// <summary>
-        /// The character value of the key. If the key corresponds to a printable character, 
-        /// this value is a non-empty Unicode string containing that character. 
-        /// If the key doesn't have a printable representation, this is an empty string
-        /// </summary>
-        public string Char { get; set; }
-        /// <summary>
         /// The key value of the key represented by the event. 
         /// If the value has a printed representation, this attribute's value is the same as the char attribute. 
         /// Otherwise, it's one of the key value strings specified in 'Key values'. 

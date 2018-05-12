@@ -159,7 +159,6 @@ function parseTouchEvent(event: TouchEvent) {
 function parseKeyboardEvent(event: KeyboardEvent) {
   return {
     type: event.type,
-    char: event.char,
     key: event.key,
     code: event.code,
     location: event.location,
@@ -256,7 +255,6 @@ interface UIFocusEventArgs extends UIEventArgs {
 }
 
 interface UIKeyboardEventArgs extends UIEventArgs {
-  char: string;
   key: string;
   code: string;
   location: number;
