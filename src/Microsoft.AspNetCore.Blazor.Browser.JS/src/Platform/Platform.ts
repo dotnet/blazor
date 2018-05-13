@@ -1,6 +1,10 @@
-﻿export interface Platform {
+﻿import { MethodOptions, DotnetMethodArgumentsList } from "../Interop/MethodOptions";
+
+export interface Platform {
   start(loadAssemblyUrls: string[]): Promise<void>;
 
+  invokeDotNetMethod<T>(methodOptions: MethodOptions, methodArguments: DotnetMethodArgumentsList) : T | null;
+  invokeDotNetMethodAsync<T>(methodOptions: MethodOptions, methodArguments: DotnetMethodArgumentsList): Promise<T | null>
   callEntryPoint(assemblyName: string, entrypointMethod: string, args: (System_Object | null)[]);
   findMethod(assemblyName: string, namespace: string, className: string, methodName: string): MethodHandle;
   callMethod(method: MethodHandle, target: System_Object | null, args: (System_Object | null)[]): System_Object;

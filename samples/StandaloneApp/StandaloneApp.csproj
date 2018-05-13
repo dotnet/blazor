@@ -6,11 +6,24 @@
     <!-- Local alternative to <RunArguments>blazor serve</RunArguments> -->
     <RunCommand>dotnet</RunCommand>
     <RunArguments>run --project ../../src/Microsoft.AspNetCore.Blazor.Cli serve</RunArguments>
+    <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="scripts\tests.ts" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\js\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="scripts\tests.ts" />
   </ItemGroup>
 
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->

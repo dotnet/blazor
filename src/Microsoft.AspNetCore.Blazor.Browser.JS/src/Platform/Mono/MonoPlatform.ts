@@ -1,6 +1,7 @@
 ﻿import { MethodHandle, System_Object, System_String, System_Array, Pointer, Platform } from '../Platform';
 import { getAssemblyNameFromUrl } from '../DotNet';
 import { getRegisteredFunction } from '../../Interop/RegisteredFunction';
+import { invokeDotNetMethod, invokeDotNetMethodAsync } from '../../Interop/DotNetInvoker';
 
 const assemblyHandleCache: { [assemblyName: string]: number } = {};
 const typeHandleCache: { [fullyQualifiedTypeName: string]: number } = {};
@@ -27,6 +28,9 @@ export const monoPlatform: Platform = {
       addScriptTagsToDocument();
     });
   },
+
+  invokeDotNetMethod : invokeDotNetMethod,
+  invokeDotNetMethodAsync: invokeDotNetMethodAsync,
 
   findMethod: findMethod,
 

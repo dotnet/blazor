@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "target": "es5",
+    "lib": [ "es2015", "dom" ],
+    "outDir": "wwwroot",
+    "rootDir": "./scripts",
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "strict": true
+  },
+  "compileOnSave": true,  
+  "include": [ "scripts/**/*" ],
+  "exclude": [
+    "node_modules",
+    "wwwroot"
+  ]
+}
