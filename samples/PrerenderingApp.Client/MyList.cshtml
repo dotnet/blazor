@@ -1,0 +1,16 @@
+﻿@foreach (var item in items)
+{
+    <div>@item</div>
+}
+
+@functions {
+
+    int[] items = new[] {1, 2, 3, 4};
+
+    protected override void OnInit()
+    {
+        base.OnInit();
+
+        items = new[] {6, 7, 8, 9};
+    }
+}

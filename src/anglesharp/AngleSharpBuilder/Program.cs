@@ -65,6 +65,7 @@ namespace AngleSharpBuilder
 
             AddInternalsVisibleTo(moduleDefinition, "Microsoft.AspNetCore.Blazor.Build");
             AddInternalsVisibleTo(moduleDefinition, "Microsoft.AspNetCore.Blazor.Razor.Extensions");
+            AddInternalsVisibleTo(moduleDefinition, "Microsoft.AspNetCore.Blazor.Server.Rendering");
             RemoveStrongName(moduleDefinition);
             SetAssemblyName(moduleDefinition, "Microsoft.AspNetCore.Blazor.AngleSharp");
 

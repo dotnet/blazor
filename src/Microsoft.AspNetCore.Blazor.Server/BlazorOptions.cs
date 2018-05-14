@@ -4,7 +4,7 @@
 namespace Microsoft.AspNetCore.Builder
 {
     /// <summary>
-    /// Provides configuration options to the <see cref="BlazorAppBuilderExtensions.UseBlazor(IApplicationBuilder, BlazorOptions)"/>
+    /// Provides configuration options to the <see cref="BlazorAppBuilderExtensions.UseBlazor(IApplicationBuilder, BlazorOptions, System.Action{SpaServices.ISpaBuilder})"/>
     /// middleware.
     /// </summary>
     public class BlazorOptions
