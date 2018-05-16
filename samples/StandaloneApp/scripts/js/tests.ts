@@ -22,7 +22,8 @@ interface DotnetMethodArgumentsList {
 }
 
 interface IBlazor {
-    platform: IPlatform
+  platform: IPlatform
+  registerFunction: (name: string, implementation: Function) => void;
 };
 
 
@@ -33,12 +34,22 @@ interface IPlatform {
 
 declare const Blazor: IBlazor;
 
+function myAsyncFunction() {
+  return Promise.resolve({ integerValue: 8, stringValue: "String 8" });
+}
+
+function registerMyAppFunctions(blazor: IBlazor) {
+  blazor.registerFunction("MyAsyncFunc", myAsyncFunction);
+}
+
 function invokerTests() {
+    console.log('Starting invocations.');
+    console.log('Invoking parameterless method.');
     Blazor.platform.invokeDotNetMethod(
         {
             Type: {
-                Assembly: "BlazorApp.Client",
-                TypeName: "BlazorApp.Client.Infrastructure.InvokerTests",
+                Assembly: "StandaloneApp",
+                TypeName: "StandaloneApp.Infrastructure.InvokerTests",
                 TypeArguments: {}
             },
             Method: {
@@ -48,11 +59,12 @@ function invokerTests() {
             }
         });
 
-    let result = Blazor.platform.invokeDotNetMethod<{ IntegerValue: number, StringValue: string }>(
+    console.log('Invoking parameterless value returning method.');
+    let result = Blazor.platform.invokeDotNetMethod<{ integerValue: number, stringValue: string }>(
         {
             Type: {
-                Assembly: "BlazorApp.Client",
-                TypeName: "BlazorApp.Client.Infrastructure.InvokerTests",
+                Assembly: "StandaloneApp",
+                TypeName: "StandaloneApp.Infrastructure.InvokerTests",
                 TypeArguments: {}
             },
             Method: {
@@ -63,34 +75,34 @@ function invokerTests() {
         });
 
     if (result !== null) {
-        console.log(`IntegerValue: '${result.IntegerValue}'`);
-        console.log(`StringValue: '${result.StringValue}'`);
+        console.log(`integerValue: '${result.integerValue}'`);
+        console.log(`stringValue: '${result.stringValue}'`);
     }
 
     Blazor.platform.invokeDotNetMethod(
         {
             Type: {
-                Assembly: "BlazorApp.Client",
-                TypeName: "BlazorApp.Client.Infrastructure.InvokerTests",
+                Assembly: "StandaloneApp",
+                TypeName: "StandaloneApp.Infrastructure.InvokerTests",
                 TypeArguments: {}
             },
             Method: {
                 Name: "SingleParameterMethod",
                 TypeArguments: {},
                 ParameterTypes: [{
-                    Assembly: "BlazorApp.Client",
-                    TypeName: "BlazorApp.Client.Infrastructure.MethodParameter",
+                    Assembly: "StandaloneApp",
+                    TypeName: "StandaloneApp.Infrastructure.MethodParameter",
                     TypeArguments: {}
                 }]
             }
         },
-        { Argument1: { IntegerValue: 3, StringValue: "String 3" } });
+        { Argument1: { integerValue: 3, stringValue: "String 3" } });
 
     Blazor.platform.invokeDotNetMethodAsync(
         {
             Type: {
-                Assembly: "BlazorApp.Client",
-                TypeName: "BlazorApp.Client.Infrastructure.InvokerTests",
+                Assembly: "StandaloneApp",
+                TypeName: "StandaloneApp.Infrastructure.InvokerTests",
                 TypeArguments: {}
             },
             Method: {
@@ -103,28 +115,28 @@ function invokerTests() {
     Blazor.platform.invokeDotNetMethodAsync(
         {
             Type: {
-                Assembly: "BlazorApp.Client",
-                TypeName: "BlazorApp.Client.Infrastructure.InvokerTests",
+                Assembly: "StandaloneApp",
+                TypeName: "StandaloneApp.Infrastructure.InvokerTests",
                 TypeArguments: {}
             },
             Method: {
                 Name: "SingleParameterMethodAsync",
                 TypeArguments: {},
                 ParameterTypes: [{
-                    Assembly: "BlazorApp.Client",
-                    TypeName: "BlazorApp.Client.Infrastructure.MethodParameter",
+                    Assembly: "StandaloneApp",
+                    TypeName: "StandaloneApp.Infrastructure.MethodParameter",
                     TypeArguments: {}
                 }]
             }
         },
-        { Argument1: { IntegerValue: 6, StringValue: "String 6" } })
+        { Argument1: { integerValue: 6, stringValue: "String 6" } })
         .then(() => console.log('After resolving task with parameter!'));
 
-    let asyncPromise = Blazor.platform.invokeDotNetMethodAsync<{ IntegerValue: number, StringValue: string }>(
+    let asyncPromise = Blazor.platform.invokeDotNetMethodAsync<{ integerValue: number, stringValue: string }>(
         {
             Type: {
-                Assembly: "BlazorApp.Client",
-                TypeName: "BlazorApp.Client.Infrastructure.InvokerTests",
+                Assembly: "StandaloneApp",
+                TypeName: "StandaloneApp.Infrastructure.InvokerTests",
                 TypeArguments: {}
             },
             Method: {
@@ -134,10 +146,8 @@ function invokerTests() {
             }
         }).then(res => {
             if (res !== null) {
-                console.log(`IntegerValue: '${res.IntegerValue}'`);
-                console.log(`StringValue: '${res.StringValue}'`);
+                console.log(`integerValue: '${res.integerValue}'`);
+                console.log(`stringValue: '${res.stringValue}'`);
             }
         });
 }
-
-setTimeout(invokerTests, 10000, []);

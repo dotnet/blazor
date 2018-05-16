@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <TypeScriptCompile Include="scripts\tests.ts" />
+    <TypeScriptCompile Include="scripts\js\tests.ts" />
   </ItemGroup>
 
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->

@@ -45,15 +45,13 @@ export function invokeJavaScriptCallback(id: string, ...args: any[]): void {
     callback.apply(null, args);
 }
 
-type RefType = Exclude<any, undefined | null>;
-
 class TrackedReference {
-    private static references: Map<string, RefType> = new Map<string, RefType>();
+    private static references: Map<string, any> = new Map<string, any>();
 
-    private constructor(public id: string, public trackedObject: RefType) {
+    private constructor(public id: string, public trackedObject: any) {
     }
 
-    public static track(id: string, trackedObject: RefType): void {
+    public static track(id: string, trackedObject: any): void {
         const ref = new TrackedReference(id, trackedObject);
         const refs = TrackedReference.references;
         if (refs.has(id)) {

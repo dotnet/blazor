@@ -1,5 +1,23 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Blazor.Browser.Interop
 
 <h1>Hello, world!</h1>
-
+IntegerValue: @Values?.IntegerValue
+StringValue: @Values?.StringValue
 Welcome to your new app.
+
+@functions{
+    public class MethodParameter
+    {
+        public int IntegerValue { get; set; }
+        public string StringValue { get; set; }
+    }
+
+    public MethodParameter Values { get; set; }
+
+    protected override async Task OnInitAsync()
+    {
+        var result = await RegisteredFunction.InvokeAsync<MethodParameter>("MyAsyncFunc");
+        Values = result;
+    }
+}

@@ -11,7 +11,7 @@
 <body>
     <app>Loading...</app>
 
-    <script type="blazor-boot"></script>
     <script type="text/javascript" src="js/tests.js"></script>
+    <script type="blazor-boot" on-blazor-initializing="registerMyAppFunctions" on-blazor-initialized="invokerTests"></script>
 </body>
 </html>

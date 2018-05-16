@@ -23,26 +23,26 @@ export function invokeWithJsonMarshalling(identifier: System_String, ...argsJson
 export function invokeWithJsonMarshallingAsync(identifier: System_String, asyncProtocol: System_String, ...argsJson: System_String[]) {
     const identifierJsString = platform.toJavaScriptString(identifier);
     const funcInstance = getRegisteredFunction(identifierJsString);
-    const asyncJsString = platform.toJavaScriptString(identifier);
-    const async = JSON.parse(asyncJsString) as { Success: string, Failure: string, Function: MethodOptions };
+    const asyncJsString = platform.toJavaScriptString(asyncProtocol);
+    const async = JSON.parse(asyncJsString) as { success: string, failure: string, function: MethodOptions };
     const args = argsJson.map(json => JSON.parse(platform.toJavaScriptString(json)));
     const result = funcInstance.apply(null, args) as Promise<any>;
     result.then(res => {
         invokeDotNetMethod({
-            Type: {
-                Assembly: async.Function.Type.Assembly,
-                TypeName: async.Function.Type.TypeName,
+            type: {
+                assembly: async.function.type.assembly,
+                typeName: async.function.type.typeName,
                 TypeArguments: {}
             },
-            Method: {
-                Name: async.Function.Method.Name,
-                TypeArguments: {},
-                ParameterTypes: async.Function.Method.ParameterTypes
+            method: {
+                name: async.function.method.name,
+                typeArguments: {},
+                parameterTypes: async.function.method.parameterTypes
             }
         },
             {
-                Argument1: async.Success,
-                Argument2: JSON.stringify(res)
+                argument1: async.success,
+                argument2: JSON.stringify(res)
             });
     });
 }
