@@ -362,6 +362,87 @@ namespace Test
         }
 
         [Fact]
+        public void Yolo()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Test
+{
+    public class Tree
+    {
+        public Node Root { get; set; }
+    }
+}"));
+
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System.Collections.Generic;
+
+namespace Test
+{
+    public class Node
+    {
+        public string Id { get; set; }
+        public int Value { get; set; }
+        public IList<Node> Children { get; set; } = new List<Node>();
+    }
+}"));
+            AdditionalRazorItems.Add(CreateProjectItem("/InteropTest/TreeNode.cshtml", @"
+@using Microsoft.AspNetCore.Blazor.Components
+@using Test
+@using System
+
+<div id=""@Node.Id"">
+    <p> @Node.Value </p>
+    @foreach(var child in Node.Children)
+    {
+        <TreeNode Node = ""@child"" />
+    }
+</div>
+
+@functions{
+
+      [Parameter]
+      private Node Node { get; set; }
+}"));
+
+    var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+@using Test
+@{
+var @tree = new Tree 
+{
+    Root = new Node 
+    { 
+        Id=""1"",
+        Value=1,
+        Children = new List<Node>
+        { 
+            new Node 
+            { 
+                Id=""1.1"",
+                Value=2
+            },
+            new Node
+            {
+                Id=""1.2"",
+                Value=3
+            }
+        }
+    }
+};
+}
+<TreeNode Node=""@tree"" />");
+
+            // Act
+            var frames = GetRenderTree(component);
+        }
+
+        [Fact]
         public void Render_ChildComponent_Nested()
         {
             // Arrange

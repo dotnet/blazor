@@ -1,0 +1,18 @@
+﻿@using Microsoft.AspNetCore.Blazor.Browser.Interop
+@using BasicTestApp.InteropTest
+
+<div id="FirstTree">
+    <TreeNode Node="@FirstTree.Root" />
+    <TreeNode Node="@SecondTree.Root" />
+</div>
+
+@functions {
+    public Tree FirstTree { get; set; }
+    public Tree SecondTree { get; set; }
+
+    protected override async Task OnInitAsync()
+    {
+        FirstTree = RegisteredFunction.Invoke<Tree>("Interop.Testing.GetTree");
+        SecondTree = await RegisteredFunction.InvokeAsync<Tree>("Interop.Testing.GetTreeAsync");
+    }
+}

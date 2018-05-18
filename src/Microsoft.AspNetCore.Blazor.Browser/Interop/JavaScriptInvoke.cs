@@ -215,7 +215,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         /// <param name="result"></param>
         public static void InvokeTaskCallback(string id, string result)
         {
-            Console.WriteLine(id);
             var reference = TrackedReference.Get(id);
             var function = reference.TrackedInstance as Action<string>;
             function(result);

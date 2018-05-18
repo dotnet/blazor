@@ -11,9 +11,21 @@
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->
   <Import Project="..\..\..\src\Microsoft.AspNetCore.Blazor.Build\ReferenceFromSource.props" />
   <ItemGroup>
+    <BlazorGenerate Remove="InteropTest\InteropComponent.cshtml" />
+    <BlazorGenerate Remove="InteropTest\TreeNode.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Blazor.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
     <ProjectReference Include="..\TestContentPackage\TestContentPackage.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="InteropTest\TreeNode.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="InteropComponent.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
   </ItemGroup>
   
 </Project>
