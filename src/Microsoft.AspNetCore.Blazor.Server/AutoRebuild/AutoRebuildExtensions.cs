@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Blazor.Server.AutoRebuild;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,13 @@ namespace Microsoft.AspNetCore.Builder
                 {
                     try
                     {
-                        var fileToTouch = FindFirstFileInDirectoryRecursive(hostAppContentRootPath, "*.cs");
+                        // Touch any .cs file to force the host project to rebuild
+                        // (which in turn rebuilds the client, since it's referenced)
+                        var fileToTouch = Directory.EnumerateFiles(
+                            hostAppContentRootPath,
+                            "*.cs",
+                            SearchOption.AllDirectories).FirstOrDefault();
+
                         if (!string.IsNullOrEmpty(fileToTouch))
                         {
                             File.SetLastWriteTime(fileToTouch, DateTime.Now);
@@ -39,9 +46,9 @@ namespace Microsoft.AspNetCore.Builder
                     catch (Exception ex)
                     {
                         // If we don't have permission to write these files, autorebuild will not be enabled
-                        var loggerFactory = (ILoggerFactory)appBuilder.ApplicationServices.GetService(typeof(ILoggerFactory));
-                        var logger = loggerFactory?.CreateLogger(typeof (AutoRebuildExtensions));
-                        logger?.LogInformation(ex,
+                        var loggerFactory = appBuilder.ApplicationServices.GetRequiredService<ILoggerFactory>();
+                        var logger = loggerFactory.CreateLogger(typeof (AutoRebuildExtensions));
+                        logger?.LogWarning(ex,
                             "Cannot autorebuild because there was an error when writing to a file in '{0}'.",
                             hostAppContentRootPath);
                     }
@@ -108,12 +115,6 @@ namespace Microsoft.AspNetCore.Builder
                 await next();
             });
         }
-
-        private static string FindFirstFileInDirectoryRecursive(string rootDirectory, string pattern)
-            => Directory.GetFiles(rootDirectory, pattern).FirstOrDefault()
-            ?? Directory.GetDirectories(rootDirectory)
-                .Select(dir => FindFirstFileInDirectoryRecursive(dir, pattern))
-                .FirstOrDefault();
 
         private static void WatchFileSystem(BlazorConfig config, Action onWrite)
         {
