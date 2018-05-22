@@ -69,29 +69,38 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
             AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
         }
+
         [Fact]
         public void CanFollowLinkToOtherPageWithCtrlClick()
         {
-            SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
+            try
+            {
+                SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
 
-            var app = MountTestComponent<TestRouter>();
-            var button = app.FindElement(By.LinkText("Other"));
-            new Actions(Browser)
-                .KeyDown(Keys.Control)
-                .Click(button)
-                .Build()
-                .Perform();
-            
-            Assert.Equal(2, Browser.WindowHandles.Count);
+                var app = MountTestComponent<TestRouter>();
+                var button = app.FindElement(By.LinkText("Other"));
+                new Actions(Browser)
+                    .KeyDown(Keys.Control)
+                    .Click(button)
+                    .Build()
+                    .Perform();
 
-            Browser.SwitchTo().Window(Browser.WindowHandles.Last());
-            Browser.Close();
-            Browser.SwitchTo().Window(Browser.WindowHandles.First());
-            new Actions(Browser)
-                .KeyUp(Keys.Control)
-                .Build()
-                .Perform();
+                Assert.Equal(2, Browser.WindowHandles.Count);
+            }
+            finally
+            {
+                //closing newly opened windows and leaving the ctrl key up 
+
+                Browser.SwitchTo().Window(Browser.WindowHandles.Last());
+                Browser.Close();
+                Browser.SwitchTo().Window(Browser.WindowHandles.First());
+                new Actions(Browser)
+                    .KeyUp(Keys.Control)
+                    .Build()
+                    .Perform();
+            }
         }
+
         [Fact]
         public void CanFollowLinkToOtherPageDoesNotOpenNewWindow()
         {
