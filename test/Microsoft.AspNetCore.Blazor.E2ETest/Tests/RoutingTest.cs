@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         [Fact]
         public void CanFollowLinkToOtherPageWithCtrlClick()
         {
-            var key = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? Keys.Meta : Keys.Control;
+            var key = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? Keys.Command : Keys.Control;
             try
             {
                 SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
