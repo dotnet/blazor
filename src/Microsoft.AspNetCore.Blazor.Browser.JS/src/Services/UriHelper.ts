@@ -22,7 +22,10 @@ registerFunction(`${registeredFunctionPrefix}.enableNavigationInterception`, () 
     const anchorTarget = findClosestAncestor(event.target as Element | null, 'A');
     if (anchorTarget) {
       const href = anchorTarget.getAttribute('href');
-      if (isWithinBaseUriSpace(toAbsoluteUri(href))) {
+        console.log(event);
+      if (isWithinBaseUriSpace(toAbsoluteUri(href)) && 
+          !event.ctrlKey) 
+      {
         event.preventDefault();
         performInternalNavigation(href);
       }
