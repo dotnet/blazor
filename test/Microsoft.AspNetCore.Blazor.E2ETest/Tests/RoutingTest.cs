@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using BasicTestApp;
 using BasicTestApp.RouterTest;
 using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure;
@@ -73,12 +74,15 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         [Fact]
         public void CanFollowLinkToOtherPageWithCtrlClick()
         {
+            var key = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? Keys.Meta : Keys.Control;
             try
             {
                 SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
 
                 var app = MountTestComponent<TestRouter>();
                 var button = app.FindElement(By.LinkText("Other"));
+                //on mac os build we need to hold the meta button not the control for openning a popup
+              
                 new Actions(Browser)
                     .KeyDown(Keys.Control)
                     .Click(button)
@@ -86,16 +90,18 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                     .Perform();
 
                 Assert.Equal(2, Browser.WindowHandles.Count);
-            }
-            finally
-            {
-                //closing newly opened windows and leaving the ctrl key up 
+
+                //closing newly opened windows if a new one was opened
 
                 Browser.SwitchTo().Window(Browser.WindowHandles.Last());
                 Browser.Close();
                 Browser.SwitchTo().Window(Browser.WindowHandles.First());
+            }
+            finally
+            {
+                // leaving the ctrl key up 
                 new Actions(Browser)
-                    .KeyUp(Keys.Control)
+                    .KeyUp(key)
                     .Build()
                     .Perform();
             }
