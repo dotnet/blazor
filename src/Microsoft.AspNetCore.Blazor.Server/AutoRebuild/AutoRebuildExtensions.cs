@@ -22,6 +22,11 @@ namespace Microsoft.AspNetCore.Builder
         private static string[] _includedSuffixes = new[] { ".cs", ".cshtml", "index.html" };
         private static string[] _excludedDirectories = new[] { "obj", "bin" };
 
+        // To ensure the FileSystemWatchers aren't collected, reference them
+        // in this static list. They never need to be removed because there's no
+        // way to remove middleware once it's registered.
+        private static List<object> _uncollectableWatchers = new List<object>();
+
         public static void UseHostedAutoRebuild(this IApplicationBuilder appBuilder, BlazorConfig config, string hostAppContentRootPath)
         {
             var isFirstFileWrite = true;
@@ -129,6 +134,12 @@ namespace Microsoft.AspNetCore.Builder
             fsw.Renamed += OnEvent;
             fsw.IncludeSubdirectories = true;
             fsw.EnableRaisingEvents = true;
+
+            // Ensure the watcher is not GCed for as long as the app lives
+            lock (_uncollectableWatchers)
+            {
+                _uncollectableWatchers.Add(fsw);
+            }
 
             void OnEvent(object sender, FileSystemEventArgs eventArgs)
             {
