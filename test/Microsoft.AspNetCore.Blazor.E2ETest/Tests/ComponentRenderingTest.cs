@@ -93,13 +93,13 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             // Typing adds element
             inputElement.SendKeys("a");
             Assert.Collection(liElements(),
-                li => Assert.Equal("a", li.Text));
+                li => Assert.Equal("Key: a, Code: KeyA, CtrlKey: False, ShiftKey: False, AltKey: False, MetaKey: False, Repeat: False, IsComposing: False", li.Text));
 
             // Typing again adds another element
             inputElement.SendKeys("b");
             Assert.Collection(liElements(),
-                li => Assert.Equal("a", li.Text),
-                li => Assert.Equal("b", li.Text));
+                li => Assert.Equal("Key: a, Code: KeyA, CtrlKey: False, ShiftKey: False, AltKey: False, MetaKey: False, Repeat: False, IsComposing: False", li.Text),
+                li => Assert.Equal("Key: b, Code: KeyB, CtrlKey: False, ShiftKey: False, AltKey: False, MetaKey: False, Repeat: False, IsComposing: False", li.Text));
         }
 
         [Fact]
