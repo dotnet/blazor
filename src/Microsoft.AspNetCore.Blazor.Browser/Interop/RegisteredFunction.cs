@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 using WebAssembly;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Interop
@@ -26,7 +28,86 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             var argsJson = args.Select(JsonUtil.Serialize);
             var resultJson = InvokeUnmarshalled<string>("invokeWithJsonMarshalling",
                 argsJson.Prepend(identifier).ToArray());
-            return JsonUtil.Deserialize<TRes>(resultJson);
+            if (resultJson != null)
+            {
+                return JsonUtil.Deserialize<TRes>(resultJson);
+            }
+
+            return default;
+        }
+
+        /// <summary>
+        /// Invokes the JavaScript function registered with the specified identifier.
+        /// Arguments and return values are marshalled via JSON serialization.
+        /// </summary>
+        /// <typeparam name="TRes">The .NET type corresponding to the function's return value type. This type must be JSON deserializable.</typeparam>
+        /// <param name="identifier">The identifier used when registering the target function.</param>
+        /// <param name="args">The arguments to pass, each of which must be JSON serializable.</param>
+        /// <returns>The result of the function invocation.</returns>
+        public static Task<TRes> InvokeAsync<TRes>(string identifier, params object[] args)
+        {
+            var tcs = new TaskCompletionSource<TRes>();
+            var argsJson = args.Select(JsonUtil.Serialize);
+            var successId = Guid.NewGuid().ToString();
+            var failureId = Guid.NewGuid().ToString();
+            var asyncProtocol = JsonUtil.Serialize(new
+            {
+                Success = successId,
+                Failure = failureId,
+                Function = new MethodOptions
+                {
+                    Type = new TypeInstance
+                    {
+                        Assembly = typeof(JavaScriptInvoke).Assembly.FullName,
+                        TypeName = typeof(JavaScriptInvoke).FullName
+                    },
+                    Method = new MethodInstance
+                    {
+                        Name = nameof(JavaScriptInvoke.InvokeTaskCallback),
+                        ParameterTypes = new[]
+                        {
+                            new TypeInstance
+                            {
+                                Assembly = typeof(string).Assembly.FullName,
+                                TypeName = typeof(string).FullName
+                            },
+                            new TypeInstance
+                            {
+                                Assembly = typeof(string).Assembly.FullName,
+                                TypeName = typeof(string).FullName
+                            }
+                        }
+                    }
+                }
+            });
+
+            TrackedReference.Track(successId, new Action<string>(r =>
+            {
+                tcs.SetResult(r == null ? default : JsonUtil.Deserialize<TRes>(r));
+            }));
+
+            TrackedReference.Track(failureId, (new Action<string>(r =>
+            {
+                tcs.SetException(new InvalidOperationException(r));
+            })));
+
+            var resultJson = InvokeUnmarshalled<string>(
+                "invokeWithJsonMarshallingAsync",
+                new[] { identifier, asyncProtocol }.Concat(argsJson).ToArray());
+
+            return tcs.Task;
+        }
+
+        /// <summary>
+        /// Internal API
+        /// </summary>
+        /// <param name="id">The id to the callback to invoke</param>
+        /// <param name="result">The result from the JavaScript promise.</param>
+        public static void InvokeTaskCallback(string id, string result)
+        {
+            var reference = TrackedReference.Get(id);
+            var function = reference.TrackedInstance as Action<string>;
+            function(result);
         }
 
         /// <summary>

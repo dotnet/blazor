@@ -1,0 +1,50 @@
+﻿@using Microsoft.AspNetCore.Blazor.Browser.Interop
+@using BasicTestApp.InteropTest
+@using Microsoft.AspNetCore.Blazor
+
+<button id="btn-interop" onclick="@InvokeInteropAsync">Invoke interop!</button>
+
+<div>
+    <h1>Invocations</h1>
+    @foreach (var invocation in Invocations)
+    {
+        <h2>@invocation.Key</h2>
+        <p id="@invocation.Key">@invocation.Value</p>
+    }
+</div>
+
+<div>
+    <h1>Return values</h1>
+    @foreach (var returnValue in ReturnValues)
+    {
+        <h2>@returnValue.Key</h2>
+        <p id="@returnValue.Key">@returnValue.Value</p>
+    }
+</div>
+
+@functions {
+
+    public IDictionary<string, string> ReturnValues { get; set; } = new Dictionary<string, string>();
+    public IDictionary<string, string> Invocations { get; set; } = new Dictionary<string, string>();
+
+    public async Task InvokeInteropAsync()
+    {
+        Console.WriteLine("Starting interop invocations.");
+        await RegisteredFunction.InvokeAsync<object>("BasicTestApp.Interop.InvokeDotNetInteropMethodsAsync");
+        Console.WriteLine("Showing interop invocation results.");
+        var collectResults = RegisteredFunction.Invoke<Dictionary<string,string>>("BasicTestApp.Interop.CollectResults");
+
+        ReturnValues = collectResults.ToDictionary(kvp => kvp.Key,kvp => System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(kvp.Value)));
+
+        var invocations = new Dictionary<string, string>();
+        foreach (var interopResult in JavaScriptInterop.Invocations)
+        {
+            Console.WriteLine(interopResult.Key);
+            var interopResultValue = JsonUtil.Serialize(interopResult.Value);
+            Console.WriteLine(interopResultValue);
+            invocations[interopResult.Key] = interopResultValue;
+        }
+
+        Invocations = invocations;
+    }
+}
