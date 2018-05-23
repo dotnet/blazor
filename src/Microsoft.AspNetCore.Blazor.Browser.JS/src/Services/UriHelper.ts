@@ -1,4 +1,4 @@
-﻿import { registerFunction } from '../Interop/RegisteredFunction';
+import { registerFunction } from '../Interop/RegisteredFunction';
 import { platform } from '../Environment';
 import { MethodHandle, System_String } from '../Platform/Platform';
 const registeredFunctionPrefix = 'Microsoft.AspNetCore.Blazor.Browser.Services.BrowserUriHelper';
@@ -22,9 +22,10 @@ registerFunction(`${registeredFunctionPrefix}.enableNavigationInterception`, () 
     const anchorTarget = findClosestAncestor(event.target as Element | null, 'A');
     if (anchorTarget) {
       const href = anchorTarget.getAttribute('href');
-      if (isWithinBaseUriSpace(toAbsoluteUri(href))) {
+      const absoluteHref = toAbsoluteUri(href);
+      if (isWithinBaseUriSpace(absoluteHref)) {
         event.preventDefault();
-        performInternalNavigation(href);
+        performInternalNavigation(absoluteHref);
       }
     }
   });
@@ -37,15 +38,16 @@ registerFunction(`${registeredFunctionPrefix}.navigateTo`, (uriDotNetString: Sys
 });
 
 export function navigateTo(uri: string) {
-  if (isWithinBaseUriSpace(toAbsoluteUri(uri))) {
-    performInternalNavigation(uri);
+  const absoluteUri = toAbsoluteUri(uri);
+  if (isWithinBaseUriSpace(absoluteUri)) {
+    performInternalNavigation(absoluteUri);
   } else {
     location.href = uri;
   }
 }
 
-function performInternalNavigation(href: string) {
-  history.pushState(null, /* ignored title */ '', href);
+function performInternalNavigation(absoluteInternalHref: string) {
+  history.pushState(null, /* ignored title */ '', absoluteInternalHref);
   handleInternalNavigation();
 }
 
