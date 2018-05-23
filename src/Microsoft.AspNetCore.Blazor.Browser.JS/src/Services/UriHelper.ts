@@ -82,10 +82,10 @@ function findClosestAncestor(element: Element | null, tagName: string) {
 }
 
 function isWithinBaseUriSpace(href: string) {
-  const baseUriPrefixWithTrailingSlash = toBaseUriPrefixWithTrailingSlash(document.baseURI!); // TODO: Might baseURI really be null?
-  return href.startsWith(baseUriPrefixWithTrailingSlash);
+  const baseUriWithTrailingSlash = toBaseUriWithTrailingSlash(document.baseURI!); // TODO: Might baseURI really be null?
+  return href.startsWith(baseUriWithTrailingSlash);
 }
 
-function toBaseUriPrefixWithTrailingSlash(baseUri: string) {
+function toBaseUriWithTrailingSlash(baseUri: string) {
   return baseUri.substr(0, baseUri.lastIndexOf('/') + 1);
 }
