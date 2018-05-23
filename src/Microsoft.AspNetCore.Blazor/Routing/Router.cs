@@ -18,6 +18,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     public class Router : IComponent, IDisposable
     {
         static readonly char[] _queryOrHashStartChar = new[] { '?', '#' };
+        static readonly IDictionary<Assembly, RouteTable> _routeTables = new Dictionary<Assembly, RouteTable>();
 
         RenderHandle _renderHandle;
         string _baseUriPrefix;
@@ -46,8 +47,17 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void SetParameters(ParameterCollection parameters)
         {
             parameters.AssignToProperties(this);
-            var types = ComponentResolver.ResolveComponents(AppAssembly);
-            Routes = RouteTable.Create(types);
+            if (_routeTables.TryGetValue(AppAssembly, out var routeTable))
+            {
+                Routes = routeTable;
+            }
+            else
+            {
+                var types = ComponentResolver.ResolveComponents(AppAssembly);
+                Routes = RouteTable.Create(types);
+                _routeTables[AppAssembly] = Routes;
+            }
+
             Refresh();
         }
 
@@ -78,11 +88,24 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         {
             var locationPath = UriHelper.ToBaseRelativePath(_baseUriPrefix, _locationAbsolute);
             locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
-            var context = new RouteContext(locationPath);
+            var resolvedComponent = GetComponentForPath(locationPath);
+
+            _renderHandle.Render(builder => Render(builder, resolvedComponent.Handler, resolvedComponent.ComponentParameters));
+        }
+
+        /// <summary>
+        /// Decides what <see cref="IComponent"/> should handle a given <paramref name="path"/>
+        /// an the parameters associated with it.
+        /// </summary>
+        /// <param name="path">The path to use for resolving the component handler and its parameter.</param>
+        /// <returns>The <see cref="ComponentResult"/> containing the component type and the parameters to apply to the component.</returns>
+        protected virtual ComponentResult GetComponentForPath(string path)
+        {
+            var context = new RouteContext(path);
             Routes.Route(context);
             if (context.Handler == null)
             {
-                throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '{locationPath}'.");
+                throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '{path}'.");
             }
 
             if (!typeof(IComponent).IsAssignableFrom(context.Handler))
@@ -91,7 +114,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                     $"does not implement {typeof(IComponent).FullName}.");
             }
 
-            _renderHandle.Render(builder => Render(builder, context.Handler, context.Parameters));
+            return new ComponentResult { Handler = context.Handler, ComponentParameters = context.Parameters };
         }
 
         private void OnLocationChanged(object sender, string newAbsoluteUri)
@@ -101,6 +124,22 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             {
                 Refresh();
             }
+        }
+
+        /// <summary>
+        /// Represents the result of resolving a component for a given path.
+        /// </summary>
+        public struct ComponentResult
+        {
+            /// <summary>
+            /// Gets or sets the handler.
+            /// </summary>
+            public Type Handler { get; set; }
+
+            /// <summary>
+            /// Gets or sets parameters for the selected handler.
+            /// </summary>
+            public IDictionary<string, object> ComponentParameters { get; set; }
         }
     }
 }
