@@ -39,6 +39,20 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         }
 
         [Fact]
+        public void CanArriveAtDefaultPageWithoutTrailingSlash()
+        {
+            // This is a bit of a degenerate case because ideally devs would configure their
+            // servers to enforce a canonical URL (with trailing slash) for the homepage.
+            // But in case they don't want to, we need to handle it the same as if the URL does
+            // have a trailing slash.
+            SetUrlViaPushState($"{ServerPathBase}");
+
+            var app = MountTestComponent<TestRouter>();
+            Assert.Equal("This is the default page.", app.FindElement(By.Id("test-info")).Text);
+            AssertHighlightedLinks("Default (matches all)", "Default with base-relative URL (matches all)");
+        }
+
+        [Fact]
         public void CanArriveAtPageWithParameters()
         {
             SetUrlViaPushState($"{ServerPathBase}/WithParameters/Name/Ghi/LastName/O'Jkl");
