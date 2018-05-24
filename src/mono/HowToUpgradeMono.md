@@ -76,10 +76,11 @@ If you're not on Windows, it should work the same (verified in WSL), though the 
 
 **Expected result**
 
-Currently the build reports two warnings:
+Currently the build reports these warnings:
 
  * `EXEC : warning : unresolved symbol: putchar` (during both wasm and asm.js builds)
  * `EXEC : warning : root:BINARYEN_ASYNC_COMPILATION disabled due to user options` (during the asm.js build only)
+ * `EXEC : warning : unresolved symbol: mono_wasm_invoke_js_with_args` (during both wasm and asm.js builds). I expect this is a temporary issue that will go away when Mono finishes implementing whatever they are doing with their JS interop, which we aren't currently using anyway since we have our own interop in `driver_blazor.c`.
 
 These are OK, but anything other warnings or errors may imply problems like:
 
