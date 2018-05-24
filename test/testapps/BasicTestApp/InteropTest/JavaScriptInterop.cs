@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BasicTestApp.InteropTest
@@ -8,6 +8,25 @@ namespace BasicTestApp.InteropTest
     public class JavaScriptInterop
     {
         public static IDictionary<string, object[]> Invocations = new Dictionary<string, object[]>();
+
+        public static void ThrowException() => throw new InvalidOperationException("Threw an exception!");
+
+        public static Task AsyncThrowSyncException() => throw new InvalidOperationException("Threw a sync exception!");
+
+        public static Task AsyncThrowAsyncException()
+        {
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+            var timer = new Timer(
+                state =>
+                {
+                    tcs.SetException(new InvalidOperationException("Threw an async exception!"));
+                },
+                null,
+                3000,
+                Timeout.Infinite);
+
+            return tcs.Task;
+        }
 
         public static void VoidParameterless()
         {
@@ -89,7 +108,7 @@ namespace BasicTestApp.InteropTest
             Invocations[nameof(VoidWithEightParameters)] = new object[] { parameter1, parameter2, parameter3, parameter4, parameter5, parameter6, parameter7, parameter8 };
         }
 
-        public static decimal [] ReturnArray()
+        public static decimal[] ReturnArray()
         {
             return new decimal[] { 0.1M, 0.2M };
         }

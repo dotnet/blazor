@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
         public TypeInstance Type { get; set; }
         public MethodInstance Method { get; set; }
-        public Async Async { get; set; }
+        public JavaScriptAsync Async { get; set; }
 
         internal MethodInfo GetMethodOrThrow()
         {

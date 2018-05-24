@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -217,18 +217,15 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         {
             if (Argument8 == null)
             {
-                Console.WriteLine($"Argument 8 is null : {Argument8 == null}");
                 throw new InvalidOperationException("Argument8 can't be null!");
             }
 
             if (!(Argument8 is ArgumentList rest))
             {
-                Console.WriteLine(Argument8?.GetType()?.FullName ?? typeof(T8).FullName);
                 throw new InvalidOperationException("Argument 8 must be an ArgumentList");
             }
             if (rest.GetType().GetGenericArguments().Length < 1)
             {
-                Console.WriteLine(rest.GetType()?.GetGenericArguments()?.Length);
                 throw new InvalidOperationException("Argument 8 must contain an inner parameter!");
             }
 

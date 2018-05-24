@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Blazor.Browser.Interop
+@using Microsoft.AspNetCore.Blazor.Browser.Interop
 @using BasicTestApp.InteropTest
 @using Microsoft.AspNetCore.Blazor
 
@@ -14,7 +14,7 @@
 </div>
 
 <div>
-    <h1>Return values</h1>
+    <h1>Return values and exceptions thrown from .NET</h1>
     @foreach (var returnValue in ReturnValues)
     {
         <h2>@returnValue.Key</h2>
@@ -22,10 +22,24 @@
     }
 </div>
 
+<div>
+    <h1>Exceptions thrown from JavaScript</h1>
+    <h2>@nameof(ExceptionFromSyncMethod)</h2>
+    <p id="@nameof(ExceptionFromSyncMethod)">@ExceptionFromSyncMethod?.Message</p>
+    <h2>@nameof(SyncExceptionFromAsyncMethod)</h2>
+    <p id="@nameof(SyncExceptionFromAsyncMethod)">@SyncExceptionFromAsyncMethod?.Message</p>
+    <h2>@nameof(AsyncExceptionFromAsyncSyncMethod)</h2>
+    <p id="@nameof(AsyncExceptionFromAsyncSyncMethod)">@AsyncExceptionFromAsyncSyncMethod?.Message</p>
+</div>
+
 @functions {
 
     public IDictionary<string, string> ReturnValues { get; set; } = new Dictionary<string, string>();
     public IDictionary<string, string> Invocations { get; set; } = new Dictionary<string, string>();
+
+    public JavaScriptException ExceptionFromSyncMethod { get; set; }
+    public JavaScriptException SyncExceptionFromAsyncMethod { get; set; }
+    public JavaScriptException AsyncExceptionFromAsyncSyncMethod { get; set; }
 
     public async Task InvokeInteropAsync()
     {
@@ -39,10 +53,35 @@
         var invocations = new Dictionary<string, string>();
         foreach (var interopResult in JavaScriptInterop.Invocations)
         {
-            Console.WriteLine(interopResult.Key);
             var interopResultValue = JsonUtil.Serialize(interopResult.Value);
-            Console.WriteLine(interopResultValue);
             invocations[interopResult.Key] = interopResultValue;
+        }
+
+        try
+        {
+            RegisteredFunction.Invoke<object>("BasicTestApp.Interop.FunctionThrows");
+        }
+        catch (JavaScriptException e)
+        {
+            ExceptionFromSyncMethod = e;
+        }
+
+        try
+        {
+            await RegisteredFunction.InvokeAsync<object>("BasicTestApp.Interop.AsyncFunctionThrowsSyncException");
+        }
+        catch (JavaScriptException e)
+        {
+            SyncExceptionFromAsyncMethod = e;
+        }
+
+        try
+        {
+            await RegisteredFunction.InvokeAsync<object>("BasicTestApp.Interop.AsyncFunctionThrowsAsyncException");
+        }
+        catch (JavaScriptException e)
+        {
+            AsyncExceptionFromAsyncSyncMethod = e;
         }
 
         Invocations = invocations;

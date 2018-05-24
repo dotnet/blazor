@@ -1,26 +1,35 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
-    /// <summary>
-    /// TODO
-    /// </summary>
-    public class JavaScriptInvoke
+    internal class JavaScriptInvoke
     {
-        /// <summary>
-        /// TODO
-        /// </summary>
-        /// <param name="methodOptions"></param>
-        /// <param name="methodArguments"></param>
-        /// <returns></returns>
         public static string InvokeDotnetMethod(string methodOptions, string methodArguments)
         {
-            Console.WriteLine(methodOptions);
-            Console.WriteLine(methodArguments);
+            // We invoke the dotnet method and wrap either the result or the exception produced by
+            // an error into an invocation result type. This invocation result is just a discriminated
+            // union with either success or failure.
+            try
+            {
+                return InvocationResult<object>.Success(InvokeDotNetMethodCore(methodOptions, methodArguments));
+            }
+            catch (Exception e)
+            {
+                var exception = e;
+                while (exception.InnerException != null)
+                {
+                    exception = exception.InnerException;
+                }
+
+                return InvocationResult<object>.Fail(exception);
+            }
+        }
+
+        private static object InvokeDotNetMethodCore(string methodOptions, string methodArguments)
+        {
             var options = JsonUtil.Deserialize<MethodOptions>(methodOptions);
             var argumentDeserializer = GetOrCreateArgumentDeserializer(options);
             var invoker = GetOrCreateInvoker(options, argumentDeserializer);
@@ -30,63 +39,70 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             {
                 throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.TypeName}' must return a Task.");
             }
-            if (result is Task taskResult)
+
+            if (result is Task && options.Async == null)
             {
-                Console.WriteLine(result.GetType().FullName);
-                taskResult.ContinueWith(task =>
-                {
-                    try
-                    {
-                        if (task.Status == TaskStatus.RanToCompletion)
-                        {
-                            if (task.GetType() == typeof(Task))
-                            {
-                                RegisteredFunction.Invoke<bool>(
-                                    options.Async.FunctionName,
-                                    options.Async.ResolveId);
-                            }
-                            else
-                            {
-                                var resultProperty = task.GetType()
-                                        .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
-                                        .SingleOrDefault(m => m.Name == "ResultOnSuccess") ??
-                                    task.GetType()
-                                        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                        .SingleOrDefault(m => m.Name == "Result");
-
-                                var returnValue = resultProperty.GetValue(task);
-                                RegisteredFunction.Invoke<bool>(
-                                    options.Async.FunctionName,
-                                    options.Async.ResolveId,
-                                    returnValue);
-                            }
-                        }
-                        else
-                        {
-                            RegisteredFunction.Invoke<bool>(
-                                options.Async.FunctionName,
-                                options.Async.RejectId);
-                        }
-
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                        throw;
-                    }
-                    finally
-                    {
-                        Console.WriteLine("Finally!");
-                    }
-                });
+                throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.TypeName}' must not return a Task.");
             }
 
-            return JsonUtil.Serialize(result);
+            if (result is Task taskResult)
+            {
+                // For async work, we just setup the callback on the returned task to invoke the appropiate callback in JavaScript.
+                SetupResultCallback(options, taskResult);
+
+                // We just return null here as the proper result will be returned through invoking a JavaScript callback when the
+                // task completes.
+                return null;
+            }
+            else
+            {
+                return result;
+            }
         }
 
-        internal static MethodInfo ResolveMethod(MethodOptions options)
+        private static void SetupResultCallback(MethodOptions options, Task taskResult)
         {
-            throw new NotImplementedException();
+            taskResult.ContinueWith(task =>
+            {
+                if (task.Status == TaskStatus.RanToCompletion)
+                {
+                    if (task.GetType() == typeof(Task))
+                    {
+                        RegisteredFunction.Invoke<bool>(
+                            options.Async.FunctionName,
+                            options.Async.CallbackId,
+                            new InvocationResult<object> { Succeeded = true, Result = null });
+                    }
+                    else
+                    {
+                        var resultProperty = task.GetType()
+                                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
+                                .SingleOrDefault(m => m.Name == "ResultOnSuccess") ??
+                            task.GetType()
+                                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                .SingleOrDefault(m => m.Name == "Result");
+
+                        var returnValue = resultProperty.GetValue(task);
+                        RegisteredFunction.Invoke<bool>(
+                            options.Async.FunctionName,
+                            options.Async.CallbackId,
+                            new InvocationResult<object> { Succeeded = true, Result = returnValue });
+                    }
+                }
+                else
+                {
+                    Exception exception = task.Exception;
+                    while(exception.InnerException != null)
+                    {
+                        exception = exception.InnerException;
+                    }
+
+                    RegisteredFunction.Invoke<bool>(
+                        options.Async.FunctionName,
+                        options.Async.CallbackId,
+                        new InvocationResult<object> { Succeeded = false, Message = exception.Message });
+                }
+            });
         }
 
         private static Func<string, object> GetOrCreateInvoker(MethodOptions options, Func<string, object[]> argumentDeserializer)
@@ -111,143 +127,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 var argsInstance = deserializeMethod(arguments);
                 return argsInstance.ToParameterList();
             }
-        }
-
-        /// <summary>
-        /// TODO
-        /// </summary>
-        /// <param name="identifier"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public static Task InvokeJavaScriptVoidFunctionAsync(string identifier, params object[] args)
-        {
-            var tcs = new TaskCompletionSource<int>();
-            var argsJson = args.Select(JsonUtil.Serialize);
-            var successId = Guid.NewGuid().ToString();
-            var failureId = Guid.NewGuid().ToString();
-            var asyncProtocol = JsonUtil.Serialize(new
-            {
-                Success = successId,
-                Failure = failureId,
-                Function = new MethodOptions
-                {
-                    Type = new TypeInstance
-                    {
-                        Assembly = typeof(JavaScriptInvoke).Assembly.FullName,
-                        TypeName = typeof(JavaScriptInvoke).FullName
-                    },
-                    Method = new MethodInstance
-                    {
-                        Name = nameof(JavaScriptInvoke.InvokeTaskCallback),
-                        ParameterTypes = new[]
-                        {
-                            new TypeInstance
-                            {
-                                Assembly = typeof(string).Assembly.FullName,
-                                TypeName = typeof(string).FullName
-                            },
-                            new TypeInstance
-                            {
-                                Assembly = typeof(string).Assembly.FullName,
-                                TypeName = typeof(string).FullName
-                            }
-                        }
-                    }
-                }
-            });
-
-            TrackedReference.Track(successId, (new Action(() =>
-            {
-                tcs.SetResult(0);
-            })));
-
-            TrackedReference.Track(failureId, (new Action<string>(r =>
-            {
-                tcs.SetException(new InvalidOperationException(r));
-            })));
-
-            var resultJson = RegisteredFunction.InvokeUnmarshalled<string>(
-                "invokeWithJsonMarshallingAsync",
-                argsJson.Prepend(asyncProtocol).Prepend(identifier).ToArray());
-
-            return tcs.Task;
-        }
-
-        /// <summary>
-        /// TODO
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="identifier"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public static Task<TResult> InvokeJavaScriptFunctionAsync<TResult>(string identifier, params object[] args)
-        {
-            var tcs = new TaskCompletionSource<TResult>();
-            var argsJson = args.Select(JsonUtil.Serialize);
-            var successId = Guid.NewGuid().ToString();
-            var failureId = Guid.NewGuid().ToString();
-            var asyncProtocol = JsonUtil.Serialize(new
-            {
-                Success = successId,
-                Failure = failureId,
-                Function = new MethodOptions
-                {
-                    Type = new TypeInstance
-                    {
-                        Assembly = typeof(JavaScriptInvoke).Assembly.FullName,
-                        TypeName = typeof(JavaScriptInvoke).FullName
-                    },
-                    Method = new MethodInstance
-                    {
-                        Name = nameof(JavaScriptInvoke.InvokeTaskCallback),
-                        ParameterTypes = new[]
-                        {
-                            new TypeInstance
-                            {
-                                Assembly = typeof(string).Assembly.FullName,
-                                TypeName = typeof(string).FullName
-                            },
-                            new TypeInstance
-                            {
-                                Assembly = typeof(string).Assembly.FullName,
-                                TypeName = typeof(string).FullName
-                            }
-                        }
-                    }
-                }
-            });
-
-            TrackedReference.Track(successId, new Action<string>(r =>
-            {
-                var res = JsonUtil.Deserialize<TResult>(r);
-                tcs.SetResult(res);
-            }));
-
-            TrackedReference.Track(failureId, (new Action<string>(r =>
-            {
-                tcs.SetException(new InvalidOperationException(r));
-            })));
-
-            var resultJson = RegisteredFunction.InvokeUnmarshalled<string>(
-                "invokeWithJsonMarshallingAsync",
-                argsJson.Prepend(asyncProtocol).Prepend(identifier).ToArray());
-
-            return tcs.Task;
-        }
-
-        /// <summary>
-        /// TODO
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="result"></param>
-        public static void InvokeTaskCallback(string id, string result)
-        {
-            Console.WriteLine("Invoking task callback!");
-            Console.WriteLine(id);
-            Console.WriteLine(result ?? "(null)");
-            var reference = TrackedReference.Get(id);
-            var function = reference.TrackedInstance as Action<string>;
-            function(result);
         }
     }
 }

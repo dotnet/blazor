@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -13,6 +13,32 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
     /// </summary>
     public static class RegisteredFunction
     {
+        private static readonly MethodOptions TaskCallbackMethodOptions = new MethodOptions
+        {
+            Type = new TypeInstance
+            {
+                Assembly = typeof(TaskCallback).Assembly.FullName,
+                TypeName = typeof(TaskCallback).FullName
+            },
+            Method = new MethodInstance
+            {
+                Name = nameof(TaskCallback.InvokeTaskCallback),
+                ParameterTypes = new[]
+                {
+                    new TypeInstance
+                    {
+                        Assembly = typeof(string).Assembly.FullName,
+                        TypeName = typeof(string).FullName
+                    },
+                    new TypeInstance
+                    {
+                        Assembly = typeof(string).Assembly.FullName,
+                        TypeName = typeof(string).FullName
+                    }
+                }
+            }
+        };
+
         /// <summary>
         /// Invokes the JavaScript function registered with the specified identifier.
         /// Arguments and return values are marshalled via JSON serialization.
@@ -26,14 +52,19 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             // This is a low-perf convenience method that bypasses the need to deal with
             // .NET memory and data structures on the JS side
             var argsJson = args.Select(JsonUtil.Serialize);
+
             var resultJson = InvokeUnmarshalled<string>("invokeWithJsonMarshalling",
                 argsJson.Prepend(identifier).ToArray());
-            if (resultJson != null)
-            {
-                return JsonUtil.Deserialize<TRes>(resultJson);
-            }
 
-            return default;
+            var result = JsonUtil.Deserialize<InvocationResult<TRes>>(resultJson);
+            if (result.Succeeded)
+            {
+                return result.Result;
+            }
+            else
+            {
+                throw new JavaScriptException(result.Message);
+            }
         }
 
         /// <summary>
@@ -48,66 +79,32 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         {
             var tcs = new TaskCompletionSource<TRes>();
             var argsJson = args.Select(JsonUtil.Serialize);
-            var successId = Guid.NewGuid().ToString();
-            var failureId = Guid.NewGuid().ToString();
-            var asyncProtocol = JsonUtil.Serialize(new
+            var callbackId = Guid.NewGuid().ToString();
+
+            var asyncProtocol = JsonUtil.Serialize(new DotNetAsync
             {
-                Success = successId,
-                Failure = failureId,
-                Function = new MethodOptions
-                {
-                    Type = new TypeInstance
-                    {
-                        Assembly = typeof(JavaScriptInvoke).Assembly.FullName,
-                        TypeName = typeof(JavaScriptInvoke).FullName
-                    },
-                    Method = new MethodInstance
-                    {
-                        Name = nameof(JavaScriptInvoke.InvokeTaskCallback),
-                        ParameterTypes = new[]
-                        {
-                            new TypeInstance
-                            {
-                                Assembly = typeof(string).Assembly.FullName,
-                                TypeName = typeof(string).FullName
-                            },
-                            new TypeInstance
-                            {
-                                Assembly = typeof(string).Assembly.FullName,
-                                TypeName = typeof(string).FullName
-                            }
-                        }
-                    }
-                }
+                CallbackId = callbackId,
+                FunctionName = TaskCallbackMethodOptions
             });
 
-            TrackedReference.Track(successId, new Action<string>(r =>
+            TrackedReference.Track(callbackId, new Action<string>(r =>
             {
-                tcs.SetResult(r == null ? default : JsonUtil.Deserialize<TRes>(r));
+                var res = JsonUtil.Deserialize<InvocationResult<TRes>>(r);
+                if (res.Succeeded)
+                {
+                    tcs.SetResult(res.Result);
+                }
+                else
+                {
+                    tcs.SetException(new JavaScriptException(res.Message));
+                }
             }));
 
-            TrackedReference.Track(failureId, (new Action<string>(r =>
-            {
-                tcs.SetException(new InvalidOperationException(r));
-            })));
-
-            var resultJson = InvokeUnmarshalled<string>(
-                "invokeWithJsonMarshallingAsync",
-                new[] { identifier, asyncProtocol }.Concat(argsJson).ToArray());
+            var result = Invoke<TRes>(
+                    "invokeWithJsonMarshallingAsync",
+                    new[] { identifier, asyncProtocol }.Concat(argsJson).ToArray());
 
             return tcs.Task;
-        }
-
-        /// <summary>
-        /// Internal API
-        /// </summary>
-        /// <param name="id">The id to the callback to invoke</param>
-        /// <param name="result">The result from the JavaScript promise.</param>
-        public static void InvokeTaskCallback(string id, string result)
-        {
-            var reference = TrackedReference.Get(id);
-            var function = reference.TrackedInstance as Action<string>;
-            function(result);
         }
 
         /// <summary>
@@ -181,6 +178,16 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             return exception != null
                 ? throw new JavaScriptException(exception)
                 : result;
+        }
+    }
+
+    internal class TaskCallback
+    {
+        public static void InvokeTaskCallback(string id, string result)
+        {
+            var reference = TrackedReference.Get(id);
+            var function = reference.TrackedInstance as Action<string>;
+            function(result);
         }
     }
 }
