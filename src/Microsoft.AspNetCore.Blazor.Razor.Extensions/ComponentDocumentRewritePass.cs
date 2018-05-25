@@ -133,12 +133,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
                         foreach (var token in parser.Get())
                         {
-                            // We have to set the Location explicitly otherwise we would need to include
-                            // the token in every call to the parser.
-                            parser.SetLocation(token);
                             // We have to call this before get. Anglesharp doesn't return the start position
                             // of tokens.
                             var start = parser.GetCurrentLocation();
+
+                            // We have to set the Location explicitly otherwise we would need to include
+                            // the token in every call to the parser.
+                            parser.SetLocation(token);
+
                             var end = parser.GetCurrentLocation();
 
                             if (token.Type == HtmlTokenType.EndOfFile)
