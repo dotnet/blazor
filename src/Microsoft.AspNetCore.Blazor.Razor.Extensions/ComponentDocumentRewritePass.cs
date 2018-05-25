@@ -130,8 +130,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     if (children[i] is HtmlContentIntermediateNode htmlNode)
                     {
                         parser.Push(htmlNode);
-
-                        foreach (var token in parser.Get())
+                        var tokens = parser.Get();
+                        foreach (var token in tokens)
                         {
                             // We have to call this before get. Anglesharp doesn't return the start position
                             // of tokens.
@@ -403,7 +403,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     throw new InvalidOperationException("You need to call Push first.");
                 }
 
-                return _textSource.Tokenize(HtmlEntityService.Resolver);
+                var tokens = _textSource.Tokenize(HtmlEntityService.Resolver);
+                return tokens;
             }
 
             public void SetLocation(HtmlToken token)
@@ -412,7 +413,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // We don't want this, we want to resume before the unclosed tag.
                 if (token.Type != HtmlTokenType.EndOfFile)
                 {
-                    _position = token.Position.Position;
+                    _position = _textSource.Index;
                 }
             }
 

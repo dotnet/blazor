@@ -24,8 +24,7 @@ using Microsoft.VisualStudio.Shell;
     NewVersion = "0.4.0.0")]
 [assembly: ProvideBindingRedirection(
     AssemblyName = "AngleSharp",
-    GenerateCodeBase = true,
     PublicKeyToken = "",
     OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "0.9.9.1",
-    NewVersion = "0.9.9.1")]
+    OldVersionUpperBound = "0.9.9.2",
+    NewVersion = "0.9.9.2")]
