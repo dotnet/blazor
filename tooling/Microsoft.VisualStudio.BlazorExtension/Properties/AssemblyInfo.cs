@@ -26,5 +26,5 @@ using Microsoft.VisualStudio.Shell;
     AssemblyName = "AngleSharp",
     PublicKeyToken = "",
     OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "0.9.9.2",
-    NewVersion = "0.9.9.2")]
+    OldVersionUpperBound = "0.9.9.0",
+    NewVersion = "0.9.9.0")]
