@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                         Type = new TypeInstance
                         {
                             Assembly = typeof(JavaScriptInterop).Assembly.GetName().Name,
-                            TypeName = typeof(JavaScriptInterop).FullName
+                            Name = typeof(JavaScriptInterop).FullName
                         },
                         Method = new MethodInstance
                         {

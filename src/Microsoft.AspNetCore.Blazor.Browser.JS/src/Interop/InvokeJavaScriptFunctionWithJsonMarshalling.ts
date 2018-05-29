@@ -1,7 +1,7 @@
 import { platform } from '../Environment';
 import { System_String } from '../Platform/Platform';
 import { getRegisteredFunction } from './RegisteredFunction';
-import { invokeDotNetMethod, MethodOptions, AsyncOptions, DotNetAsyncOptions, InvocationResult } from './InvokeDotNetMethodWithJsonMarshalling';
+import { invokeDotNetMethod, MethodOptions, InvocationResult } from './InvokeDotNetMethodWithJsonMarshalling';
 import { getElementByCaptureId } from '../Rendering/ElementReferenceCapture';
 import { System } from 'typescript';
 import { error } from 'util';
@@ -33,15 +33,25 @@ function invokeWithJsonMarshallingCore(identifier: string, ...args: any[]) {
   }
 }
 
-export function invokeWithJsonMarshallingAsync<T>(identifier: string, asyncProtocol: string, ...argsJson: string[]) {
-  const async = JSON.parse(asyncProtocol) as DotNetAsyncOptions;
-  let invocationResult: InvocationResult;
-    const result = invokeWithJsonMarshallingCore(identifier, ...argsJson) as Promise<any>;
+const invokeDotNetCallback: MethodOptions = {
+  type: {
+    assembly: 'Microsoft.AspNetCore.Blazor.Browser',
+    name: 'Microsoft.AspNetCore.Blazor.Browser.Interop.TaskCallback'
+  },
+  method: {
+    name: 'InvokeTaskCallback'
+  }
+};
 
-    result
-      .then(res => invokeDotNetMethod(async.functionName, async.callbackId, JSON.stringify({ succeeded: true, result: res })))
-      .catch(reason => invokeDotNetMethod(async.functionName, async.callbackId, JSON.stringify({ succeeded: false, message: (reason && reason.message) || (reason && reason.toString && reason.toString()) })));
-    invocationResult = { succeeded: true, result: null };
+export function invokeWithJsonMarshallingAsync<T>(identifier: string, callbackId: string, ...argsJson: string[]) {
+  const result = invokeWithJsonMarshallingCore(identifier, ...argsJson) as Promise<any>;
+
+  result
+    .then(res => invokeDotNetMethod(invokeDotNetCallback, callbackId, JSON.stringify({ succeeded: true, result: res })))
+    .catch(reason => invokeDotNetMethod(
+      invokeDotNetCallback,
+      callbackId,
+      JSON.stringify({ succeeded: false, message: (reason && reason.message) || (reason && reason.toString && reason.toString()) })));
 
   return null;
 }

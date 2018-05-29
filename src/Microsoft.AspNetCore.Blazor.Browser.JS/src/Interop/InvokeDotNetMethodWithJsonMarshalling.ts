@@ -6,19 +6,6 @@ import { error } from 'util';
 export interface MethodOptions {
   type: TypeInstance;
   method: MethodInstance;
-  async?: AsyncOptions;
-}
-
-// Keep in sync with JavaScriptAsync.cs
-export interface AsyncOptions {
-  callbackId: string;
-  functionName: string | MethodOptions;
-}
-
-// Keep in sync with DotNetAsync.cs
-export interface DotNetAsyncOptions {
-  callbackId: string;
-  functionName: MethodOptions;
 }
 
 // Keep in sync with InvocationResult.cs
@@ -36,7 +23,7 @@ export interface MethodInstance {
 
 export interface TypeInstance {
   assembly: string;
-  typeName: string;
+  name: string;
   typeArguments?: { [key: string]: TypeInstance };
 }
 
@@ -51,8 +38,11 @@ export interface DotnetMethodArgumentsList {
   argument8?: any;
 }
 
-
 export function invokeDotNetMethod<T>(methodOptions: MethodOptions, ...args: any[]): (T | null) {
+  return invokeDotNetMethodCore(methodOptions, null, ...args);
+}
+
+function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: string|null, ...args: any[]): (T | null) {
   const method = platform.findMethod(
     "Microsoft.AspNetCore.Blazor.Browser",
     "Microsoft.AspNetCore.Blazor.Browser.Interop",
@@ -62,8 +52,9 @@ export function invokeDotNetMethod<T>(methodOptions: MethodOptions, ...args: any
   const packedArgs = packArguments(args);
 
   const serializedOptions = platform.toDotNetString(JSON.stringify(methodOptions));
+  const serializedCallback = callbackId != null ? platform.toDotNetString(callbackId) : null;
   const serializedArgs = platform.toDotNetString(JSON.stringify(packedArgs));
-  const serializedResult = platform.callMethod(method, null, [serializedOptions, serializedArgs]);
+  const serializedResult = platform.callMethod(method, null, [serializedOptions, serializedCallback, serializedArgs]);
 
   if (serializedResult !== null && serializedResult !== undefined && (serializedResult as any) !== 0) {
     const result = JSON.parse(platform.toJavaScriptString(serializedResult as System_String));
@@ -77,11 +68,11 @@ export function invokeDotNetMethod<T>(methodOptions: MethodOptions, ...args: any
   return null;
 }
 
+// We don't have to worry about overflows here. Number.MAX_SAFE_INTEGER in JS is 2^53-1
 let globalId = 0;
 
 export function invokeDotNetMethodAsync<T>(methodOptions: MethodOptions, ...args: any[]): Promise<T | null> {
   const callbackId = (globalId++).toString();
-  methodOptions.async = { callbackId: callbackId, functionName: "invokeJavaScriptCallback" };
 
   const result = new Promise<T | null>((resolve, reject) => {
     TrackedReference.track(callbackId, (invocationResult: InvocationResult) => {
@@ -95,12 +86,12 @@ export function invokeDotNetMethodAsync<T>(methodOptions: MethodOptions, ...args
     });
   });
 
-  invokeDotNetMethod(methodOptions, ...args);
+  invokeDotNetMethodCore(methodOptions, callbackId, ...args);
 
   return result;
 }
 
-export function invokeJavaScriptCallback(id: string, invocationResult: InvocationResult): void {
+export function invokePromiseCallback(id: string, invocationResult: InvocationResult): void {
   const callbackRef = TrackedReference.get(id);
   const callback = callbackRef.trackedObject as Function;
   callback.call(null, invocationResult);

@@ -13,32 +13,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
     /// </summary>
     public static class RegisteredFunction
     {
-        private static readonly MethodOptions TaskCallbackMethodOptions = new MethodOptions
-        {
-            Type = new TypeInstance
-            {
-                Assembly = typeof(TaskCallback).Assembly.FullName,
-                TypeName = typeof(TaskCallback).FullName
-            },
-            Method = new MethodInstance
-            {
-                Name = nameof(TaskCallback.InvokeTaskCallback),
-                ParameterTypes = new[]
-                {
-                    new TypeInstance
-                    {
-                        Assembly = typeof(string).Assembly.FullName,
-                        TypeName = typeof(string).FullName
-                    },
-                    new TypeInstance
-                    {
-                        Assembly = typeof(string).Assembly.FullName,
-                        TypeName = typeof(string).FullName
-                    }
-                }
-            }
-        };
-
         /// <summary>
         /// Invokes the JavaScript function registered with the specified identifier.
         /// Arguments and return values are marshalled via JSON serialization.
@@ -81,12 +55,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             var argsJson = args.Select(JsonUtil.Serialize);
             var callbackId = Guid.NewGuid().ToString();
 
-            var asyncProtocol = JsonUtil.Serialize(new DotNetAsync
-            {
-                CallbackId = callbackId,
-                FunctionName = TaskCallbackMethodOptions
-            });
-
             TrackedReference.Track(callbackId, new Action<string>(r =>
             {
                 var res = JsonUtil.Deserialize<InvocationResult<TRes>>(r);
@@ -102,7 +70,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
             var result = Invoke<TRes>(
                     "invokeWithJsonMarshallingAsync",
-                    new[] { identifier, asyncProtocol }.Concat(argsJson).ToArray());
+                    new[] { identifier, callbackId }.Concat(argsJson).ToArray());
 
             return tcs.Task;
         }

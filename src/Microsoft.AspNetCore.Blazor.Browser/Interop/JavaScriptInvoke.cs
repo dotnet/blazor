@@ -7,14 +7,16 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
     internal class JavaScriptInvoke
     {
-        public static string InvokeDotnetMethod(string methodOptions, string methodArguments)
+        private const string InvokePromiseCallback = "invokePromiseCallback";
+
+        public static string InvokeDotnetMethod(string methodOptions, string callbackId, string methodArguments)
         {
             // We invoke the dotnet method and wrap either the result or the exception produced by
             // an error into an invocation result type. This invocation result is just a discriminated
             // union with either success or failure.
             try
             {
-                return InvocationResult<object>.Success(InvokeDotNetMethodCore(methodOptions, methodArguments));
+                return InvocationResult<object>.Success(InvokeDotNetMethodCore(methodOptions, callbackId, methodArguments));
             }
             catch (Exception e)
             {
@@ -28,27 +30,27 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             }
         }
 
-        private static object InvokeDotNetMethodCore(string methodOptions, string methodArguments)
+        private static object InvokeDotNetMethodCore(string methodOptions, string callbackId, string methodArguments)
         {
             var options = JsonUtil.Deserialize<MethodOptions>(methodOptions);
             var argumentDeserializer = GetOrCreateArgumentDeserializer(options);
             var invoker = GetOrCreateInvoker(options, argumentDeserializer);
 
             var result = invoker(methodArguments);
-            if (options.Async != null && !(result is Task))
+            if (callbackId != null && !(result is Task))
             {
-                throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.TypeName}' must return a Task.");
+                throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.Name}' must return a Task.");
             }
 
-            if (result is Task && options.Async == null)
+            if (result is Task && callbackId == null)
             {
-                throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.TypeName}' must not return a Task.");
+                throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.Name}' must not return a Task.");
             }
 
             if (result is Task taskResult)
             {
                 // For async work, we just setup the callback on the returned task to invoke the appropiate callback in JavaScript.
-                SetupResultCallback(options, taskResult);
+                SetupResultCallback(options, callbackId, taskResult);
 
                 // We just return null here as the proper result will be returned through invoking a JavaScript callback when the
                 // task completes.
@@ -60,7 +62,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             }
         }
 
-        private static void SetupResultCallback(MethodOptions options, Task taskResult)
+        private static void SetupResultCallback(MethodOptions options, string callbackId, Task taskResult)
         {
             taskResult.ContinueWith(task =>
             {
@@ -69,8 +71,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                     if (task.GetType() == typeof(Task))
                     {
                         RegisteredFunction.Invoke<bool>(
-                            options.Async.FunctionName,
-                            options.Async.CallbackId,
+                            InvokePromiseCallback,
+                            callbackId,
                             new InvocationResult<object> { Succeeded = true, Result = null });
                     }
                     else
@@ -84,8 +86,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
                         var returnValue = resultProperty.GetValue(task);
                         RegisteredFunction.Invoke<bool>(
-                            options.Async.FunctionName,
-                            options.Async.CallbackId,
+                            InvokePromiseCallback,
+                            callbackId,
                             new InvocationResult<object> { Succeeded = true, Result = returnValue });
                     }
                 }
@@ -98,8 +100,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                     }
 
                     RegisteredFunction.Invoke<bool>(
-                        options.Async.FunctionName,
-                        options.Async.CallbackId,
+                        InvokePromiseCallback,
+                        callbackId,
                         new InvocationResult<object> { Succeeded = false, Message = exception.Message });
                 }
             });

@@ -10,12 +10,12 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         }
 
         public string Assembly { get; set; }
-        public string TypeName { get; set; }
+        public string Name { get; set; }
         public IDictionary<string, TypeInstance> TypeArguments { get; set; }
 
         internal Type GetTypeOrThrow()
         {
-            return Type.GetType($"{TypeName}, {Assembly}", throwOnError: true);
+            return Type.GetType($"{Name}, {Assembly}", throwOnError: true);
         }
     }
 }
