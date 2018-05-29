@@ -1,9 +1,8 @@
 import { platform } from '../Environment';
 import { System_String } from '../Platform/Platform';
 import { getRegisteredFunction } from './RegisteredFunction';
-import { invokeDotNetMethod } from './DotNetInvoker';
+import { invokeDotNetMethod, MethodOptions, AsyncOptions, DotNetAsyncOptions, InvocationResult } from './InvokeDotNetMethodWithJsonMarshalling';
 import { getElementByCaptureId } from '../Rendering/ElementReferenceCapture';
-import { MethodOptions, AsyncOptions, DotNetAsyncOptions, InvocationResult } from './MethodOptions'
 import { System } from 'typescript';
 import { error } from 'util';
 

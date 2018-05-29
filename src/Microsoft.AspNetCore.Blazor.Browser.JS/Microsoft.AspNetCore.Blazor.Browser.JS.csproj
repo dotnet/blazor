@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebpackInputs Remove="src\Interop\DotNetInvoker.ts" />
-    <WebpackInputs Remove="src\Interop\MethodOptions.ts" />
+    <WebpackInputs Remove="src\Interop\InvokeDotNetMethodWithJsonMarshalling.ts" />
+    <WebpackInputs Remove="src\Interop\InvokeJavaScriptFunctionWithJsonMarshalling.ts" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\ReferenceFromSource.props" />

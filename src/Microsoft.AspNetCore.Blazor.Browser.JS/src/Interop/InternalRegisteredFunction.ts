@@ -1,6 +1,8 @@
-﻿import { invokeWithJsonMarshalling, invokeWithJsonMarshallingAsync } from './InvokeWithJsonMarshalling';
-import { invokeJavaScriptCallback } from './DotNetInvoker';
+import { invokeWithJsonMarshalling, invokeWithJsonMarshallingAsync } from './InvokeJavaScriptFunctionWithJsonMarshalling';
+import { invokeJavaScriptCallback, InvocationResult } from './InvokeDotNetMethodWithJsonMarshalling';
 import { attachRootComponentToElement, renderBatch } from '../Rendering/Renderer';
+import { System_String } from '../Platform/Platform';
+import { RenderBatchPointer } from '../Rendering/RenderBatch';
 
 /**
  * The definitive list of internal functions invokable from .NET code.

@@ -2,50 +2,25 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-
+    <BlazorTypings>true</BlazorTypings>
     <!-- Local alternative to <RunArguments>blazor serve</RunArguments> -->
     <RunCommand>dotnet</RunCommand>
     <RunArguments>run --project ../../../src/Microsoft.AspNetCore.Blazor.Cli serve --pathbase /subdir</RunArguments>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->
   <Import Project="..\..\..\src\Microsoft.AspNetCore.Blazor.Build\ReferenceFromSource.props" />
   <ItemGroup>
-    <BlazorGenerate Remove="InteropTest\InteropComponent.cshtml" />
+    <Content Remove="wwwroot\js\index.js" />
   </ItemGroup>
   <ItemGroup>
-    <Content Remove="wwwroot\js\interopTests.ts" />
+    <None Include="wwwroot\js\index.js" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Blazor.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
     <ProjectReference Include="..\TestContentPackage\TestContentPackage.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="wwwroot\js\interopTests.ts" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="InteropComponent.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-  </ItemGroup>
-  <PropertyGroup>
-    <TypeScriptTarget>ES5</TypeScriptTarget>
-    <TypeScriptDownlevelIteration>True</TypeScriptDownlevelIteration>
-    <TypeScriptLib>es2015,dom</TypeScriptLib>
-    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
-    <TypeScriptModuleKind>None</TypeScriptModuleKind>
-    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
-    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
-    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
-    <TypeScriptOutFile />
-    <TypeScriptOutDir />
-    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
-    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
-    <TypeScriptSourceMap>True</TypeScriptSourceMap>
-    <TypeScriptMapRoot />
-    <TypeScriptSourceRoot />
-  </PropertyGroup>
-  
-</Project>
+ </Project>
