@@ -2,25 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <BlazorTypings>true</BlazorTypings>
+
     <!-- Local alternative to <RunArguments>blazor serve</RunArguments> -->
     <RunCommand>dotnet</RunCommand>
     <RunArguments>run --project ../../../src/Microsoft.AspNetCore.Blazor.Cli serve --pathbase /subdir</RunArguments>
-    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
-    <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->
   <Import Project="..\..\..\src\Microsoft.AspNetCore.Blazor.Build\ReferenceFromSource.props" />
   <ItemGroup>
-    <Content Remove="wwwroot\js\index.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="wwwroot\js\index.js" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Blazor.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
     <ProjectReference Include="..\TestContentPackage\TestContentPackage.csproj" />
   </ItemGroup>
- </Project>
+  
+</Project>
