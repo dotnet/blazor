@@ -41,10 +41,10 @@ function resolveRegistration(methodOptions: MethodOptions) {
     return existing;
   } else {
     const method = platform.findMethod(
-      "Microsoft.AspNetCore.Blazor.Browser",
-      "Microsoft.AspNetCore.Blazor.Browser.Interop",
-      "JavaScriptInvoke",
-      "FindDotNetMethod");
+      'Microsoft.AspNetCore.Blazor.Browser',
+      'Microsoft.AspNetCore.Blazor.Browser.Interop',
+      'JavaScriptInvoke',
+      'FindDotNetMethod');
 
     const serializedOptions = platform.toDotNetString(JSON.stringify(methodOptions));
     const result = platform.callMethod(method, null, [serializedOptions]);
@@ -71,12 +71,12 @@ function resolveRegistration(methodOptions: MethodOptions) {
 
 function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: string | null, ...args: any[]): (T | null) {
   const method = platform.findMethod(
-    "Microsoft.AspNetCore.Blazor.Browser",
-    "Microsoft.AspNetCore.Blazor.Browser.Interop",
-    "JavaScriptInvoke",
-    "InvokeDotNetMethod");
+    'Microsoft.AspNetCore.Blazor.Browser',
+    'Microsoft.AspNetCore.Blazor.Browser.Interop',
+    'JavaScriptInvoke',
+    'InvokeDotNetMethod');
 
-  var registration = resolveRegistration(methodOptions);
+  const registration = resolveRegistration(methodOptions);
 
   const packedArgs = packArguments(args);
 
@@ -121,13 +121,12 @@ export function invokeDotNetMethodAsync<T>(methodOptions: MethodOptions, ...args
 }
 
 export function invokePromiseCallback(id: string, invocationResult: InvocationResult): void {
-  const callbackRef = TrackedReference.get(id);
-  const callback = callbackRef.trackedObject as Function;
+  const callback = TrackedReference.get(id) as Function;
   callback.call(null, invocationResult);
 }
 
 function packArguments(args: any[]) {
-  var result = {};
+  const result = {};
   if (args.length == 0) {
     return result;
   }
@@ -146,37 +145,39 @@ function packArguments(args: any[]) {
   return result;
 }
 
-class TrackedReference {
-  private static references: Map<string, any> = new Map<string, any>();
+interface TrackMap {
+  [key: string] : any
+}
 
-  private constructor(public id: string, public trackedObject: any) {
-  }
+class TrackedReference {
+  private static references: TrackMap = {};
 
   public static track(id: string, trackedObject: any): void {
-    const ref = new TrackedReference(id, trackedObject);
     const refs = TrackedReference.references;
-    if (refs.has(id)) {
+    if (refs[id] !== undefined) {
       throw new Error(`An element with id '${id}' is already being tracked.`);
     }
 
-    refs.set(id, ref);
+    refs[id] = trackedObject;
   }
 
   public static untrack(id: string): void {
     const refs = TrackedReference.references;
-    if (!refs.has(id)) {
+    const result = refs[id];
+    if (result === undefined) {
       throw new Error(`An element with id '${id}' is not being being tracked.`);
     }
 
-    refs.delete(id);
+    refs[id] = undefined;
   }
 
-  public static get(id: string): TrackedReference {
+  public static get(id: string): any {
     const refs = TrackedReference.references;
-    if (!refs.has(id)) {
+    const result = refs[id];
+    if (result === undefined) {
       throw new Error(`An element with id '${id}' is not being being tracked.`);
     }
 
-    return refs.get(id);
+    return result;
   }
 }

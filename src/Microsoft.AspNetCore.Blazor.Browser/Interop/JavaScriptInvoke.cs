@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
             if (!(registeredFunction is Func<string, object> invoker))
             {
-                throw new InvalidOperationException($"Produced invoker has the wrong signature!");
+                throw new InvalidOperationException($"The registered invoker has the wrong signature.");
             }
 
             var result = invoker(methodArguments);
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 else
                 {
                     Exception exception = task.Exception;
-                    while (exception.InnerException != null)
+                    while (exception is AggregateException || exception.InnerException is TargetInvocationException)
                     {
                         exception = exception.InnerException;
                     }
@@ -159,9 +159,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             var info = options.GetMethodOrThrow();
             var argsClass = ArgumentList.GetArgumentClass(info.GetParameters().Select(p => p.ParameterType).ToArray());
             var deserializeMethod = ArgumentList.GetDeserializer(argsClass);
-            var toParameterListMethod = argsClass.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => string.Equals(nameof(ArgumentList.ToParameterList), m.Name))
-                .Single();
 
             return Deserialize;
 

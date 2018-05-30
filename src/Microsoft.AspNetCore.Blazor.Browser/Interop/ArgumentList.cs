@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -9,15 +10,31 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         private const BindingFlags DeserializeFlags = BindingFlags.Static | BindingFlags.NonPublic;
 
         public static ArgumentList Instance { get; } = new ArgumentList();
+        private static IDictionary<Type, Func<string, ArgumentList>> _deserializers = new Dictionary<Type, Func<string, ArgumentList>>();
 
         public static Type GetArgumentClass(Type[] arguments)
         {
-            if (arguments.Length == 0)
+            switch (arguments.Length)
             {
-                return typeof(ArgumentList);
+                case 0:
+                    return typeof(ArgumentList);
+                case 1:
+                    return typeof(ArgumentList<>).MakeGenericType(arguments);
+                case 2:
+                    return typeof(ArgumentList<,>).MakeGenericType(arguments);
+                case 3:
+                    return typeof(ArgumentList<,,>).MakeGenericType(arguments);
+                case 4:
+                    return typeof(ArgumentList<,,,>).MakeGenericType(arguments);
+                case 5:
+                    return typeof(ArgumentList<,,,,>).MakeGenericType(arguments);
+                case 6:
+                    return typeof(ArgumentList<,,,,,>).MakeGenericType(arguments);
+                case 7:
+                    return typeof(ArgumentList<,,,,,,>).MakeGenericType(arguments);
+                default:
+                    return GetArgumentsClassCore(arguments, 0);
             }
-
-            return GetArgumentsClassCore(arguments, 0);
 
             Type GetArgumentsClassCore(Type[] args, int position)
             {
@@ -70,37 +87,55 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
         public static Func<string, ArgumentList> GetDeserializer(Type deserializedType)
         {
+            if (_deserializers.TryGetValue(deserializedType, out var deserializer))
+            {
+                return deserializer;
+            }
+
             switch (deserializedType.GetGenericArguments().Length)
             {
                 case 0:
-                    return JsonDeserialize;
+                    deserializer = JsonDeserialize;
+                    break;
                 case 1:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize1", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize1", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 case 2:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize2", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize2", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 case 3:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize3", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize3", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 case 4:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize4", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize4", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 case 5:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize5", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize5", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 case 6:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize6", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize6", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 case 7:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize7", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize7", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 case 8:
-                    return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize8", DeserializeFlags)
+                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize8", DeserializeFlags)
                         .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    break;
                 default:
                     throw new InvalidOperationException("Shouldn't have gotten here!");
             }
+
+            _deserializers[deserializedType] = deserializer;
+
+            return deserializer;
         }
 
         public static ArgumentList JsonDeserialize(string item) => Instance;

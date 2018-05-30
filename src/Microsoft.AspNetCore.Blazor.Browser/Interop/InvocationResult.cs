@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
     internal class InvocationResult<TRes>
     {
-        // Wether the method call succeeded or threw an exception.
+        // Whether the method call succeeded or threw an exception.
         public bool Succeeded { get; set; }
 
         // The result of the method call if any.
