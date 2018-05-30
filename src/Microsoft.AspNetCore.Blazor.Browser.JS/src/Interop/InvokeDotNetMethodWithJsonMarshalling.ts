@@ -1,5 +1,5 @@
 import { platform } from '../Environment';
-import { System_String } from '../Platform/Platform';
+import { System_String, Pointer } from '../Platform/Platform';
 import { getRegisteredFunction } from './RegisteredFunction';
 import { error } from 'util';
 
@@ -27,34 +27,63 @@ export interface TypeInstance {
   typeArguments?: { [key: string]: TypeInstance };
 }
 
-export interface DotnetMethodArgumentsList {
-  argument1?: any;
-  argument2?: any;
-  argument3?: any;
-  argument4?: any;
-  argument5?: any;
-  argument6?: any;
-  argument7?: any;
-  argument8?: any;
-}
-
 export function invokeDotNetMethod<T>(methodOptions: MethodOptions, ...args: any[]): (T | null) {
   return invokeDotNetMethodCore(methodOptions, null, ...args);
 }
 
-function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: string|null, ...args: any[]): (T | null) {
+let registrations = {};
+
+function resolveRegistration(methodOptions: MethodOptions) {
+  let existing = registrations[methodOptions.type.assembly];
+  existing = existing && registrations[methodOptions.type.name];
+  existing = existing && registrations[methodOptions.method.name];
+  if (existing !== undefined) {
+    return existing;
+  } else {
+    const method = platform.findMethod(
+      "Microsoft.AspNetCore.Blazor.Browser",
+      "Microsoft.AspNetCore.Blazor.Browser.Interop",
+      "JavaScriptInvoke",
+      "FindDotNetMethod");
+
+    const serializedOptions = platform.toDotNetString(JSON.stringify(methodOptions));
+    const result = platform.callMethod(method, null, [serializedOptions]);
+    const registration = platform.toJavaScriptString(result as System_String);
+
+    if (registrations[methodOptions.type.assembly] === undefined) {
+      let assembly = {};
+      let type = {};
+      registrations[methodOptions.type.assembly] = assembly;
+      assembly[methodOptions.type.name] = type;
+      type[methodOptions.method.name] = registration;
+    } else if (registrations[methodOptions.type.assembly][methodOptions.type.assembly] === undefined) {
+      let type = {};
+      registrations[methodOptions.type.assembly][methodOptions.type.name] = type;
+      type[methodOptions.type.name] = type;
+      type[methodOptions.method.name] = registration;
+    } else {
+      registrations[methodOptions.type.assembly][methodOptions.type.name][methodOptions.method.name] = registration;
+    }
+
+    return registration;
+  }
+}
+
+function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: string | null, ...args: any[]): (T | null) {
   const method = platform.findMethod(
     "Microsoft.AspNetCore.Blazor.Browser",
     "Microsoft.AspNetCore.Blazor.Browser.Interop",
     "JavaScriptInvoke",
-    "InvokeDotnetMethod");
+    "InvokeDotNetMethod");
+
+  var registration = resolveRegistration(methodOptions);
 
   const packedArgs = packArguments(args);
 
-  const serializedOptions = platform.toDotNetString(JSON.stringify(methodOptions));
   const serializedCallback = callbackId != null ? platform.toDotNetString(callbackId) : null;
   const serializedArgs = platform.toDotNetString(JSON.stringify(packedArgs));
-  const serializedResult = platform.callMethod(method, null, [serializedOptions, serializedCallback, serializedArgs]);
+  const serializedRegistration = platform.toDotNetString(registration);
+  const serializedResult = platform.callMethod(method, null, [serializedRegistration, serializedCallback, serializedArgs]);
 
   if (serializedResult !== null && serializedResult !== undefined && (serializedResult as any) !== 0) {
     const result = JSON.parse(platform.toJavaScriptString(serializedResult as System_String));
@@ -97,7 +126,7 @@ export function invokePromiseCallback(id: string, invocationResult: InvocationRe
   callback.call(null, invocationResult);
 }
 
-function packArguments(args: any[]): DotnetMethodArgumentsList {
+function packArguments(args: any[]) {
   var result = {};
   if (args.length == 0) {
     return result;
