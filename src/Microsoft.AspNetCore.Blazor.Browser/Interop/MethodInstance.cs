@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 return result[0];
             }
 
-            result = result.Where(r => r.GetParameters().Length == ParameterTypes.Length).ToArray();
+            result = result.Where(r => r.GetParameters().Length == (ParameterTypes?.Length ?? 0)).ToArray();
 
             if (result.Length == 1)
             {

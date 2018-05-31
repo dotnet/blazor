@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                         },
                         Method = new MethodInstance
                         {
-                            Name = nameof(methodName)
+                            Name = methodName
                         }
                     };
             }
