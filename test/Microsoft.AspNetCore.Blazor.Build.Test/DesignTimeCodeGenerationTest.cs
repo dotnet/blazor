@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
@@ -211,6 +211,35 @@ namespace Test
         }
 
         [Fact]
+        public void ChildComponent_WithElementOnlyChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent><child>hello</child></MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void EventHandler_OnElement_WithString()
         {
             // Arrange
@@ -368,6 +397,43 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void Regression_609()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class User : BlazorComponent
+    {
+        public string Name { get; set; }
+        public Action<string> NameChanged { get; set; }
+        public bool IsActive { get; set; }
+        public Action<bool> IsActiveChanged { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<User bind-Name=""@UserName"" bind-IsActive=""@UserIsActive"" />
+
+@functions {
+    public string UserName { get; set; }
+    public bool UserIsActive { get; set; }
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         [Fact] // https://github.com/aspnet/Blazor/issues/772
         public void Regression_772()
         {
@@ -433,6 +499,29 @@ namespace Test
 Welcome to your new app.
 
 <SurveyPrompt Title=""<div>Test!</div>"" />
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Regression_784()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+<p onmouseover=""@OnComponentHover"" style=""background: @ParentBgColor;"" />
+@functions {
+    public string ParentBgColor { get; set; } = ""#FFFFFF"";
+
+    public void OnComponentHover(UIMouseEventArgs e)
+    {
+    }
+}
 ");
 
             // Assert

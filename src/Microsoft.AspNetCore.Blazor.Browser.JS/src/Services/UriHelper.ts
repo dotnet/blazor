@@ -1,4 +1,4 @@
-﻿import { registerFunction } from '../Interop/RegisteredFunction';
+import { registerFunction } from '../Interop/RegisteredFunction';
 import { platform } from '../Environment';
 import { MethodHandle, System_String } from '../Platform/Platform';
 const registeredFunctionPrefix = 'Microsoft.AspNetCore.Blazor.Browser.Services.BrowserUriHelper';
@@ -24,10 +24,10 @@ registerFunction(`${registeredFunctionPrefix}.enableNavigationInterception`, () 
       const href = anchorTarget.getAttribute('href');
       //if the user wants to user some specific browser/OS feature, we dont handle it and let the browser/OS 
       const anyChangeBehaviorKeyHold = event.ctrlKey || event.shiftKey || event.altKey || event.metaKey;
-      if (isWithinBaseUriSpace(toAbsoluteUri(href)) && !anyChangeBehaviorKeyHold) 
-      {
+      const absoluteHref = toAbsoluteUri(href);
+      if (isWithinBaseUriSpace(absoluteHref) && !anyChangeBehaviorKeyHold) {
         event.preventDefault();
-        performInternalNavigation(href);
+        performInternalNavigation(absoluteHref);
       }
     }
   });
@@ -40,15 +40,16 @@ registerFunction(`${registeredFunctionPrefix}.navigateTo`, (uriDotNetString: Sys
 });
 
 export function navigateTo(uri: string) {
-  if (isWithinBaseUriSpace(toAbsoluteUri(uri))) {
-    performInternalNavigation(uri);
+  const absoluteUri = toAbsoluteUri(uri);
+  if (isWithinBaseUriSpace(absoluteUri)) {
+    performInternalNavigation(absoluteUri);
   } else {
     location.href = uri;
   }
 }
 
-function performInternalNavigation(href: string) {
-  history.pushState(null, /* ignored title */ '', href);
+function performInternalNavigation(absoluteInternalHref: string) {
+  history.pushState(null, /* ignored title */ '', absoluteInternalHref);
   handleInternalNavigation();
 }
 
@@ -83,10 +84,10 @@ function findClosestAncestor(element: Element | null, tagName: string) {
 }
 
 function isWithinBaseUriSpace(href: string) {
-  const baseUriPrefixWithTrailingSlash = toBaseUriPrefixWithTrailingSlash(document.baseURI!); // TODO: Might baseURI really be null?
-  return href.startsWith(baseUriPrefixWithTrailingSlash);
+  const baseUriWithTrailingSlash = toBaseUriWithTrailingSlash(document.baseURI!); // TODO: Might baseURI really be null?
+  return href.startsWith(baseUriWithTrailingSlash);
 }
 
-function toBaseUriPrefixWithTrailingSlash(baseUri: string) {
+function toBaseUriWithTrailingSlash(baseUri: string) {
   return baseUri.substr(0, baseUri.lastIndexOf('/') + 1);
 }

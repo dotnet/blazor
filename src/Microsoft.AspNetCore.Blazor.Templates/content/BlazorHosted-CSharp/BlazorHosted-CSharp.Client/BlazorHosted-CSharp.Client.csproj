@@ -3,15 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <RestoreSources Condition="'$(IncludeCustomRestoreSourcesSymbol)'=='true'">
-      $(RestoreSources);
-      https://api.nuget.org/v3/index.json;
+    <RestoreAdditionalProjectSources Condition="'$(IncludeCustomRestoreSourcesSymbol)'=='true'">
       https://dotnet.myget.org/f/blazor-dev/api/v3/index.json;
-    </RestoreSources>
+    </RestoreAdditionalProjectSources>
     <LangVersion>7.3</LangVersion>
-
-    <!-- Temporary workaround for a VS build issue -->
-    <BlazorRebuildOnFileChange>false</BlazorRebuildOnFileChange>
   </PropertyGroup>
 
   <ItemGroup>
