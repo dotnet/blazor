@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure;
 using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -102,7 +103,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                     .Click(button)
                     .Build()
                     .Perform();
-
+                new WebDriverWait(Browser, TimeSpan.FromSeconds(5)).Until((b) => b.WindowHandles.Count == 2);
                 Assert.Equal(2, Browser.WindowHandles.Count);
 
                 //closing newly opened windows if a new one was opened
