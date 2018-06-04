@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var key = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? Keys.Meta : Keys.Control;
             try
             {
-                SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
+                SetUrlViaPushState($"{ServerPathBase}/");
 
                 var app = MountTestComponent<TestRouter>();
                 var button = app.FindElement(By.LinkText("Other"));
@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         [Fact]
         public void CanFollowLinkToOtherPageDoesNotOpenNewWindow()
         {
-            SetUrlViaPushState($"{ServerPathBase}/RouterTest/");
+            SetUrlViaPushState($"{ServerPathBase}/");
 
             var app = MountTestComponent<TestRouter>();
             
