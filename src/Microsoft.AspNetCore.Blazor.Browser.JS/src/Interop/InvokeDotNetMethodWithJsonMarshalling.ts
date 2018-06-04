@@ -4,8 +4,8 @@ import { getRegisteredFunction } from './RegisteredFunction';
 import { error } from 'util';
 
 export interface MethodOptions {
-  type: TypeInstance;
-  method: MethodInstance;
+  type: TypeIdentifier;
+  method: MethodIdentifier;
 }
 
 // Keep in sync with InvocationResult.cs
@@ -15,16 +15,16 @@ export interface InvocationResult {
   message?: string;
 }
 
-export interface MethodInstance {
+export interface MethodIdentifier {
   name: string;
-  typeArguments?: { [key: string]: TypeInstance }
-  parameterTypes?: TypeInstance[];
+  typeArguments?: { [key: string]: TypeIdentifier }
+  parameterTypes?: TypeIdentifier[];
 }
 
-export interface TypeInstance {
+export interface TypeIdentifier {
   assembly: string;
   name: string;
-  typeArguments?: { [key: string]: TypeInstance };
+  typeArguments?: { [key: string]: TypeIdentifier };
 }
 
 export function invokeDotNetMethod<T>(methodOptions: MethodOptions, ...args: any[]): (T | null) {
