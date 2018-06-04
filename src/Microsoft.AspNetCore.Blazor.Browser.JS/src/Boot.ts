@@ -36,7 +36,6 @@ async function boot() {
 
   // Start up the application
   platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
-
 }
 
 function getRequiredBootScriptAttribute(elem: HTMLScriptElement, attributeName: string): string {

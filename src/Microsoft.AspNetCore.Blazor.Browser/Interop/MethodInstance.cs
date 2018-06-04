@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,22 +8,19 @@ using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
-    internal class MethodInstance
+    internal class MethodIdentifier
     {
-        public MethodInstance()
-        {
-        }
-
         public string Name { get; set; }
+
         /// <summary>
         /// Required if the method is generic.
         /// </summary>
-        public IDictionary<string, TypeInstance> TypeArguments { get; set; }
+        public IDictionary<string, TypeIdentifier> TypeArguments { get; set; }
 
         /// <summary>
         /// Required if the method has overloads.
         /// </summary>
-        public TypeInstance[] ParameterTypes { get; set; }
+        public TypeIdentifier[] ParameterTypes { get; set; }
 
         internal MethodInfo GetMethodOrThrow(Type type)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
             if (result.Length == 0)
             {
-                throw new InvalidOperationException($"Couldn't found a method with name '{Name}' in '{type.FullName}'.");
+                throw new InvalidOperationException($"Couldn't find a method with name '{Name}' in '{type.FullName}'.");
             }
             else
             {

@@ -1,5 +1,8 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 
@@ -10,7 +13,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         private const BindingFlags DeserializeFlags = BindingFlags.Static | BindingFlags.NonPublic;
 
         public static ArgumentList Instance { get; } = new ArgumentList();
-        private static IDictionary<Type, Func<string, ArgumentList>> _deserializers = new Dictionary<Type, Func<string, ArgumentList>>();
+        private static ConcurrentDictionary<Type, Func<string, ArgumentList>> _deserializers = new ConcurrentDictionary<Type, Func<string, ArgumentList>>();
 
         public static Type GetArgumentClass(Type[] arguments)
         {
@@ -87,60 +90,47 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
         public static Func<string, ArgumentList> GetDeserializer(Type deserializedType)
         {
-            if (_deserializers.TryGetValue(deserializedType, out var deserializer))
+            return _deserializers.GetOrAdd(deserializedType, DeserializerFactory);
+
+            Func<string, ArgumentList> DeserializerFactory(Type type)
             {
-                return deserializer;
+                switch (deserializedType.GetGenericArguments().Length)
+                {
+                    case 0:
+                        return JsonDeserialize;
+                    case 1:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize1", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    case 2:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize2", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    case 3:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize3", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    case 4:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize4", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    case 5:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize5", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    case 6:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize6", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    case 7:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize7", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    case 8:
+                        return (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize8", DeserializeFlags)
+                           .CreateDelegate(typeof(Func<string, ArgumentList>));
+                    default:
+                        throw new InvalidOperationException("Shouldn't have gotten here!");
+                }
             }
-
-            switch (deserializedType.GetGenericArguments().Length)
-            {
-                case 0:
-                    deserializer = JsonDeserialize;
-                    break;
-                case 1:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize1", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                case 2:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize2", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                case 3:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize3", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                case 4:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize4", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                case 5:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize5", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                case 6:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize6", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                case 7:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize7", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                case 8:
-                    deserializer = (Func<string, ArgumentList>)deserializedType.GetMethod("JsonDeserialize8", DeserializeFlags)
-                        .CreateDelegate(typeof(Func<string, ArgumentList>));
-                    break;
-                default:
-                    throw new InvalidOperationException("Shouldn't have gotten here!");
-            }
-
-            _deserializers[deserializedType] = deserializer;
-
-            return deserializer;
         }
 
         public static ArgumentList JsonDeserialize(string item) => Instance;
 
-        public virtual object[] ToParameterList() => Array.Empty<object>();
+        public virtual object[] ToArray() => Array.Empty<object>();
     }
 
     internal class ArgumentList<T1> : ArgumentList
@@ -150,7 +140,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1> JsonDeserialize1(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1>>(item);
 
-        public override object[] ToParameterList() => new object[] { Argument1 };
+        public override object[] ToArray() => new object[] { Argument1 };
     }
 
     internal class ArgumentList<T1, T2> : ArgumentList
@@ -161,7 +151,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1, T2> JsonDeserialize2(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1, T2>>(item);
 
-        public override object[] ToParameterList() => new object[] { Argument1, Argument2 };
+        public override object[] ToArray() => new object[] { Argument1, Argument2 };
     }
 
     internal class ArgumentList<T1, T2, T3> : ArgumentList
@@ -173,7 +163,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1, T2, T3> JsonDeserialize3(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1, T2, T3>>(item);
 
-        public override object[] ToParameterList() => new object[] { Argument1, Argument2, Argument3 };
+        public override object[] ToArray() => new object[] { Argument1, Argument2, Argument3 };
     }
 
     internal class ArgumentList<T1, T2, T3, T4> : ArgumentList
@@ -186,7 +176,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1, T2, T3, T4> JsonDeserialize4(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1, T2, T3, T4>>(item);
 
-        public override object[] ToParameterList() => new object[] { Argument1, Argument2, Argument3, Argument4 };
+        public override object[] ToArray() => new object[] { Argument1, Argument2, Argument3, Argument4 };
     }
 
     internal class ArgumentList<T1, T2, T3, T4, T5> : ArgumentList
@@ -200,7 +190,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1, T2, T3, T4, T5> JsonDeserialize5(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1, T2, T3, T4, T5>>(item);
 
-        public override object[] ToParameterList() => new object[] { Argument1, Argument2, Argument3, Argument4, Argument5 };
+        public override object[] ToArray() => new object[] { Argument1, Argument2, Argument3, Argument4, Argument5 };
     }
 
     internal class ArgumentList<T1, T2, T3, T4, T5, T6> : ArgumentList
@@ -215,7 +205,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1, T2, T3, T4, T5, T6> JsonDeserialize6(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1, T2, T3, T4, T5, T6>>(item);
 
-        public override object[] ToParameterList() => new object[] { Argument1, Argument2, Argument3, Argument4, Argument5, Argument6 };
+        public override object[] ToArray() => new object[] { Argument1, Argument2, Argument3, Argument4, Argument5, Argument6 };
     }
 
     internal class ArgumentList<T1, T2, T3, T4, T5, T6, T7> : ArgumentList
@@ -231,7 +221,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1, T2, T3, T4, T5, T6, T7> JsonDeserialize7(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1, T2, T3, T4, T5, T6, T7>>(item);
 
-        public override object[] ToParameterList() => new object[] { Argument1, Argument2, Argument3, Argument4, Argument5, Argument6, Argument7 };
+        public override object[] ToArray() => new object[] { Argument1, Argument2, Argument3, Argument4, Argument5, Argument6, Argument7 };
     }
 
     internal class ArgumentList<T1, T2, T3, T4, T5, T6, T7, T8> : ArgumentList
@@ -248,7 +238,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         internal static ArgumentList<T1, T2, T3, T4, T5, T6, T7, T8> JsonDeserialize8(string item) =>
             JsonUtil.Deserialize<ArgumentList<T1, T2, T3, T4, T5, T6, T7, T8>>(item);
 
-        public override object[] ToParameterList()
+        public override object[] ToArray()
         {
             if (Argument8 == null)
             {
@@ -264,7 +254,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 throw new InvalidOperationException("Argument 8 must contain an inner parameter!");
             }
 
-            return new object[] { Argument1, Argument2, Argument3, Argument4, Argument5, Argument6, Argument7 }.Concat(rest.ToParameterList()).ToArray();
+            return new object[] { Argument1, Argument2, Argument3, Argument4, Argument5, Argument6, Argument7 }.Concat(rest.ToArray()).ToArray();
         }
     }
 }

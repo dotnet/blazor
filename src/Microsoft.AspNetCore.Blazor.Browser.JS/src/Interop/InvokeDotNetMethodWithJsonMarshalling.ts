@@ -31,38 +31,37 @@ export function invokeDotNetMethod<T>(methodOptions: MethodOptions, ...args: any
   return invokeDotNetMethodCore(methodOptions, null, ...args);
 }
 
-let registrations = {};
+const registrations = {};
 
 function resolveRegistration(methodOptions: MethodOptions) {
-  let existing = registrations[methodOptions.type.assembly];
-  existing = existing && registrations[methodOptions.type.name];
-  existing = existing && registrations[methodOptions.method.name];
-  if (existing !== undefined) {
-    return existing;
+  const assemblyEntry = registrations[methodOptions.type.assembly];
+  const typeEntry = assemblyEntry && assemblyEntry[methodOptions.type.name];
+  const registration = typeEntry && typeEntry[methodOptions.method.name];
+  if (registration !== undefined) {
+    return registration;
   } else {
     const method = platform.findMethod(
       'Microsoft.AspNetCore.Blazor.Browser',
       'Microsoft.AspNetCore.Blazor.Browser.Interop',
-      'JavaScriptInvoke',
+      'InvokeDotNetFromJavaScript',
       'FindDotNetMethod');
 
     const serializedOptions = platform.toDotNetString(JSON.stringify(methodOptions));
     const result = platform.callMethod(method, null, [serializedOptions]);
     const registration = platform.toJavaScriptString(result as System_String);
 
-    if (registrations[methodOptions.type.assembly] === undefined) {
-      let assembly = {};
-      let type = {};
+    if (assemblyEntry === undefined) {
+      const assembly = {};
+      const type = {};
       registrations[methodOptions.type.assembly] = assembly;
       assembly[methodOptions.type.name] = type;
       type[methodOptions.method.name] = registration;
-    } else if (registrations[methodOptions.type.assembly][methodOptions.type.assembly] === undefined) {
-      let type = {};
-      registrations[methodOptions.type.assembly][methodOptions.type.name] = type;
-      type[methodOptions.type.name] = type;
+    } else if (typeEntry === undefined) {
+      const type = {};
+      assemblyEntry[methodOptions.type.name] = type;
       type[methodOptions.method.name] = registration;
     } else {
-      registrations[methodOptions.type.assembly][methodOptions.type.name][methodOptions.method.name] = registration;
+      typeEntry[methodOptions.method.name] = registration;
     }
 
     return registration;
@@ -73,7 +72,7 @@ function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: str
   const method = platform.findMethod(
     'Microsoft.AspNetCore.Blazor.Browser',
     'Microsoft.AspNetCore.Blazor.Browser.Interop',
-    'JavaScriptInvoke',
+    'InvokeDotNetFromJavaScript',
     'InvokeDotNetMethod');
 
   const registration = resolveRegistration(methodOptions);
@@ -85,16 +84,12 @@ function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: str
   const serializedRegistration = platform.toDotNetString(registration);
   const serializedResult = platform.callMethod(method, null, [serializedRegistration, serializedCallback, serializedArgs]);
 
-  if (serializedResult !== null && serializedResult !== undefined && (serializedResult as any) !== 0) {
-    const result = JSON.parse(platform.toJavaScriptString(serializedResult as System_String));
-    if (result.succeeded) {
-      return result.result;
-    } else {
-      throw new Error(result.message);
-    }
+  const result = JSON.parse(platform.toJavaScriptString(serializedResult as System_String));
+  if (result.succeeded) {
+    return result.result;
+  } else {
+    throw new Error(result.message);
   }
-
-  return null;
 }
 
 // We don't have to worry about overflows here. Number.MAX_SAFE_INTEGER in JS is 2^53-1
@@ -145,12 +140,8 @@ function packArguments(args: any[]) {
   return result;
 }
 
-interface TrackMap {
-  [key: string] : any
-}
-
 class TrackedReference {
-  private static references: TrackMap = {};
+  private static references: { [key: string]: any } = {};
 
   public static track(id: string, trackedObject: any): void {
     const refs = TrackedReference.references;

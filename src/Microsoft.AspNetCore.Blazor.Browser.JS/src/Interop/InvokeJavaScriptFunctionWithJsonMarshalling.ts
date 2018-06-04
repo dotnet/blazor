@@ -16,7 +16,7 @@ export function invokeWithJsonMarshalling(identifier: System_String, ...argsJson
   try {
     result = { succeeded: true, result: invokeWithJsonMarshallingCore(identifierJsString, ...args) };
   } catch (e) {
-    result = { succeeded: false, message: e.message };
+    result = { succeeded: false, message: e instanceof Error ? `${e.message}\n${e.stack}` : (e ? e.toString() : null) };
   }
 
   const resultJson = JSON.stringify(result);

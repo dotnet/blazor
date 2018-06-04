@@ -1,31 +1,24 @@
-﻿using System;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
-    internal class TrackedReference
+    internal static class TaskCallbacks
     {
-        private TrackedReference(string id, object reference)
+        private static IDictionary<string, Action<string>> References { get; } =
+            new Dictionary<string, Action<string>>();
+
+        public static void Track(string id, Action<string> reference)
         {
-            Id = id;
-            TrackedInstance = reference;
-        }
-        private static IDictionary<string, TrackedReference> References { get; } =
-            new Dictionary<string, TrackedReference>();
-
-        public string Id { get; }
-
-        public object TrackedInstance { get; }
-
-        public static void Track(string id, object reference)
-        {
-            var trackedRef = new TrackedReference(id, reference);
             if (References.ContainsKey(id))
             {
                 throw new InvalidOperationException($"An element with id '{id}' is already being tracked.");
             }
 
-            References.Add(id, trackedRef);
+            References.Add(id, reference);
         }
 
         public static void Untrack(string id)
@@ -34,9 +27,11 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             {
                 throw new InvalidOperationException($"An element with id '{id}' is not being tracked.");
             }
+
+            References.Remove(id);
         }
 
-        public static TrackedReference Get(string id)
+        public static Action<string> Get(string id)
         {
             if (!References.ContainsKey(id))
             {

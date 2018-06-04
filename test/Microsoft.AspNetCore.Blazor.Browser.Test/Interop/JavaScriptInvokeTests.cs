@@ -53,15 +53,15 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 
                 return result;
 
-                MethodOptions CreateMethodOptions(string methodName) =>
-                    new MethodOptions
+                MethodInvocationOptions CreateMethodOptions(string methodName) =>
+                    new MethodInvocationOptions
                     {
-                        Type = new TypeInstance
+                        Type = new TypeIdentifier
                         {
                             Assembly = typeof(JavaScriptInterop).Assembly.GetName().Name,
                             Name = typeof(JavaScriptInterop).FullName
                         },
-                        Method = new MethodInstance
+                        Method = new MethodIdentifier
                         {
                             Name = methodName
                         }
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         [MemberData(nameof(ResolveMethodPropertyData))]
         public void ResolveMethod(object optionsObject)
         {
-            var options = optionsObject as MethodOptions;
+            var options = optionsObject as MethodInvocationOptions;
 
             var resolvedMethod = options.GetMethodOrThrow();
 

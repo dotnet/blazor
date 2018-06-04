@@ -1,17 +1,19 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Interop
 {
-    internal class JavaScriptInvoke
+    internal class InvokeDotNetFromJavaScript
     {
         private static int NextFunction = 0;
         private static readonly ConcurrentDictionary<string, string> ResolvedFunctionRegistrations = new ConcurrentDictionary<string, string>();
-        private static readonly IDictionary<string, object> ResolvedFunctions = new Dictionary<string, object>();
+        private static readonly ConcurrentDictionary<string, object> ResolvedFunctions = new ConcurrentDictionary<string, object>();
 
         private const string InvokePromiseCallback = "invokePromiseCallback";
 
@@ -19,19 +21,15 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         {
             var result = ResolvedFunctionRegistrations.GetOrAdd(methodOptions, opts =>
             {
-                var options = JsonUtil.Deserialize<MethodOptions>(methodOptions);
+                var options = JsonUtil.Deserialize<MethodInvocationOptions>(methodOptions);
                 var argumentDeserializer = GetOrCreateArgumentDeserializer(options);
                 var invoker = GetOrCreateInvoker(options, argumentDeserializer);
 
                 var invokerRegistration = NextFunction.ToString();
                 NextFunction++;
-                if (ResolvedFunctions.ContainsKey(invokerRegistration))
+                if (!ResolvedFunctions.TryAdd(invokerRegistration, invoker))
                 {
                     throw new InvalidOperationException($"A function with registration '{invokerRegistration}' was already registered");
-                }
-                else
-                {
-                    ResolvedFunctions[invokerRegistration] = invoker;
                 }
 
                 return invokerRegistration;
@@ -77,14 +75,14 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             if (callbackId != null && !(result is Task))
             {
                 var methodSpec = ResolvedFunctionRegistrations.Single(kvp => kvp.Value == registration);
-                var options = JsonUtil.Deserialize<MethodOptions>(methodSpec.Key);
+                var options = JsonUtil.Deserialize<MethodInvocationOptions>(methodSpec.Key);
                 throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.Name}' must return a Task.");
             }
 
             if (result is Task && callbackId == null)
             {
                 var methodSpec = ResolvedFunctionRegistrations.Single(kvp => kvp.Value == registration);
-                var options = JsonUtil.Deserialize<MethodOptions>(methodSpec.Key);
+                var options = JsonUtil.Deserialize<MethodInvocationOptions>(methodSpec.Key);
                 throw new InvalidOperationException($"'{options.Method.Name}' in '{options.Type.Name}' must not return a Task.");
             }
 
@@ -118,14 +116,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                     }
                     else
                     {
-                        var resultProperty = task.GetType()
-                                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
-                                .SingleOrDefault(m => m.Name == "ResultOnSuccess") ??
-                            task.GetType()
-                                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                .SingleOrDefault(m => m.Name == "Result");
-
-                        var returnValue = resultProperty.GetValue(task);
+                        var returnValue = TaskResultUtil.GetTaskResult(task);
                         RegisteredFunction.Invoke<bool>(
                             InvokePromiseCallback,
                             callbackId,
@@ -148,13 +139,13 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             });
         }
 
-        private static Func<string, object> GetOrCreateInvoker(MethodOptions options, Func<string, object[]> argumentDeserializer)
+        private static Func<string, object> GetOrCreateInvoker(MethodInvocationOptions options, Func<string, object[]> argumentDeserializer)
         {
             var method = options.GetMethodOrThrow();
             return (string args) => method.Invoke(null, argumentDeserializer(args));
         }
 
-        private static Func<string, object[]> GetOrCreateArgumentDeserializer(MethodOptions options)
+        private static Func<string, object[]> GetOrCreateArgumentDeserializer(MethodInvocationOptions options)
         {
             var info = options.GetMethodOrThrow();
             var argsClass = ArgumentList.GetArgumentClass(info.GetParameters().Select(p => p.ParameterType).ToArray());
@@ -165,7 +156,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             object[] Deserialize(string arguments)
             {
                 var argsInstance = deserializeMethod(arguments);
-                return argsInstance.ToParameterList();
+                return argsInstance.ToArray();
             }
         }
     }

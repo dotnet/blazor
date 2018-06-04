@@ -25,10 +25,15 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         {
             // This is a low-perf convenience method that bypasses the need to deal with
             // .NET memory and data structures on the JS side
-            var argsJson = args.Select(JsonUtil.Serialize);
+            var argsJson = new string[args.Length + 1];
 
-            var resultJson = InvokeUnmarshalled<string>("invokeWithJsonMarshalling",
-                argsJson.Prepend(identifier).ToArray());
+            argsJson[0] = identifier;
+            for (int i = 0; i < args.Length; i++)
+            {
+                argsJson[i + 1] = JsonUtil.Serialize(args[i]);
+            }
+
+            var resultJson = InvokeUnmarshalled<string>("invokeWithJsonMarshalling", argsJson);
 
             var result = JsonUtil.Deserialize<InvocationResult<TRes>>(resultJson);
             if (result.Succeeded)
@@ -52,10 +57,17 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
         public static Task<TRes> InvokeAsync<TRes>(string identifier, params object[] args)
         {
             var tcs = new TaskCompletionSource<TRes>();
-            var argsJson = args.Select(JsonUtil.Serialize);
             var callbackId = Guid.NewGuid().ToString();
+            var argsJson = new string[args.Length + 2];
 
-            TrackedReference.Track(callbackId, new Action<string>(r =>
+            argsJson[0] = identifier;
+            argsJson[1] = callbackId;
+            for (int i = 0; i < args.Length; i++)
+            {
+                argsJson[i + 2] = JsonUtil.Serialize(args[i]);
+            }
+
+            TaskCallbacks.Track(callbackId, new Action<string>(r =>
             {
                 var res = JsonUtil.Deserialize<InvocationResult<TRes>>(r);
                 if (res.Succeeded)
@@ -68,9 +80,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 }
             }));
 
-            var result = Invoke<TRes>(
-                    "invokeWithJsonMarshallingAsync",
-                    new[] { identifier, callbackId }.Concat(argsJson).ToArray());
+            var result = Invoke<TRes>("invokeWithJsonMarshallingAsync", argsJson);
 
             return tcs.Task;
         }
@@ -153,9 +163,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
     {
         public static void InvokeTaskCallback(string id, string result)
         {
-            var reference = TrackedReference.Get(id);
-            var function = reference.TrackedInstance as Action<string>;
-            function(result);
+            var callback = TaskCallbacks.Get(id);
+            callback(result);
         }
     }
 }
