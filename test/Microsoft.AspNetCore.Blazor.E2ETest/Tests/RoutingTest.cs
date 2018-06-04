@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                 //on mac os build we need to hold the meta button not the control for openning a popup
               
                 new Actions(Browser)
-                    .KeyDown(Keys.Control)
+                    .KeyDown(key)
                     .Click(button)
                     .Build()
                     .Perform();
