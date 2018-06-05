@@ -28,8 +28,8 @@
     <p id="@nameof(ExceptionFromSyncMethod)">@ExceptionFromSyncMethod?.Message</p>
     <h2>@nameof(SyncExceptionFromAsyncMethod)</h2>
     <p id="@nameof(SyncExceptionFromAsyncMethod)">@SyncExceptionFromAsyncMethod?.Message</p>
-    <h2>@nameof(AsyncExceptionFromAsyncSyncMethod)</h2>
-    <p id="@nameof(AsyncExceptionFromAsyncSyncMethod)">@AsyncExceptionFromAsyncSyncMethod?.Message</p>
+    <h2>@nameof(AsyncExceptionFromAsyncMethod)</h2>
+    <p id="@nameof(AsyncExceptionFromAsyncMethod)">@AsyncExceptionFromAsyncMethod?.Message</p>
 </div>
 
 @functions {
@@ -39,7 +39,7 @@
 
     public JavaScriptException ExceptionFromSyncMethod { get; set; }
     public JavaScriptException SyncExceptionFromAsyncMethod { get; set; }
-    public JavaScriptException AsyncExceptionFromAsyncSyncMethod { get; set; }
+    public JavaScriptException AsyncExceptionFromAsyncMethod { get; set; }
 
     public async Task InvokeInteropAsync()
     {
@@ -81,7 +81,7 @@
         }
         catch (JavaScriptException e)
         {
-            AsyncExceptionFromAsyncSyncMethod = e;
+            AsyncExceptionFromAsyncMethod = e;
         }
 
         Invocations = invocations;

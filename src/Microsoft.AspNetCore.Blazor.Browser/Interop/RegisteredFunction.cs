@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using WebAssembly;
 
@@ -70,6 +69,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             TaskCallbacks.Track(callbackId, new Action<string>(r =>
             {
                 var res = JsonUtil.Deserialize<InvocationResult<TRes>>(r);
+                TaskCallbacks.Untrack(callbackId);
                 if (res.Succeeded)
                 {
                     tcs.SetResult(res.Result);
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 }
             }));
 
-            var result = Invoke<TRes>("invokeWithJsonMarshallingAsync", argsJson);
+            var result = Invoke<object>("invokeWithJsonMarshallingAsync", argsJson);
 
             return tcs.Task;
         }
