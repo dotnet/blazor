@@ -80,7 +80,16 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
                 }
             }));
 
-            var result = Invoke<object>("invokeWithJsonMarshallingAsync", argsJson);
+            try
+            {
+                var result = Invoke<object>("invokeWithJsonMarshallingAsync", argsJson);
+
+            }
+            catch
+            {
+                TaskCallbacks.Untrack(callbackId);
+                throw;
+            }
 
             return tcs.Task;
         }

@@ -1,5 +1,5 @@
 import { platform } from '../Environment';
-import { System_String, Pointer } from '../Platform/Platform';
+import { System_String, Pointer, MethodHandle } from '../Platform/Platform';
 import { getRegisteredFunction } from './RegisteredFunction';
 import { error } from 'util';
 
@@ -32,22 +32,30 @@ export function invokeDotNetMethod<T>(methodOptions: MethodOptions, ...args: any
 }
 
 const registrations = {};
+let findDotNetMethodHandle: MethodHandle;
+
+function getFindDotNetMethodHandle() {
+  if (findDotNetMethodHandle === undefined) {
+    findDotNetMethodHandle = platform.findMethod(
+      'Microsoft.AspNetCore.Blazor.Browser',
+      'Microsoft.AspNetCore.Blazor.Browser.Interop',
+      'InvokeDotNetFromJavaScript',
+      'FindDotNetMethod');
+  }
+  return findDotNetMethodHandle;
+}
 
 function resolveRegistration(methodOptions: MethodOptions) {
+  const findDotNetMethodHandle = getFindDotNetMethodHandle();
   const assemblyEntry = registrations[methodOptions.type.assembly];
   const typeEntry = assemblyEntry && assemblyEntry[methodOptions.type.name];
   const registration = typeEntry && typeEntry[methodOptions.method.name];
   if (registration !== undefined) {
     return registration;
   } else {
-    const method = platform.findMethod(
-      'Microsoft.AspNetCore.Blazor.Browser',
-      'Microsoft.AspNetCore.Blazor.Browser.Interop',
-      'InvokeDotNetFromJavaScript',
-      'FindDotNetMethod');
 
     const serializedOptions = platform.toDotNetString(JSON.stringify(methodOptions));
-    const result = platform.callMethod(method, null, [serializedOptions]);
+    const result = platform.callMethod(findDotNetMethodHandle, null, [serializedOptions]);
     const registration = platform.toJavaScriptString(result as System_String);
 
     if (assemblyEntry === undefined) {
@@ -68,13 +76,21 @@ function resolveRegistration(methodOptions: MethodOptions) {
   }
 }
 
-function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: string | null, ...args: any[]): (T | null) {
-  const method = platform.findMethod(
-    'Microsoft.AspNetCore.Blazor.Browser',
-    'Microsoft.AspNetCore.Blazor.Browser.Interop',
-    'InvokeDotNetFromJavaScript',
-    'InvokeDotNetMethod');
+let invokeDotNetMethodHandle: MethodHandle;
 
+function getInvokeDotNetMethodHandle() {
+  if (invokeDotNetMethodHandle === undefined) {
+    invokeDotNetMethodHandle = platform.findMethod(
+      'Microsoft.AspNetCore.Blazor.Browser',
+      'Microsoft.AspNetCore.Blazor.Browser.Interop',
+      'InvokeDotNetFromJavaScript',
+      'InvokeDotNetMethod');
+  }
+  return invokeDotNetMethodHandle;
+}
+
+function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: string | null, ...args: any[]): (T | null) {
+  const invokeDotNetMethodHandle = getInvokeDotNetMethodHandle();
   const registration = resolveRegistration(methodOptions);
 
   const packedArgs = packArguments(args);
@@ -82,7 +98,7 @@ function invokeDotNetMethodCore<T>(methodOptions: MethodOptions, callbackId: str
   const serializedCallback = callbackId != null ? platform.toDotNetString(callbackId) : null;
   const serializedArgs = platform.toDotNetString(JSON.stringify(packedArgs));
   const serializedRegistration = platform.toDotNetString(registration);
-  const serializedResult = platform.callMethod(method, null, [serializedRegistration, serializedCallback, serializedArgs]);
+  const serializedResult = platform.callMethod(invokeDotNetMethodHandle, null, [serializedRegistration, serializedCallback, serializedArgs]);
 
   const result = JSON.parse(platform.toJavaScriptString(serializedResult as System_String));
   if (result.succeeded) {

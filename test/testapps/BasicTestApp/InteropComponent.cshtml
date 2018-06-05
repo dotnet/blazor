@@ -31,6 +31,10 @@
     <h2>@nameof(AsyncExceptionFromAsyncMethod)</h2>
     <p id="@nameof(AsyncExceptionFromAsyncMethod)">@AsyncExceptionFromAsyncMethod?.Message</p>
 </div>
+@if (DoneWithInterop)
+{
+    <p id="done-with-interop">Done with interop.</p>
+}
 
 @functions {
 
@@ -40,6 +44,8 @@
     public JavaScriptException ExceptionFromSyncMethod { get; set; }
     public JavaScriptException SyncExceptionFromAsyncMethod { get; set; }
     public JavaScriptException AsyncExceptionFromAsyncMethod { get; set; }
+
+    public bool DoneWithInterop { get; set; }
 
     public async Task InvokeInteropAsync()
     {
@@ -85,5 +91,6 @@
         }
 
         Invocations = invocations;
+        DoneWithInterop = true;
     }
 }

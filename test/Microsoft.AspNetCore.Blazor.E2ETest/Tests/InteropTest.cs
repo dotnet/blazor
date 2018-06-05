@@ -6,6 +6,7 @@ using BasicTestApp;
 using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure;
 using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -78,7 +79,9 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             var interopButton = Browser.FindElement(By.Id("btn-interop"));
             interopButton.Click();
 
-            Thread.Sleep(10000);
+            var wait = new WebDriverWait(Browser, TimeSpan.FromSeconds(10))
+                .Until(d => d.FindElement(By.Id("done-with-interop")));
+
             foreach (var expectedValue in expectedValues)
             {
                 var currentValue = Browser.FindElement(By.Id(expectedValue.Key));

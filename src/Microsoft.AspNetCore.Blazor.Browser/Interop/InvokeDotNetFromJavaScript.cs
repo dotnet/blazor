@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Interop
             });
         }
 
-        private static Func<string, object> GetOrCreateInvoker(MethodInvocationOptions options, Func<string, object[]> argumentDeserializer)
+        internal static Func<string, object> GetOrCreateInvoker(MethodInvocationOptions options, Func<string, object[]> argumentDeserializer)
         {
             var method = options.GetMethodOrThrow();
             return (string args) => method.Invoke(null, argumentDeserializer(args));
