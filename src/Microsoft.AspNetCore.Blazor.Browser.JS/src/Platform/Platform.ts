@@ -1,5 +1,10 @@
-﻿export interface Platform {
-  start(loadAssemblyUrls: string[]): Promise<void>;
+﻿export type OnNext = (value: any) => void;
+export type OnError = (error: any) => void;
+export type OnComplete = () => void;
+
+export interface Platform {
+  start(loadAssemblyUrls: string[],
+    onNext: OnNext, onError: OnError, onComplete: OnComplete): Promise<void>;
 
   callEntryPoint(assemblyName: string, entrypointMethod: string, args: (System_Object | null)[]);
   findMethod(assemblyName: string, namespace: string, className: string, methodName: string): MethodHandle;

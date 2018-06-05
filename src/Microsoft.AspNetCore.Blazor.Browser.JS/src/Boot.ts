@@ -29,13 +29,24 @@ async function boot() {
     .map(filename => `_framework/_bin/${filename}`);
 
   try {
-    await platform.start(loadAssemblyUrls);
+
+    await platform.start(loadAssemblyUrls,
+      function (value: any) {
+        console.info(`loaded "${value}"`);
+      },
+      function (error: any) {
+        console.error(error);
+      },
+      function () {
+        console.info(`completed.`)
+        // start up the application
+        platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
+      }
+    );
+
   } catch (ex) {
     throw new Error(`Failed to start platform. Reason: ${ex}`);
   }
-
-  // Start up the application
-  platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
 }
 
 function getRequiredBootScriptAttribute(elem: HTMLScriptElement, attributeName: string): string {
