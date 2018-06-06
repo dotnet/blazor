@@ -22,8 +22,10 @@ registerFunction(`${registeredFunctionPrefix}.enableNavigationInterception`, () 
     const anchorTarget = findClosestAncestor(event.target as Element | null, 'A');
     if (anchorTarget) {
       const href = anchorTarget.getAttribute('href');
+      //if the user wants to user some specific browser/OS feature, we dont handle it and let the browser/OS 
+      const anyChangeBehaviorKeyHold = event.ctrlKey || event.shiftKey || event.altKey || event.metaKey;
       const absoluteHref = toAbsoluteUri(href);
-      if (isWithinBaseUriSpace(absoluteHref)) {
+      if (isWithinBaseUriSpace(absoluteHref) && !anyChangeBehaviorKeyHold) {
         event.preventDefault();
         performInternalNavigation(absoluteHref);
       }
