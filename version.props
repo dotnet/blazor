@@ -3,9 +3,9 @@
     <!-- When editing any version prefix here, remember also to update
          tooling\Microsoft.VisualStudio.BlazorExtension\Properties\AssemblyInfo.cs
          to include the new version in its upper bounds -->
-    <IsFinalBuild>false</IsFinalBuild>
+    <IsFinalBuild>true</IsFinalBuild>
     <VersionPrefix>0.4.0</VersionPrefix>
-    <VersionSuffix>rc1</VersionSuffix>
+    <VersionSuffix>rtm</VersionSuffix>
     <PackageVersion Condition="'$(IsFinalBuild)' == 'true' AND '$(VersionSuffix)' == 'rtm' ">$(VersionPrefix)</PackageVersion>
     <PackageVersion Condition="'$(IsFinalBuild)' == 'true' AND '$(VersionSuffix)' != 'rtm' ">$(VersionPrefix)-$(VersionSuffix)-final</PackageVersion>
     <BuildNumber Condition="'$(BuildNumber)' == ''">t000</BuildNumber>
