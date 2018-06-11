@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Test
@@ -81,6 +82,194 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)), person.BirthInstant);
             Assert.Equal(new TimeSpan(7665, 1, 30, 0), person.Age);
             Assert.Equal(new Dictionary<string, object> { { "Ducks", true }, { "Geese", false } }, person.Allergies);
+        }
+
+
+        public static TheoryData<object, string> RoundTrippableBasicTypes => new TheoryData<object, string>
+        {
+            { byte.MinValue, "{\"value\":0}" },
+            { ushort.MinValue, "{\"value\":0}" },
+            { uint.MinValue, "{\"value\":0}" },
+            { ulong.MinValue, "{\"value\":0}" },
+            { sbyte.MinValue, "{\"value\":-128}" },
+            { short.MinValue, "{\"value\":-32768}" },
+            { int.MinValue, "{\"value\":-2147483648}" },
+            { long.MinValue, "{\"value\":-9223372036854775808}" },
+            { decimal.MinValue, "{\"value\":-79228162514264337593543950335}" },
+            { double.MinValue, "{\"value\":-1.7976931348623157E+308}" },
+            { byte.MaxValue, "{\"value\":255}" },
+            { ushort.MaxValue, "{\"value\":65535}" },
+            { uint.MaxValue, "{\"value\":4294967295}" },
+            { ulong.MaxValue, "{\"value\":18446744073709551615}" },
+            { sbyte.MaxValue, "{\"value\":127}" },
+            { short.MaxValue, "{\"value\":32767}" },
+            { int.MaxValue, "{\"value\":2147483647}" },
+            { long.MaxValue, "{\"value\":9223372036854775807}" },
+            { decimal.MaxValue, "{\"value\":79228162514264337593543950335}" },
+            { double.MaxValue, "{\"value\":1.7976931348623157E+308}" },
+            { new byte[] { }, "{\"value\":[]}" },
+            { new byte[] { 0 }, "{\"value\":[0]}" },
+            { new byte[] { 255 }, "{\"value\":[255]}" },
+        };
+        public static TheoryData<object, string> SerializeOnlyBasicTypes => new TheoryData<object, string>
+        {
+            { -0.79228162514264337593543950333d, "{\"value\":-0.79228162514264333}" }, // truncated to double precision
+            { 0.79228162514264337593543950333d, "{\"value\":0.79228162514264333}" }, // truncated to double precision
+            { -0.79228162514264337593543950333m, "{\"value\":-0.7922816251426433759354395033}" }, // looses one digit
+            { 0.79228162514264337593543950333m, "{\"value\":0.7922816251426433759354395033}" }, // looses one digit
+            { float.MinValue, "{\"value\":-3.402823E+38}" }, // truncated to float precision
+            { float.MaxValue, "{\"value\":3.402823E+38}" }, // truncated to float precision
+        };
+        public static TheoryData<object, string> DeserializeOnlyBasicTypes => new TheoryData<object, string>
+        {
+            { -0.79228162514264344d, "{\"value\":-0.79228162514264337593543950333}" }, // truncated to double precision
+            { 0.79228162514264344d, "{\"value\":0.79228162514264337593543950333}" }, // truncated to double precision
+            { -792281625142643375935439503350000000000d, "{\"value\":-792281625142643375935439503350000000000}" },
+            { -0.79228162514264337593543950335m, "{\"value\":-0.79228162514264337593543950335}" }, // looses one digit
+            { 0.79228162514264337593543950335m, "{\"value\":0.79228162514264337593543950335}" }, // looses one digit
+            { float.MinValue, "{\"value\":-3.40282347E+38}" }, // conversion from double is exact
+            { float.MaxValue, "{\"value\":3.40282347E+38}" }, // conversion from double is exact
+            { new byte[] { 0 }, "{\"value\":\"AA==\"}" }, // Base64
+            { new byte[] { 255 }, "{\"value\":\"/w==\"}" }, // Base64
+        };
+        /// <summary>Test basic types that are not attribute types, which default value does not have type identity,
+        /// which do not have constant min/max values, or which are truncated during serialization.</summary>
+        public static TheoryData<string, string, string> RoundTrippableNonAttributeTypes => new TheoryData<string, string, string>
+        {
+            { "DateTime", "0", "{\"value\":\"0001-01-01T00:00:00Z\"}" }, // MinValue
+            { "DateTime", "3155378975999999999", "{\"value\":\"9999-12-31T23:59:59.9999999Z\"}" }, // MaxValue
+            { "DateTimeOffset", "0", "{\"value\":\"0001-01-01T00:00:00.0000000+00:00\"}" }, // MinValue
+            { "DateTimeOffset", "3155378975999999999", "{\"value\":\"9999-12-31T23:59:59.9999999+00:00\"}" }, // MaxValue
+            { "TimeSpan", "0", "{\"value\":\"00:00:00\"}" }, // default(TimeSpan)
+            { "TimeSpan", "-9223372036854775808", "{\"value\":\"-10675199.02:48:05.4775808\"}" }, // MinValue
+            { "TimeSpan", "9223372036854775807", "{\"value\":\"10675199.02:48:05.4775807\"}" }, // MaxValue
+        };
+
+        [Theory]
+        [MemberData(nameof(RoundTrippableBasicTypes))]
+        [MemberData(nameof(SerializeOnlyBasicTypes))]
+        public void CanSerializePropertiesOfBasicTypes(object incoming, string expectedJson)
+        {
+            // Act/Assert
+            ExecuteSwitch();
+
+            bool ExecuteSwitch()
+            {
+                switch (incoming)
+                {
+                    case sbyte value: return Test(value, expectedJson);
+                    case short value: return Test(value, expectedJson);
+                    case int value: return Test(value, expectedJson);
+                    case long value: return Test(value, expectedJson);
+                    case byte value: return Test(value, expectedJson);
+                    case ushort value: return Test(value, expectedJson);
+                    case uint value: return Test(value, expectedJson);
+                    case ulong value: return Test(value, expectedJson);
+                    case float value: return Test(value, expectedJson);
+                    case double value: return Test(value, expectedJson);
+                    case decimal value: return Test(value, expectedJson);
+                    case DateTime value: return Test(value, expectedJson);
+                    case DateTimeOffset value: return Test(value, expectedJson);
+                    case TimeSpan value: return Test(value, expectedJson);
+                    case byte[] value: return Test(value, expectedJson);
+                    default: throw new NotImplementedException();
+                }
+            }
+
+            bool Test<T>(T value, string json)
+            {
+                var actual = JsonUtil.Serialize(new Wrapper<T> { Value = value });
+                Assert.Equal(expectedJson, actual);
+                return true;
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(RoundTrippableBasicTypes))]
+        [MemberData(nameof(DeserializeOnlyBasicTypes))]
+        public void CanDeserializePropertiesOfBasicTypes(object expected, string incomingJson)
+        {
+            // Act/Assert
+            ExecuteSwitch();
+
+            bool ExecuteSwitch()
+            {
+                switch (expected)
+                {
+                    case sbyte value: return Test(value, incomingJson);
+                    case short value: return Test(value, incomingJson);
+                    case int value: return Test(value, incomingJson);
+                    case long value: return Test(value, incomingJson);
+                    case byte value: return Test(value, incomingJson);
+                    case ushort value: return Test(value, incomingJson);
+                    case uint value: return Test(value, incomingJson);
+                    case ulong value: return Test(value, incomingJson);
+                    case float value: return Test(value, incomingJson);
+                    case double value: return Test(value, incomingJson);
+                    case decimal value: return Test(value, incomingJson);
+                    case DateTime value: return Test(value, incomingJson);
+                    case DateTimeOffset value: return Test(value, incomingJson);
+                    case TimeSpan value: return Test(value, incomingJson);
+                    case byte[] value: return Test(value, incomingJson);
+                    default: throw new NotImplementedException();
+                }
+            }
+
+            bool Test<T>(T expectedValue, string json)
+            {
+                var actual = JsonUtil.Deserialize<Wrapper<T>>(incomingJson);
+                Assert.Equal(expectedValue, actual.Value);
+                return true;
+            }
+        }
+        [Theory]
+        [MemberData(nameof(RoundTrippableNonAttributeTypes))]
+        public void CanSerializePropertiesOfBasicTypesSpecialCases(string propertyType, string value, string expectedJson)
+        {
+            // Arrange
+            var iv = CultureInfo.InvariantCulture;
+            var incoming = Parse();
+            object Parse()
+            {
+                switch (propertyType)
+                {
+                    case "float": return float.Parse(value, NumberStyles.Any, iv);
+                    case "double": return double.Parse(value, NumberStyles.Any, iv);
+                    case "decimal": return decimal.Parse(value, NumberStyles.Any, iv);
+                    case "DateTime": return new DateTime(ticks: long.Parse(value, NumberStyles.Any, iv), kind: DateTimeKind.Utc);
+                    case "DateTimeOffset": return new DateTimeOffset(ticks: long.Parse(value, NumberStyles.Any, iv), offset: TimeSpan.Zero);
+                    case "TimeSpan": return new TimeSpan(ticks: long.Parse(value, NumberStyles.Any, iv));
+                    default: throw new NotImplementedException();
+                }
+            }
+            // Act/Assert
+            CanSerializePropertiesOfBasicTypes(incoming, expectedJson);
+        }
+        /// <summary>Test basic types that are not attribute types, which default value does not have type identity,
+        /// which do not have constant min/max values, or which are truncated during serialization.</summary>
+        [Theory]
+        [MemberData(nameof(RoundTrippableNonAttributeTypes))]
+        public void CanDeserializePropertiesOfBasicTypesSpecialCases(string propertyType, string value, string json)
+        {
+            // Arrange
+            var iv = CultureInfo.InvariantCulture;
+            var expected = Parse();
+            object Parse()
+            {
+                switch (propertyType)
+                {
+                    case "float": return float.Parse(value, NumberStyles.Any, iv);
+                    case "double": return double.Parse(value, NumberStyles.Any, iv);
+                    case "decimal": return decimal.Parse(value, NumberStyles.Any, iv);
+                    case "DateTime": return new DateTime(ticks: long.Parse(value, NumberStyles.Any, iv), kind: DateTimeKind.Utc);
+                    case "DateTimeOffset": return new DateTimeOffset(ticks: long.Parse(value, NumberStyles.Any, iv), offset: TimeSpan.Zero);
+                    case "TimeSpan": return new TimeSpan(ticks: long.Parse(value, NumberStyles.Any, iv));
+                    default: throw new NotImplementedException();
+                }
+            }
+
+            // Act/Assert
+            CanDeserializePropertiesOfBasicTypes(expected, json);
         }
 
         [Fact]
@@ -270,6 +459,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public TimeSpan Age { get; set; }
             public IDictionary<string, object> Allergies { get; set; }
         }
+
+        class Wrapper<T> { public T Value { get; set; } }
 
         enum Hobbies { Reading = 1, Swordfighting = 2 }
 

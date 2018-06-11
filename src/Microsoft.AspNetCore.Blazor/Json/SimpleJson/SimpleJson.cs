@@ -898,22 +898,43 @@ namespace SimpleJson
             EatWhitespace(json, ref index);
             int lastIndex = GetLastIndexOfNumber(json, index);
             int charLength = (lastIndex - index) + 1;
-            object returnNumber;
+
             string str = new string(json, index, charLength);
-            if (str.IndexOf(".", StringComparison.OrdinalIgnoreCase) != -1 || str.IndexOf("e", StringComparison.OrdinalIgnoreCase) != -1)
-            {
-                double number;
-                success = double.TryParse(new string(json, index, charLength), NumberStyles.Any, CultureInfo.InvariantCulture, out number);
-                returnNumber = number;
-            }
-            else
-            {
-                long number;
-                success = long.TryParse(new string(json, index, charLength), NumberStyles.Any, CultureInfo.InvariantCulture, out number);
-                returnNumber = number;
-            }
+            int dot = str.IndexOf(".", StringComparison.OrdinalIgnoreCase);
+            int exp = str.IndexOf("e", StringComparison.OrdinalIgnoreCase);
+            exp = exp < 0 ? str.Length : exp;
+            int integralDigits = dot < 0 ? exp : dot - 1;
+            int decimalDigits = dot < 0 ? 0 : exp - (dot + 1);
+            // 16 == (int)log10(2^54) ~ double.Precision
+            bool tryDecimal = integralDigits > 16 || decimalDigits > 16;
+            bool isIntegral = decimalDigits == 0 && exp == str.Length;
+
             index = lastIndex + 1;
-            return returnNumber;
+            if (isIntegral) {
+                long @long;
+                success = long.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out @long);
+                if (success) {
+                    return @long;
+                }
+                ulong @ulong;
+                success = ulong.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out @ulong);
+                if (success)
+                {
+                    return @ulong;
+                }
+            }
+            if (tryDecimal)
+            {
+                decimal @decimal;
+                success = decimal.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out @decimal);
+                if (success)
+                {
+                    return @decimal;
+                }
+            }
+            double @double;
+            success = double.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out @double);
+            return @double;
         }
 
         static int GetLastIndexOfNumber(char[] json, int index)
@@ -1407,13 +1428,16 @@ namespace SimpleJson
                         if (isValid && Uri.TryCreate(str, UriKind.RelativeOrAbsolute, out result))
                             return result;
 
-												return null;
+                        return null;
                     }
                   
-									if (type == typeof(string))  
-										return str;
+                    if (type == typeof(string))  
+                        return str;
 
-									return Convert.ChangeType(str, type, CultureInfo.InvariantCulture);
+                    if (type == typeof(byte[]))
+                        return Convert.FromBase64String(str);
+
+                    return Convert.ChangeType(str, type, CultureInfo.InvariantCulture);
                 }
                 else
                 {
@@ -1432,12 +1456,14 @@ namespace SimpleJson
                 return value;
             
             bool valueIsLong = value is long;
+            bool valueIsUlong = value is ulong;
             bool valueIsDouble = value is double;
-            if ((valueIsLong && type == typeof(long)) || (valueIsDouble && type == typeof(double)))
-                return value;
-            if ((valueIsDouble && type != typeof(double)) || (valueIsLong && type != typeof(long)))
-            {
+            bool valueIsDecimal = value is decimal;
+            if (valueIsLong || valueIsUlong || valueIsDecimal || valueIsDouble) {
+                if (type == value.GetType())
+                    return value;
                 obj = type == typeof(int) || type == typeof(long) || type == typeof(double) || type == typeof(float) || type == typeof(bool) || type == typeof(decimal) || type == typeof(byte) || type == typeof(short)
+                    || type == typeof(sbyte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong)
                             ? Convert.ChangeType(value, type, CultureInfo.InvariantCulture)
                             : value;
             }
