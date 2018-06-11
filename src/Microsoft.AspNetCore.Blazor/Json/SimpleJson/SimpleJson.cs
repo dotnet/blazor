@@ -903,10 +903,10 @@ namespace SimpleJson
             int dot = str.IndexOf(".", StringComparison.OrdinalIgnoreCase);
             int exp = str.IndexOf("e", StringComparison.OrdinalIgnoreCase);
             exp = exp < 0 ? str.Length : exp;
-            int integralDigits = dot < 0 ? exp : dot - 1;
+            int integralDigits = dot < 0 ? exp : dot;
             int decimalDigits = dot < 0 ? 0 : exp - (dot + 1);
             // 16 == (int)log10(2^54) ~ double.Precision
-            bool tryDecimal = integralDigits > 16 || decimalDigits > 16;
+            bool tryDecimal = integralDigits + decimalDigits > 16;
             bool isIntegral = decimalDigits == 0 && exp == str.Length;
 
             index = lastIndex + 1;

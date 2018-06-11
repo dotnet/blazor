@@ -37,9 +37,27 @@ namespace Microsoft.AspNetCore.Blazor.Test
         [InlineData("123", 123L)] // Would also accept 123 as a System.Int32, but Int64 is fine as a default
         [InlineData("123.456", 123.456d)]
         [InlineData("true", true)]
+        [InlineData("1234567890.123456", 1234567890.123456d)]
+        [InlineData("-9223372036854775808", long.MinValue)]
+        [InlineData("9223372036854775807", long.MaxValue)]
+        [InlineData("18446744073709551615", ulong.MaxValue)]
+        [InlineData("0.123456789012345", 0.123456789012345d)]
         public void CanDeserializePrimitivesFromJson(string json, object expectedValue)
         {
-            Assert.Equal(expectedValue, JsonUtil.Deserialize<object>(json));
+            var actual = JsonUtil.Deserialize<object>(json);
+            Assert.Equal(expectedValue, actual);
+        }
+
+        [Theory]
+        [InlineData("-9223372036854775809")]
+        [InlineData("18446744073709551616")]
+        [InlineData("0.12345678901234567")]
+        [InlineData("1234567890.1234567")]
+        public void CanDeserializeDecimalsFromJson(string json)
+        {
+            var expected = decimal.Parse(json);
+            var actual = JsonUtil.Deserialize<object>(json);
+            Assert.Equal(expected, actual);
         }
 
         [Fact]
