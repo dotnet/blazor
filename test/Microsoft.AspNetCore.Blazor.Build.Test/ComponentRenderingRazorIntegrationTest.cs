@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -213,7 +213,6 @@ namespace Test
 
             var component = CompileToComponent($@"
 @addTagHelper *, TestAssembly
-@using Microsoft.AspNetCore.Blazor
 <MyComponent OnClick=""{expression}""/>
 
 @functions {{
@@ -261,7 +260,6 @@ namespace Test
 
             var component = CompileToComponent(@"
 @addTagHelper *, TestAssembly
-@using Microsoft.AspNetCore.Blazor
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -410,6 +408,68 @@ namespace Test
             Assert.Collection(
                 GetFrames((RenderFragment)innerFrames[1].AttributeValue),
                 frame => AssertFrame.Text(frame, "Some text", 4));
+        }
+
+        [Fact] // https://github.com/aspnet/Blazor/issues/773
+        public void Regression_773()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class SurveyPrompt : BlazorComponent
+    {
+        [Parameter] private string Title { get; set; }
+    }
+}
+"));
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+@page ""/""
+
+<SurveyPrompt Title=""<div>Test!</div>"" />
+");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Component(frame, "Test.SurveyPrompt", 2, 0),
+                frame => AssertFrame.Attribute(frame, "Title", "<div>Test!</div>", 1));
+        }
+
+
+        [Fact]
+        public void Regression_784()
+        {
+            // Arrange
+
+            // Act
+            var component = CompileToComponent(@"
+<p onmouseover=""@OnComponentHover"" style=""background: @ParentBgColor;"" />
+@functions {
+    public string ParentBgColor { get; set; } = ""#FFFFFF"";
+
+    public void OnComponentHover(UIMouseEventArgs e)
+    {
+    }
+}
+");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Element(frame, "p", 3, 0),
+                frame => AssertFrame.Attribute(frame, "onmouseover", 1),
+                frame => AssertFrame.Attribute(frame, "style", "background: #FFFFFF;", 2));
         }
     }
 }

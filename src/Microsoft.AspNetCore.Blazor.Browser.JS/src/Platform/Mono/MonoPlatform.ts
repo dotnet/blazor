@@ -1,4 +1,4 @@
-﻿import { MethodHandle, System_Object, System_String, System_Array, Pointer, Platform } from '../Platform';
+import { MethodHandle, System_Object, System_String, System_Array, Pointer, Platform } from '../Platform';
 import { getAssemblyNameFromUrl } from '../DotNet';
 import { getRegisteredFunction } from '../../Interop/RegisteredFunction';
 
@@ -91,6 +91,12 @@ export const monoPlatform: Platform = {
     return mono_string(jsString);
   },
 
+  toUint8Array: function toUint8Array(array: System_Array<any>): Uint8Array {
+    const dataPtr = getArrayDataPointer(array);
+    const length = Module.getValue(dataPtr, 'i32');
+    return new Uint8Array(Module.HEAPU8.buffer, dataPtr + 4, length);
+  },
+
   getArrayLength: function getArrayLength(array: System_Array<any>): number {
     return Module.getValue(getArrayDataPointer(array), 'i32');
   },
@@ -108,6 +114,10 @@ export const monoPlatform: Platform = {
 
   readInt32Field: function readHeapInt32(baseAddress: Pointer, fieldOffset?: number): number {
     return Module.getValue((baseAddress as any as number) + (fieldOffset || 0), 'i32');
+  },
+
+  readFloatField: function readHeapFloat(baseAddress: Pointer, fieldOffset?: number): number {
+    return Module.getValue((baseAddress as any as number) + (fieldOffset || 0), 'float');
   },
 
 	readInt16Field: function readHeapInt16(baseAddress: Pointer, fieldOffset?: number): number {

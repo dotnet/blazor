@@ -1,4 +1,4 @@
-﻿import { System_Array, MethodHandle } from '../Platform/Platform';
+import { System_Array, MethodHandle } from '../Platform/Platform';
 import { getRenderTreeEditPtr, renderTreeEdit, RenderTreeEditPointer, EditType } from './RenderTreeEdit';
 import { getTreeFramePtr, renderTreeFrame, FrameType, RenderTreeFramePointer } from './RenderTreeFrame';
 import { platform } from '../Environment';

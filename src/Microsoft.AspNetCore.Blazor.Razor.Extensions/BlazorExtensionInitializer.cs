@@ -27,12 +27,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         {
             // The configuration names here need to match what we put in the MSBuild configuration
             DeclarationConfiguration = RazorConfiguration.Create(
-                RazorLanguageVersion.Version_2_1, // Cannot use experimental until 15.7p4
+                RazorLanguageVersion.Experimental,
                 "BlazorDeclaration-0.1",
                 Array.Empty<RazorExtension>());
 
             DefaultConfiguration = RazorConfiguration.Create(
-                RazorLanguageVersion.Version_2_1,
+                RazorLanguageVersion.Experimental,
                 "Blazor-0.1",
                 Array.Empty<RazorExtension>());
         }
@@ -72,12 +72,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 builder.Features.Add(new TrimWhitespacePass());
             }
             builder.Features.Add(new ComponentDocumentClassifierPass());
+            builder.Features.Add(new ComponentDocumentRewritePass());
+            builder.Features.Add(new ScriptTagPass());
             builder.Features.Add(new ComplexAttributeContentPass());
-            builder.Features.Add(new BindLoweringPass());
-            builder.Features.Add(new EventHandlerLoweringPass());
             builder.Features.Add(new ComponentLoweringPass());
+            builder.Features.Add(new EventHandlerLoweringPass());
             builder.Features.Add(new RefLoweringPass());
-            builder.Features.Add(new OrphanTagHelperLoweringPass());
+            builder.Features.Add(new BindLoweringPass());
 
             builder.Features.Add(new ComponentTagHelperDescriptorProvider());
             builder.Features.Add(new BindTagHelperDescriptorProvider());

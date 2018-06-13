@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -10,6 +10,7 @@
     Select test:
     <select onchange="mountTestComponent(event.target.value)">
       <option value="">Choose...</option>
+      <option value="BasicTestApp.InteropComponent">Interop component</option>
       <option value="BasicTestApp.AsyncEventHandlerComponent">Async event handlers</option>
       <option value="BasicTestApp.AddRemoveChildComponents">Add/remove child components</option>
       <option value="BasicTestApp.CounterComponent">Counter</option>
@@ -18,6 +19,7 @@
       <option value="BasicTestApp.FocusEventComponent">Focus events</option>
       <option value="BasicTestApp.KeyPressEventComponent">Key press event</option>
       <option value="BasicTestApp.MouseEventComponent">Mouse events</option>
+      <option value="BasicTestApp.TouchEventComponent">Touch events</option>
       <option value="BasicTestApp.ParentChildComponent">Parent component with child</option>
       <option value="BasicTestApp.PropertiesChangedHandlerParent">Parent component that changes parameters on child</option>
       <option value="BasicTestApp.RedTextComponent">Red text</option>
@@ -25,6 +27,7 @@
       <option value="BasicTestApp.TextOnlyComponent">Plain text</option>
       <option value="BasicTestApp.HierarchicalImportsTest.Subdir.ComponentUsingImports">Imports statement</option>
       <option value="BasicTestApp.HttpClientTest.HttpRequestsComponent">HttpClient tester</option>
+      <option value="BasicTestApp.HttpClientTest.BinaryHttpRequestsComponent">Binary HttpClient tester</option>
       <option value="BasicTestApp.HttpClientTest.CookieCounterComponent">HttpClient cookies</option>
       <option value="BasicTestApp.BindCasesComponent">@bind cases</option>
       <option value="BasicTestApp.ExternalContentPackage">External content package</option>
@@ -45,6 +48,8 @@
   <app>Loading...</app>
 
   <script type="blazor-boot"></script>
+  <!-- Used for testing interop scenarios between JS and .NET -->
+  <script type="text/javascript" src="js/jsinteroptests.js"></script>
   <script>
     // The client-side .NET code calls this when it is ready to be called from test code
     // The Xunit test code polls until it sees the flag is set

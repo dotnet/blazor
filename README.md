@@ -24,7 +24,7 @@ Blazor will have all the features of a modern web framework, including:
 
 > Note: Blazor is an *experimental* project. It's not (yet) a committed product. This is to allow time to fully investigate the technical issues associated with running .NET in the browser and to ensure we can build something that developers love and can be productive with. During this experimental phase, we expect to engage deeply with early Blazor adopters like you to hear your feedback and suggestions.
 
-To see Blazor in action, check out [Steve Sanderson's prototype demo at NDC Oslo](https://www.youtube.com/watch?v=MiLAE6HMr10&feature=youtu.be&t=31m45s) last year. You can also try out a [simple live Blazor app](https://blazor-demo.github.io/).
+To see Blazor in action, check out [Steve Sanderson's demo at NDC Minnesota](https://www.youtube.com/watch?v=JU-6pAxqAa4). You can also try out a [simple live Blazor app](https://blazor-demo.github.io/).
 
 ## Getting Started
 
@@ -46,7 +46,8 @@ Run `build.cmd /t:Test` or `build.sh /t:Test`
 ## Run end-to-end tests
 
 Prerequisites:
-- Install [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) (requires Java 8 or later)
+- Install [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) (requires Java 8 or 9)
+  - [Open JDK9](http://jdk.java.net/java-se-ri/9)
   - `npm install -g selenium-standalone`
   - `selenium-standalone install`
 - Chrome
@@ -82,14 +83,12 @@ The Blazor Visual Studio tooling will build as part of the command line build wh
 
 To use a nightly or developer CI build of the Blazor package, ensure that you have the Blazor package feed configured, and update your package version numbers. You should use developer builds only with the expectation that things will break and change without any sort of announcement.
 
-Update your projects to include the Blazor developer feed (`https://dotnet.myget.org/f/blazor-dev/api/v3/index.json`) and ASP.NET Core developer feed (`https://dotnet.myget.org/F/dotnet-core/api/v3/index.json`). You can do this in a project file with MSBuild:
+Update your projects to include the Blazor development feed (`https://dotnet.myget.org/f/blazor-dev/api/v3/index.json`). You can do this in a project file with MSBuild:
+
 ```xml
-<RestoreSources>
-    $(RestoreSources);
-    https://api.nuget.org/v3/index.json;
-    https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
+<RestoreAdditionalProjectSources>
     https://dotnet.myget.org/f/blazor-dev/api/v3/index.json;
-</RestoreSources>
+</RestoreAdditionalProjectSources>
 ```
 
 Or in a NuGet.config in the same directory as the solution file:
@@ -100,7 +99,6 @@ Or in a NuGet.config in the same directory as the solution file:
  <packageSources>
     <clear />
     <add key="blazor" value="https://dotnet.myget.org/f/blazor-dev/api/v3/index.json" />
-    <add key="aspnet" value="https://dotnet.myget.org/f/dotnet-core/api/v3/index.json" />
     <add key="nuget" value="https://api.nuget.org/v3/index.json" />
  </packageSources>
 </configuration>
@@ -110,7 +108,6 @@ You can browse https://dotnet.myget.org/gallery/blazor-dev to find the current v
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.0-preview2-final" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Browser" Version="0.3.0-preview1-10220" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.3.0-preview1-10220" />
     <DotNetCliToolReference Include="Microsoft.AspNetCore.Blazor.Cli" Version="0.3.0-preview1-10220" />
@@ -121,7 +118,7 @@ To install a developer CI build of the Blazor Language Service extension for Vis
 
 ![image](https://user-images.githubusercontent.com/1874516/39077607-2729edb2-44b8-11e8-8798-701ba632fdd4.png)
 
-You should then be able to install or update the Blazor Language Service exension from the developer CI feed using the Extensions and Updates dialog.
+You should then be able to install or update the Blazor Language Service extension from the developer CI feed using the Extensions and Updates dialog.
 
 ## Contributing
 

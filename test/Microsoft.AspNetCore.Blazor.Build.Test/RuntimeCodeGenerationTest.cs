@@ -1,7 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Build.Test
@@ -188,7 +188,6 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @addTagHelper *, TestAssembly
-@using Microsoft.AspNetCore.Blazor
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -237,6 +236,35 @@ namespace Test
         }
 
         [Fact]
+        public void ChildComponent_WithElementOnlyChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent><child>hello</child></MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void ChildComponent_WithPageDirective()
         {
             // Arrange
@@ -265,6 +293,39 @@ namespace Test
         }
 
         [Fact]
+        public void ComponentParameter_TypeMismatch_ReportsDiagnostic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class CoolnessMeter : BlazorComponent
+    {
+        [Parameter] private int Coolness { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<CoolnessMeter Coolness=""@(""very-cool"")"" />
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+            var assembly = CompileToAssembly(generated, throwOnFailure: false);
+            // This has some errors
+            Assert.Collection(
+                assembly.Diagnostics.OrderBy(d => d.Id),
+                d => Assert.Equal("CS1503", d.Id));
+        }
+
+        [Fact]
         public void EventHandler_OnElement_WithString()
         {
             // Arrange
@@ -286,7 +347,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""@(() => { })"" />");
 
             // Assert
@@ -302,7 +362,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""@(x => { })"" />");
 
             // Assert
@@ -318,7 +377,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""@OnClick"" />
 @functions {
     void OnClick() {
@@ -338,7 +396,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""@OnClick"" />
 @functions {
     void OnClick(UIMouseEventArgs e) {
@@ -358,7 +415,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""@OnClick"" />
 @functions {
     void OnClick(UIEventArgs e) {
@@ -379,7 +435,6 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @using System.Threading.Tasks
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""@OnClick"" />
 @functions {
     Task OnClick() 
@@ -402,7 +457,6 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @using System.Threading.Tasks
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""@OnClick"" />
 @functions {
     Task OnClick(UIMouseEventArgs e) 
@@ -425,7 +479,6 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @using System.Threading.Tasks
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""async (e) => await Task.Delay(10)"" />
 ");
 
@@ -443,7 +496,6 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @using System.Threading.Tasks
-@using Microsoft.AspNetCore.Blazor
 <input onclick=""async (e) => await Task.Delay(10)"" />
 ");
 
@@ -619,6 +671,141 @@ namespace Test
 <Counter bind-v=""y"" />
 @functions {
     string y = null;
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Regression_609()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class User : BlazorComponent
+    {
+        public string Name { get; set; }
+        public Action<string> NameChanged { get; set; }
+        public bool IsActive { get; set; }
+        public Action<bool> IsActiveChanged { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<User bind-Name=""@UserName"" bind-IsActive=""@UserIsActive"" />
+
+@functions {
+    public string UserName { get; set; }
+    public bool UserIsActive { get; set; }
+}
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact] // https://github.com/aspnet/Blazor/issues/772
+        public void Regression_772()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class SurveyPrompt : BlazorComponent
+    {
+        [Parameter] private string Title { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+@page ""/""
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title=""
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+            // This has some errors
+            Assert.Collection(
+                generated.Diagnostics.OrderBy(d => d.Id),
+                d => Assert.Equal("RZ1034", d.Id),
+                d => Assert.Equal("RZ1035", d.Id));
+        }
+
+        [Fact] // https://github.com/aspnet/Blazor/issues/773
+        public void Regression_773()
+        {
+            GenerateBaselines = true;
+
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class SurveyPrompt : BlazorComponent
+    {
+        [Parameter] private string Title { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+@page ""/""
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title=""<div>Test!</div>"" />
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Regression_784()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+<p onmouseover=""@OnComponentHover"" style=""background: @ParentBgColor;"" />
+@functions {
+    public string ParentBgColor { get; set; } = ""#FFFFFF"";
+
+    public void OnComponentHover(UIMouseEventArgs e)
+    {
+    }
 }
 ");
 

@@ -7,6 +7,8 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Blazor;
+    using Microsoft.AspNetCore.Blazor.Components;
     public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
@@ -14,7 +16,7 @@ namespace Test
         {
             base.BuildRenderTree(builder);
             builder.OpenComponent<Test.MyComponent>(0);
-            builder.AddAttribute(1, "StringProperty", 42.ToString());
+            builder.AddAttribute(1, "StringProperty", Microsoft.AspNetCore.Blazor.Components.RuntimeHelpers.TypeCheck<System.String>(42.ToString()));
             builder.CloseComponent();
         }
         #pragma warning restore 1998

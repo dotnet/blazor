@@ -7,6 +7,8 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Blazor;
+    using Microsoft.AspNetCore.Blazor.Components;
     public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
@@ -14,7 +16,7 @@ namespace Test
         {
             base.BuildRenderTree(builder);
             builder.OpenComponent<Test.MyComponent>(0);
-            builder.AddAttribute(1, "Value", Microsoft.AspNetCore.Blazor.Components.BindMethods.GetValue(ParentValue));
+            builder.AddAttribute(1, "Value", Microsoft.AspNetCore.Blazor.Components.RuntimeHelpers.TypeCheck<System.Int32>(Microsoft.AspNetCore.Blazor.Components.BindMethods.GetValue(ParentValue)));
             builder.AddAttribute(2, "ValueChanged", new System.Action<System.Int32>(__value => ParentValue = __value));
             builder.CloseComponent();
         }
