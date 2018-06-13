@@ -1,4 +1,4 @@
-﻿import { platform } from './Environment'
+import { platform } from './Environment'
 import { registerFunction } from './Interop/RegisteredFunction';
 import { BlazorDOMComponent } from './Rendering/Elements/BlazorDOMComponent'
 import { BlazorDOMElement } from './Rendering/Elements/BlazorDOMElement'
@@ -17,7 +17,8 @@ if (typeof window !== 'undefined') {
     invokeDotNetMethod,
     invokeDotNetMethodAsync
 
-		raiseEvent,
+    ,
+    raiseEvent,
 		registerCustomTag,
 		registerCustomDOMElement,
 		BlazorDOMElement,
