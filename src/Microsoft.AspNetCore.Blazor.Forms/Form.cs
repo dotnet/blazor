@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms
 		/// </summary>
 		public void ValidateModel()
 		{
-			Console.WriteLine("ValidateModel!");
+			//Console.WriteLine("ValidateModel!");
 
             bool currentIsValid = _isValid;
 

@@ -41,8 +41,13 @@ export class BrowserRenderer {
 			throw new Error(`No element is currently associated with component ${componentId}`);
 		}
 
+    let t0 = performance.now();
+
 		this.applyEdits(componentId, element, 0, edits, editsOffset, editsLength, referenceFrames);
-	}
+
+    let t1 = performance.now();
+    console.log("updateComponent took " + (t1 - t0) + " milliseconds.")
+  }
 
 	public disposeComponent(componentId: number) {
 		this.childComponentLocations[componentId].dispose();

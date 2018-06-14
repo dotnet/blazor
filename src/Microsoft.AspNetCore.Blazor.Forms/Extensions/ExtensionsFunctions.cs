@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -32,9 +32,9 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 		/// <param name="htmlAttributes"></param>
 		public static void WriteHtmlAttributes( RenderTreeBuilder builder, ref int sequence, object htmlAttributes )
 		{
-			var attrs = Internals.Helpers.AnonymousObjectToHtmlAttributes(htmlAttributes);
-			foreach (var attr in attrs)
-				builder.AddAttribute(sequence++, attr.Key, attr.Value);
-		}
+            var attrs = Internals.Helpers.AnonymousObjectToHtmlAttributes(htmlAttributes);
+            foreach (var attr in attrs)
+                builder.AddAttribute(sequence++, attr.Key, attr.Value);
+        }
 	}
 }
