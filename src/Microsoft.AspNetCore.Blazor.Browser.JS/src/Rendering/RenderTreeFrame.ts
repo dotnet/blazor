@@ -12,7 +12,7 @@ export function getTreeFramePtr(renderTreeEntries: System_Array<RenderTreeFrameP
 
 export const renderTreeFrame = {
   // The properties and memory layout must be kept in sync with the .NET equivalent in RenderTreeFrame.cs
-  frameType: (frame: RenderTreeFramePointer) => platform.readInt16Field(frame, 4) as FrameType,
+  frameType: (frame: RenderTreeFramePointer) => platform.readInt32Field(frame, 4) as FrameType,
   subtreeLength: (frame: RenderTreeFramePointer) => platform.readInt32Field(frame, 8) as FrameType,
   elementReferenceCaptureId: (frame: RenderTreeFramePointer) => platform.readInt32Field(frame, 8),
   componentId: (frame: RenderTreeFramePointer) => platform.readInt32Field(frame, 12),
@@ -21,7 +21,6 @@ export const renderTreeFrame = {
   attributeName: (frame: RenderTreeFramePointer) => platform.readStringField(frame, 16),
   attributeValue: (frame: RenderTreeFramePointer) => platform.readStringField(frame, 24),
   attributeEventHandlerId: (frame: RenderTreeFramePointer) => platform.readInt32Field(frame, 8),
-	customComponentType: (frame: RenderTreeFramePointer) => platform.readInt16Field(frame, 6),
 };
 
 export enum FrameType {

@@ -7,6 +7,6 @@ export function getElementByCaptureId(referenceCaptureId: number) {
   return document.querySelector(selector);
 }
 
-export function getCaptureIdAttributeName(referenceCaptureId: number) {
+function getCaptureIdAttributeName(referenceCaptureId: number) {
   return `_bl_${referenceCaptureId}`;
 }

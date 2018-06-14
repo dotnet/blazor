@@ -1,9 +1,5 @@
-import { platform } from './Environment'
+﻿import { platform } from './Environment'
 import { registerFunction } from './Interop/RegisteredFunction';
-import { BlazorDOMComponent } from './Rendering/Elements/BlazorDOMComponent'
-import { BlazorDOMElement } from './Rendering/Elements/BlazorDOMElement'
-import { registerCustomTag, registerCustomDOMElement } from './Interop/RenderingFunction'
-import { raiseEvent } from './Rendering/BrowserRenderer'
 import { navigateTo } from './Services/UriHelper';
 import { invokeDotNetMethod, invokeDotNetMethodAsync } from './Interop/InvokeDotNetMethodWithJsonMarshalling';
 
@@ -16,12 +12,5 @@ if (typeof window !== 'undefined') {
     navigateTo,
     invokeDotNetMethod,
     invokeDotNetMethodAsync
-
-    ,
-    raiseEvent,
-		registerCustomTag,
-		registerCustomDOMElement,
-		BlazorDOMElement,
-		BlazorDOMComponent
   };
 }
