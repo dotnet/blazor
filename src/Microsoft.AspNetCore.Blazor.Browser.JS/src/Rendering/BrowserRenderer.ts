@@ -282,15 +282,20 @@ export function raiseEvent(event: Event, browserRendererId: number, componentId:
 		);
 	}
 
-	const eventDescriptor = {
-		BrowserRendererId: browserRendererId,
-		ComponentId: componentId,
-		EventHandlerId: eventHandlerId,
-		EventArgsType: eventArgs.type
-	};
+  const eventDescriptor = {
+    browserRendererId,
+    componentId,
+    eventHandlerId,
+    eventArgsType: eventArgs.type
+  };
 
-	platform.callMethod(raiseEventMethod, null, [
+  let t0 = performance.now();
+
+  platform.callMethod(raiseEventMethod, null, [
 		platform.toDotNetString(JSON.stringify(eventDescriptor)),
 		platform.toDotNetString(JSON.stringify(eventArgs.data))
-	]);
+  ]);
+
+  let t1 = performance.now();
+  console.log("BrowserRendererEventDispatcher took " + (t1 - t0) + " milliseconds.")
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 
 namespace Microsoft.AspNetCore.Blazor.Forms
@@ -13,7 +14,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms
 	/// <summary>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class Form<T> : Microsoft.AspNetCore.Blazor.Components.BlazorComponent /*, IForm */
+	public class Form<T> : Microsoft.AspNetCore.Blazor.Components.BlazorComponent/*, IForm*/
 	{
 		/// <summary>
 		/// </summary>
@@ -21,9 +22,10 @@ namespace Microsoft.AspNetCore.Blazor.Forms
 
 		private T _Model;
 
-		/// <summary>
-		/// </summary>
-		internal protected T Model
+        /// <summary>
+        /// </summary>
+        [Parameter]
+        internal protected T Model
 		{
 			get { return _Model; }
 			set
@@ -63,7 +65,6 @@ namespace Microsoft.AspNetCore.Blazor.Forms
 		/// <returns>True if is valid</returns>
 		public bool IsValid()
 		{
-			ValidateModel();
 			return _isValid;
 		}
 
@@ -73,6 +74,8 @@ namespace Microsoft.AspNetCore.Blazor.Forms
 		public void ValidateModel()
 		{
 			Console.WriteLine("ValidateModel!");
+
+            bool currentIsValid = _isValid;
 
 			_context = null;
 			_validationResults = null;
@@ -90,22 +93,26 @@ namespace Microsoft.AspNetCore.Blazor.Forms
                 };
 				_context = new System.ComponentModel.DataAnnotations.ValidationContext(m, serviceProvider: null, items: null);
 				_validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
-				_isValid = m.TryValidateObject(_context, _validationResults, true);
+				_isValid = m.TryValidateObject(_context, _validationResults, ModelState.PropertyChanged);
+                ModelState.ClearChanges();
 
-				Console.WriteLine($"_isValid = {_isValid}");
+                //Console.WriteLine($"_isValid = {_isValid}");
+
+                if (currentIsValid != _isValid) this.StateHasChanged();
 			}
 		}
 
-		#endregion
+        #endregion
 
-		//#region IForm
+        #region Set Values
 
-		//RenderTreeFrame IForm.onchange( Action<object> handler )
-		//{
-		//	this.ValidateModel();
-		//	return this.onchange(handler);
-		//}
+        internal void SetValue(PropertyInfo property, object parsedValue)
+        {
+            this.ModelState?.SetValue(property, parsedValue);
+            this.ValidateModel();
+            this.StateHasChanged();
+        }
 
-		//#endregion
-	}
+        #endregion
+    }
 }

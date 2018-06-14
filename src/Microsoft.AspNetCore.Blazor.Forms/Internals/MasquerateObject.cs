@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -111,13 +111,18 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
         //	return result;
         //}
         
-        internal bool TryValidateObject(ValidationContext validationContext, List<ValidationResult> validationResults, bool allValues)
+        internal bool TryValidateObject(ValidationContext validationContext, List<ValidationResult> validationResults, System.Collections.Generic.List<string> PropertiesToValidate)
         {
             var properties = TypeDescriptor.GetProperties(this);
 
             bool isValid = true;
             foreach (PropertyDescriptor prop in properties)
             {
+                if (PropertiesToValidate != null && !PropertiesToValidate.Contains(prop.Name))
+                    continue;
+
+                //Console.WriteLine(prop.Name);
+
                 object value = this.GetValue(prop);
                 var attrs = prop.Attributes.OfType<ValidationAttribute>();
 

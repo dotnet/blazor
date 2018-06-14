@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 				builder.AddAttribute(sequence++, "id", property.Name);
 				builder.AddAttribute(sequence++, "value", (string)currentValue);
 				builder.AddAttribute(sequence++, "onchange", new Action<UIChangeEventArgs>(( e ) => {
-					form.ModelState.SetValue(property, e.Value);
+					form.SetValue(property, e.Value);
 				}));
 
 				ExtensionsFunctions.WriteHtmlAttributes(builder, ref sequence, htmlAttributes);

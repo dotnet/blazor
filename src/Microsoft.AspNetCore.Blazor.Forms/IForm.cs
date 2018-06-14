@@ -1,19 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 
 namespace Microsoft.AspNetCore.Blazor.Forms
 {
-	//public interface IForm
-	//{
-	//	RenderTreeFrame onchange( Action<object> handler );
-	//}
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    //public interface IForm
+    //{
+    //    /// <summary>
+    //    /// 
+    //    /// </summary>
+    //    /// <param name="handler"></param>
+    //    /// <returns></returns>
+    //    void OnChange(Action<object> handler);
+    //}
 
-	/// <summary>
-	/// 
-	/// </summary>
-	public interface ICustomValidationMessage
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface ICustomValidationMessage
 	{
 		/// <summary>
 		/// 

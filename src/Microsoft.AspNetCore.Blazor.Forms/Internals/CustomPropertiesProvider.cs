@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
@@ -9,13 +9,13 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 	{
 		internal static PropertyDescriptorCollection GetPropertiesInternal( Type type, Attribute[] attributes, MasqueradeObjectBase parent )
 		{
-			Console.WriteLine("GetPropertiesInternal");
+			//Console.WriteLine("GetPropertiesInternal");
 
 			List<MasqueradeProperty> list = new List<MasqueradeProperty>();
 			var properties = TypeDescriptor.GetProperties(type, attributes);
 			foreach (PropertyDescriptor prop in properties)
 			{
-				Console.WriteLine($"prop={prop.Name}");
+				//Console.WriteLine($"prop={prop.Name}");
 
 				var mp = new MasqueradeProperty(prop, parent);
 				if (prop.PropertyType == typeof(int))

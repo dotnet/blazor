@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Microsoft.AspNetCore.Blazor.Forms.Components
 {
@@ -14,35 +15,41 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Components
 		[Blazor.Components.Inject]
 		private System.Net.Http.HttpClient httpClient { get; set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public string Name { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter]
+        public string Name { get; set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public string Id { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter]
+        public string Id { get; set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public string Url { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter]
+        public string Url { get; set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public string AuthorizationHeader { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter]
+        public string AuthorizationHeader { get; set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public Action<UICustomEventArgs> OnFileAdded { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter]
+        public Action<UICustomEventArgs> OnFileAdded { get; set; }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public Action<UICustomEventArgs> OnFileRemoved { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        [Parameter]
+        public Action<UICustomEventArgs> OnFileRemoved { get; set; }
 
 		/// <inheritdoc />
 		protected override void BuildRenderTree( RenderTreeBuilder builder )

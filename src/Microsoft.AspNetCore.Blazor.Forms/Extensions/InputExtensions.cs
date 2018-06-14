@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,8 +40,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 				builder.AddAttribute(sequence++, "onchange", 
 					Microsoft.AspNetCore.Blazor.Components.BindMethods.GetEventHandlerValue<Microsoft.AspNetCore.Blazor.UIChangeEventArgs>(e =>
 					{ 
-						Console.WriteLine("onchange");
-						form.ModelState.SetValue(property, e.Value);
+						form.SetValue(property, e.Value);
 					}
 				));
 
@@ -79,7 +78,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 				builder.AddAttribute(sequence++, "id", property.Name);
 				builder.AddAttribute(sequence++, "value", boolValue);
 				builder.AddAttribute(sequence++, "onchange", new Action<UIChangeEventArgs>(( e ) => {
-					form.ModelState.SetValue(property, e.Value);
+					form.SetValue(property, e.Value);
 				}));
 
 				ExtensionsFunctions.WriteHtmlAttributes(builder, ref sequence, htmlAttributes);
