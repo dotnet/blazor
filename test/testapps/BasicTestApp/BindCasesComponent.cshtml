@@ -1,4 +1,4 @@
-﻿<h2>Textbox</h2>
+<h2>Textbox</h2>
 <p>
     Initially blank:
     <input id="textbox-initially-blank" bind="textboxInitiallyBlankValue" />
@@ -60,6 +60,12 @@
 
 <h2>Checkbox</h2>
 <p>
+    Initially null:
+    <input id="checkbox-initially-null" bind="checkboxInitialltyNullValue" type="checkbox" />
+    <span id="checkbox-initially-null-value">@checkboxInitialltyNullValue</span>
+    <button id="checkbox-initially-null-invert" onclick="@(() => { checkboxInitialltyNullValue = !checkboxInitialltyNullValue; })">Invert</button>
+</p>
+<p>
     Initially unchecked:
     <input id="checkbox-initially-unchecked" bind="checkboxInitiallyUncheckedValue" type="checkbox" />
     <span id="checkbox-initially-unchecked-value">@checkboxInitiallyUncheckedValue</span>
@@ -94,6 +100,7 @@
     string textAreaIntiallyBlankValue = null;
     string textAreaIntiallyPopulatedValue = "Hello";
 
+    bool? checkboxInitialltyNullValue = null;
     bool checkboxInitiallyUncheckedValue = false;
     bool checkboxInitiallyCheckedValue = true;
 

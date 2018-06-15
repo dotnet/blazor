@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -83,6 +83,14 @@ namespace Microsoft.AspNetCore.Blazor.Components
         public static Action<UIEventArgs> SetValueHandler(Action<bool> setter, bool existingValue)
         {
             return _ => setter((bool)((UIChangeEventArgs)_).Value);
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<UIEventArgs> SetValueHandler(Action<bool?> setter, bool? existingValue)
+        {
+            return _ => setter((bool?)((UIChangeEventArgs)_).Value);
         }
 
         /// <summary>
