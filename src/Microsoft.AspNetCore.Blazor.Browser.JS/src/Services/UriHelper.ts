@@ -19,13 +19,15 @@ registerFunction(`${registeredFunctionPrefix}.enableNavigationInterception`, () 
 
   document.addEventListener('click', event => {
     // Intercept clicks on all <a> elements where the href is within the <base href> URI space
-    const anchorTarget = findClosestAncestor(event.target as Element | null, 'A');
-    if (anchorTarget) {
-      const href = anchorTarget.getAttribute('href');
-      //if the user wants to user some specific browser/OS feature, we dont handle it and let the browser/OS 
-      const anyChangeBehaviorKeyHold = event.ctrlKey || event.shiftKey || event.altKey || event.metaKey;
+    // We must explicitly check if it has an 'href' attribute, because if it doesn't, the result might be null or an empty string depending on the browser
+    const anchorTarget = findClosestAncestor(event.target as Element | null, 'A') as HTMLAnchorElement;
+    const hrefAttributeName = 'href';
+    if (anchorTarget && anchorTarget.hasAttribute(hrefAttributeName)) {
+      const href = anchorTarget.getAttribute(hrefAttributeName)!;
       const absoluteHref = toAbsoluteUri(href);
-      if (isWithinBaseUriSpace(absoluteHref) && !anyChangeBehaviorKeyHold) {
+
+      // Don't stop ctrl/meta-click (etc) from opening links in new tabs/windows
+      if (isWithinBaseUriSpace(absoluteHref) && !eventHasSpecialKey(event)) {
         event.preventDefault();
         performInternalNavigation(absoluteHref);
       }
@@ -90,4 +92,8 @@ function isWithinBaseUriSpace(href: string) {
 
 function toBaseUriWithTrailingSlash(baseUri: string) {
   return baseUri.substr(0, baseUri.lastIndexOf('/') + 1);
+}
+
+function eventHasSpecialKey(event: MouseEvent) {
+  return event.ctrlKey || event.shiftKey || event.altKey || event.metaKey;
 }

@@ -47,12 +47,14 @@ export class EventForDotNet<TData extends UIEventArgs> {
       case 'dblclick':
         return new EventForDotNet<UIMouseEventArgs>('mouse', parseMouseEvent(<MouseEvent>event));
 
+      case 'error':
+        return new EventForDotNet<UIErrorEventArgs>('error', parseErrorEvent(<ErrorEvent>event));
+
       case 'loadstart':
       case 'timeout':
       case 'abort':
       case 'load':
       case 'loadend':
-      case 'error':
       case 'progress':
         return new EventForDotNet<UIProgressEventArgs>('progress', parseProgressEvent(<ProgressEvent>event));
 
@@ -112,6 +114,16 @@ function parseWheelEvent(event: WheelEvent) {
     deltaZ: event.deltaZ,
     deltaMode: event.deltaMode
   };
+}
+
+function parseErrorEvent(event: ErrorEvent) {
+  return {
+    type: event.type,
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno
+  }
 }
 
 function parseProgressEvent(event: ProgressEvent) {
@@ -248,7 +260,14 @@ interface UIDataTransferItem {
   type: string;
 }
 
-interface UIErrorEventArgs extends UIProgressEventArgs {
+interface UIErrorEventArgs extends UIEventArgs {
+  message: string;
+  filename: string;
+  lineno: number;
+  colno: number;
+
+  // omitting 'error' here since we'd have to serialize it, and it's not clear we will want to
+  // do that. https://developer.mozilla.org/en-US/docs/Web/API/ErrorEvent
 }
 
 interface UIFocusEventArgs extends UIEventArgs {

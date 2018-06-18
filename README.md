@@ -24,7 +24,7 @@ Blazor will have all the features of a modern web framework, including:
 
 > Note: Blazor is an *experimental* project. It's not (yet) a committed product. This is to allow time to fully investigate the technical issues associated with running .NET in the browser and to ensure we can build something that developers love and can be productive with. During this experimental phase, we expect to engage deeply with early Blazor adopters like you to hear your feedback and suggestions.
 
-To see Blazor in action, check out [Steve Sanderson's prototype demo at NDC Oslo](https://www.youtube.com/watch?v=MiLAE6HMr10&feature=youtu.be&t=31m45s) last year. You can also try out a [simple live Blazor app](https://blazor-demo.github.io/).
+To see Blazor in action, check out [Steve Sanderson's demo at NDC Minnesota](https://www.youtube.com/watch?v=JU-6pAxqAa4). You can also try out a [simple live Blazor app](https://blazor-demo.github.io/).
 
 ## Getting Started
 
@@ -46,7 +46,8 @@ Run `build.cmd /t:Test` or `build.sh /t:Test`
 ## Run end-to-end tests
 
 Prerequisites:
-- Install [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) (requires Java 8 or later)
+- Install [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) (requires Java 8 or 9)
+  - [Open JDK9](http://jdk.java.net/java-se-ri/9)
   - `npm install -g selenium-standalone`
   - `selenium-standalone install`
 - Chrome

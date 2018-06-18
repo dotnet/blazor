@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure;
 using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
-using OpenQA.Selenium.Support.UI;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -89,36 +88,35 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         [Fact]
         public void CanFollowLinkToOtherPageWithCtrlClick()
         {
-            var key = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? Keys.Meta : Keys.Control;
+            // On macOS we need to hold the command key not the control for opening a popup
+            var key = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? Keys.Command : Keys.Control;
+
             try
             {
                 SetUrlViaPushState($"{ServerPathBase}/");
 
                 var app = MountTestComponent<TestRouter>();
                 var button = app.FindElement(By.LinkText("Other"));
-                //on mac os build we need to hold the meta button not the control for openning a popup
               
-                new Actions(Browser)
-                    .KeyDown(key)
-                    .Click(button)
-                    .Build()
-                    .Perform();
-                new WebDriverWait(Browser, TimeSpan.FromSeconds(5)).Until((b) => b.WindowHandles.Count == 2);
+                new Actions(Browser).KeyDown(key).Click(button).Build().Perform();
+
                 Assert.Equal(2, Browser.WindowHandles.Count);
-
-                //closing newly opened windows if a new one was opened
-
-                Browser.SwitchTo().Window(Browser.WindowHandles.Last());
-                Browser.Close();
-                Browser.SwitchTo().Window(Browser.WindowHandles.First());
             }
             finally
             {
-                // leaving the ctrl key up 
-                new Actions(Browser)
-                    .KeyUp(key)
-                    .Build()
-                    .Perform();
+                // Leaving the ctrl key up 
+                new Actions(Browser).KeyUp(key).Build().Perform();
+                
+                // Closing newly opened windows if a new one was opened
+                while (Browser.WindowHandles.Count > 1)
+                {
+                    Browser.SwitchTo().Window(Browser.WindowHandles.Last());
+                    Browser.Close();
+                }
+
+                // Needed otherwise Selenium tries to direct subsequent commands
+                // to the tab that has already been closed
+                Browser.SwitchTo().Window(Browser.WindowHandles.First());
             }
         }
 
@@ -231,6 +229,19 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             app.FindElement(By.TagName("button")).Click();
             Assert.Equal("This is another page.", app.FindElement(By.Id("test-info")).Text);
             AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
+        }
+
+        [Fact]
+        public void ClickingAnchorWithNoHrefShouldNotNavigate()
+        {
+            SetUrlViaPushState($"{ServerPathBase}/");
+            var initialUrl = Browser.Url;
+
+            var app = MountTestComponent<TestRouter>();
+            app.FindElement(By.Id("anchor-with-no-href")).Click();
+
+            Assert.Equal(initialUrl, Browser.Url);
+            AssertHighlightedLinks("Default (matches all)", "Default with base-relative URL (matches all)");
         }
 
         public void Dispose()
