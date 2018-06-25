@@ -15,6 +15,10 @@
     <WebpackInputs Include="**\*.ts" Exclude="node_modules\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="dist\" />
+  </ItemGroup>
+
   <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\ReferenceFromSource.props" />
 
   <Target Name="EnsureNpmRestored" Condition="!Exists('node_modules')">
@@ -28,6 +32,7 @@
     <Exec Command="npm run build" />
     <ItemGroup>
       <EmbeddedResource Include="dist\blazor.js" LogicalName="blazor./blazor.js" />
+        <EmbeddedResource Include="dist\blazor.min.js" LogicalName="blazor./blazor.min.js" />
     </ItemGroup>
   </Target>
 </Project>
