@@ -12,6 +12,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Services
     /// </summary>
     public class ActivateMonoJSRuntime
     {
+        static object ensureActivatedReturnValue = new object();
+
         static ActivateMonoJSRuntime()
         {
             // Temporarily enable MonoWebAssemblyJSRuntime on this class constructor
@@ -22,9 +24,10 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Services
         /// <summary>
         /// Temporary mechanism for registering the Mono JS runtime. Developers do not need to
         /// use this directly, and it will be removed shortly.
+        /// The return value is intended to be used with GC.KeepAlive purely as a way of ensuring
+        /// the invocation doesn't get stripped out by the linker (if it's smart enough to do so).
         /// </summary>
-        public static void EnsureActivated()
-        {
-        }
+        public static object EnsureActivated()
+            => ensureActivatedReturnValue;
     }
 }

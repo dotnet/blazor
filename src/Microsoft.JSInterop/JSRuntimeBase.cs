@@ -26,7 +26,9 @@ namespace Microsoft.JSInterop
         /// <returns>An instance of <typeparamref name="T"/> obtained by JSON-deserializing the return value.</returns>
         public Task<T> InvokeAsync<T>(string identifier, params object[] args)
         {
-            // TODO: Auto-timeout
+            // We might consider also adding a default timeout here in case we don't want to
+            // risk a memory leak in the scenario where the JS-side code is failing to complete
+            // the operation.
 
             var taskId = Interlocked.Increment(ref _nextPendingTaskId);
             var tcs = new TaskCompletionSource<T>();
@@ -52,14 +54,22 @@ namespace Microsoft.JSInterop
         /// <param name="argsJson">A JSON representation of the arguments.</param>
         protected abstract void BeginInvokeJS(long asyncHandle, string identifier, string argsJson);
 
-        internal void EndInvokeDotNet(string callId, bool success, object resultOrExceptionMessage)
+        internal void EndInvokeDotNet(string callId, bool success, object resultOrException)
         {
+            // For failures, the common case is to call EndInvokeDotNet with the Exception object.
+            // For these we'll serialize as something that's useful to receive on the JS side.
+            // If the value is not an Exception, we'll just rely on it being directly JSON-serializable.
+            if (!success && resultOrException is Exception)
+            {
+                resultOrException = resultOrException.ToString();
+            }
+
             // We pass 0 as the async handle because we don't want the JS-side code to
             // send back any notification (we're just providing a result for an existing async call)
             BeginInvokeJS(0, "DotNet.jsCallDispatcher.endInvokeDotNetFromJS", Json.Serialize(new[] {
                 callId,
                 success,
-                resultOrExceptionMessage
+                resultOrException
             }));
         }
 

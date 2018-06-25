@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Services
         static BrowserServiceProvider()
         {
             // TODO: Remove once we make this part of the app startup mechanism
-            ActivateMonoJSRuntime.EnsureActivated();
+            GC.KeepAlive(ActivateMonoJSRuntime.EnsureActivated());
         }
 
         /// <summary>

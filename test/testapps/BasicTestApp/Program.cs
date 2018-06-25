@@ -18,7 +18,7 @@ namespace BasicTestApp
             BrowserHttpMessageHandler.DefaultCredentials = FetchCredentialsOption.Include;
 
             // Signal to tests that we're ready
-            ActivateMonoJSRuntime.EnsureActivated();
+            GC.KeepAlive(ActivateMonoJSRuntime.EnsureActivated());
             JSRuntime.Current.InvokeAsync<object>("testReady");
         }
 

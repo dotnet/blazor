@@ -23,7 +23,7 @@ namespace BasicTestApp.InteropTest
         [JSInvokable(nameof(AsyncThrowAsyncException))]
         public static async Task AsyncThrowAsyncException()
         {
-            await Task.Delay(300);
+            await Task.Yield();
             throw new InvalidOperationException("Threw an async exception!");
         }
 

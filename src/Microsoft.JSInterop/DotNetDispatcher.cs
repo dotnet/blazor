@@ -27,6 +27,11 @@ namespace Microsoft.JSInterop
         /// <returns>A JSON representation of the return value, or null.</returns>
         public static string Invoke(string assemblyName, string methodIdentifier, string argsJson)
         {
+            // This method doesn't need [JSInvokable] because the platform is responsible for having
+            // some way to dispatch calls here. The logic inside here is the thing that checks whether
+            // the targeted method has [JSInvokable]. It is not itself subject to that restriction,
+            // because there would be nobody to police that. This method *is* the police.
+
             var syncResult = InvokeSynchronously(assemblyName, methodIdentifier, argsJson);
             return syncResult == null ? null : Json.Serialize(syncResult);
         }
@@ -41,6 +46,11 @@ namespace Microsoft.JSInterop
         /// <returns>A JSON representation of the return value, or null.</returns>
         public static void BeginInvoke(string callId, string assemblyName, string methodIdentifier, string argsJson)
         {
+            // This method doesn't need [JSInvokable] because the platform is responsible for having
+            // some way to dispatch calls here. The logic inside here is the thing that checks whether
+            // the targeted method has [JSInvokable]. It is not itself subject to that restriction,
+            // because there would be nobody to police that. This method *is* the police.
+
             var syncResult = InvokeSynchronously(assemblyName, methodIdentifier, argsJson);
 
             // If there was no callId, the caller does not want to be notified about the result
@@ -64,7 +74,7 @@ namespace Microsoft.JSInterop
                     catch (Exception ex)
                     {
                         ex = UnwrapException(ex);
-                        jsRuntimeBaseInstance.EndInvokeDotNet(callId, false, ex.ToString());
+                        jsRuntimeBaseInstance.EndInvokeDotNet(callId, false, ex);
                     }
                 });
             }

@@ -258,7 +258,7 @@ function attachInteropInvoker() {
   DotNet.attachDispatcher({
     beginInvokeDotNetFromJS: (callId, assemblyName, methodIdentifier, argsJson) => {
       monoPlatform.callMethod(dotNetDispatcherBeginInvokeMethodHandle, null, [
-        callId ? monoPlatform.toDotNetString(callId.toString()) : null, // TODO: Implement a way to pass a number to a long without stringification
+        callId ? monoPlatform.toDotNetString(callId.toString()) : null,
         monoPlatform.toDotNetString(assemblyName),
         monoPlatform.toDotNetString(methodIdentifier),
         monoPlatform.toDotNetString(argsJson)

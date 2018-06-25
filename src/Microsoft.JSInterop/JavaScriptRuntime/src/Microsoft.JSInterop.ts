@@ -34,7 +34,7 @@ module DotNet {
    * Invokes the specified .NET public method synchronously. Not all hosting scenarios support
    * synchronous invocation, so if possible use invokeMethodAsync instead.
    *
-   * @param assemblyName The name of the .NET assembly containing the method.
+   * @param assemblyName The short name (without key/version or .dll extension) of the .NET assembly containing the method.
    * @param methodIdentifier The identifier of the method to invoke. The method must have a [JSInvokable] attribute specifying this identifier.
    * @param args Arguments to pass to the method, each of which must be JSON-serializable.
    * @returns The result of the operation.
@@ -52,7 +52,7 @@ module DotNet {
   /**
    * Invokes the specified .NET public method asynchronously.
    *
-   * @param assemblyName The name of the .NET assembly containing the method.
+   * @param assemblyName The short name (without key/version or .dll extension) of the .NET assembly containing the method.
    * @param methodIdentifier The identifier of the method to invoke. The method must have a [JSInvokable] attribute specifying this identifier.
    * @param args Arguments to pass to the method, each of which must be JSON-serializable.
    * @returns A promise representing the result of the operation.
@@ -108,7 +108,7 @@ module DotNet {
     /**
      * Optional. If implemented, invoked by the runtime to perform a synchronous call to a .NET method.
      * 
-     * @param assemblyName The name of the .NET assembly holding the method to invoke.
+     * @param assemblyName The short name (without key/version or .dll extension) of the .NET assembly holding the method to invoke.
      * @param methodIdentifier The identifier of the method to invoke. The method must have a [JSInvokable] attribute specifying this identifier.
      * @param argsJson JSON representation of arguments to pass to the method.
      * @returns The result of the invocation.
@@ -119,7 +119,7 @@ module DotNet {
      * Invoked by the runtime to begin an asynchronous call to a .NET method.
      *
      * @param callId A value identifying the asynchronous operation. This value should be passed back in a later call from .NET to JS.
-     * @param assemblyName The name of the .NET assembly holding the method to invoke.
+     * @param assemblyName The short name (without key/version or .dll extension) of the .NET assembly holding the method to invoke.
      * @param methodIdentifier The identifier of the method to invoke. The method must have a [JSInvokable] attribute specifying this identifier.
      * @param argsJson JSON representation of arguments to pass to the method.
      */
