@@ -215,8 +215,8 @@ mono_wasm_load_runtime (const char *managed_path, int enable_debugging)
 
 	// -----
 	// Begin blazor edits - remember to re-add this to future versions of driver.c
-	mono_add_internal_call ("WebAssembly.Runtime::BlazorInvokeJS", blazor_invoke_js);
-	mono_add_internal_call ("WebAssembly.Runtime::BlazorInvokeJSArray", blazor_invoke_js_array);
+	mono_add_internal_call ("Mono.WebAssembly.Interop.InternalCalls::InvokeJSMarshalled", mono_wasm_invoke_js_marshalled);
+	mono_add_internal_call ("Mono.WebAssembly.Interop.InternalCalls::InvokeJSUnmarshalled", mono_wasm_invoke_js_unmarshalled);
 	// End blazor edits
 	// -----
 }
