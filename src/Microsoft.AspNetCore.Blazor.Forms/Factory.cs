@@ -1,3 +1,4 @@
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms
             //DropZoneComponentId = Microsoft.AspNetCore.Blazor.Components.ComponentFactory.RegisterCustomComponent(typeof(Components.DropZone));
             try
             {
-                Blazor.Browser.Interop.RegisteredFunction.Invoke<bool>("RegisterDropZoneComponentId", DropZoneComponentId);
+				((IJSInProcessRuntime)JSRuntime.Current).Invoke<bool>("RegisterDropZoneComponentId", DropZoneComponentId);
             }
             catch (System.Exception e)
             {

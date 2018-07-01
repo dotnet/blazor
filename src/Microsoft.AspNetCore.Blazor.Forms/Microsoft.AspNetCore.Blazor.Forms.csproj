@@ -5,14 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Internals\SysBits\**" />
-    <EmbeddedResource Remove="Internals\SysBits\**" />
-    <None Remove="Internals\SysBits\**" />
+    <Compile Remove="node_modules\**" />
+    <EmbeddedResource Remove="node_modules\**" />
+    <None Remove="node_modules\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Internals\Validator.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.1" />
