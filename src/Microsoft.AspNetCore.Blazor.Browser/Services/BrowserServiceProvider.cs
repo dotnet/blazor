@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Browser.Http;
@@ -16,6 +16,12 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Services
     public class BrowserServiceProvider : IServiceProvider
     {
         private readonly IServiceProvider _underlyingProvider;
+
+        static BrowserServiceProvider()
+        {
+            // TODO: Remove once we make this part of the app startup mechanism
+            GC.KeepAlive(ActivateMonoJSRuntime.EnsureActivated());
+        }
 
         /// <summary>
         /// Constructs an instance of <see cref="BrowserServiceProvider"/>.
@@ -46,7 +52,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Services
             serviceCollection.AddSingleton<IUriHelper>(uriHelper);
             serviceCollection.AddSingleton(new HttpClient(new BrowserHttpMessageHandler())
             {
-                BaseAddress = new Uri(uriHelper.GetBaseUriPrefix())
+                BaseAddress = new Uri(uriHelper.GetBaseUri())
             });
         }
     }

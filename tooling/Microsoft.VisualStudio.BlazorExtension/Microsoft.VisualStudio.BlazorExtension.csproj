@@ -113,6 +113,10 @@
       this problem, we're only using the P2P references to force build ordering. Then we include the build
       output of those projects as content.
     -->
+    <Content Include="CodeSnippets.pkgdef">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Templates.pkgdef" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Templates\Microsoft.AspNetCore.Blazor.Templates.csproj">
       <Project>{edd21533-c6e6-4f85-be4f-10e06756e24c}</Project>
@@ -156,8 +160,8 @@
       This is built as a P2P by Microsoft.VisualStudio.LanguageServices.Blazor. This is required, adding the P2P	
       to this project will cause a NU1201 error that doesn't have a workaround.	
     -->
-    <Content Include="..\..\src\anglesharp\AngleSharpBuilder\dist\Microsoft.AspNetCore.Blazor.AngleSharp.dll">
-      <Link>Microsoft.AspNetCore.Blazor.AngleSharp.dll</Link>
+    <Content Include="bin\$(Configuration)\AngleSharp.dll">
+      <Link>AngleSharp.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
@@ -232,6 +236,7 @@
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="15.6.27413" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="15.6.27413" />
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="7.10.6071" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="15.3.224" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.16" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="15.6.27413" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="15.6.27413" />
@@ -250,10 +255,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AboutDialogInfoAttribute.cs" />
+    <Compile Include="AutoRebuild\AutoRebuildService.cs" />
+    <Compile Include="AutoRebuild\BuildEventsWatcher.cs" />
+    <Compile Include="AutoRebuild\StreamProtocolExtensions.cs" />
     <Compile Include="BlazorPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="CodeSnippets\Blazor\para.snippet">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="Key.snk" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>

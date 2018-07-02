@@ -7,6 +7,8 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Blazor;
+    using Microsoft.AspNetCore.Blazor.Components;
     public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
@@ -24,7 +26,7 @@ global::System.Object __typeHelper = "*, TestAssembly";
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
-            __o = new Microsoft.AspNetCore.Blazor.UIEventHandler(
+            __o = new System.Action<Microsoft.AspNetCore.Blazor.UIEventArgs>(
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                         (e) => { Increment(); }
 

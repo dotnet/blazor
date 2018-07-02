@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         public void Render_BindToComponent_SpecifiesValue_WithMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -24,9 +24,11 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public int Value { get; set; }
+        [Parameter]
+        int Value { get; set; }
 
-        public Action<int> ValueChanged { get; set; }
+        [Parameter]
+        Action<int> ValueChanged { get; set; }
     }
 }"));
 
@@ -45,15 +47,14 @@ namespace Test
                 frames,
                 frame => AssertFrame.Component(frame, "Test.MyComponent", 3, 0),
                 frame => AssertFrame.Attribute(frame, "Value", 42, 1),
-                frame => AssertFrame.Attribute(frame, "ValueChanged", typeof(Action<int>), 2),
-                frame => AssertFrame.Whitespace(frame, 3));
+                frame => AssertFrame.Attribute(frame, "ValueChanged", typeof(Action<int>), 2));
         }
 
         [Fact]
         public void Render_BindToComponent_SpecifiesValue_WithoutMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -82,15 +83,14 @@ namespace Test
                 frames,
                 frame => AssertFrame.Component(frame, "Test.MyComponent", 3, 0),
                 frame => AssertFrame.Attribute(frame, "Value", 42, 1),
-                frame => AssertFrame.Attribute(frame, "ValueChanged", typeof(UIEventHandler), 2),
-                frame => AssertFrame.Whitespace(frame, 3));
+                frame => AssertFrame.Attribute(frame, "ValueChanged", typeof(Action<UIEventArgs>), 2));
         }
 
         [Fact]
         public void Render_BindToComponent_SpecifiesValueAndChangeEvent_WithMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -98,9 +98,11 @@ namespace Test
 {
     public class MyComponent : BlazorComponent
     {
-        public int Value { get; set; }
+        [Parameter]
+        int Value { get; set; }
 
-        public Action<int> OnChanged { get; set; }
+        [Parameter]
+        Action<int> OnChanged { get; set; }
     }
 }"));
 
@@ -119,15 +121,14 @@ namespace Test
                 frames,
                 frame => AssertFrame.Component(frame, "Test.MyComponent", 3, 0),
                 frame => AssertFrame.Attribute(frame, "Value", 42, 1),
-                frame => AssertFrame.Attribute(frame, "OnChanged", typeof(Action<int>), 2),
-                frame => AssertFrame.Whitespace(frame, 3));
+                frame => AssertFrame.Attribute(frame, "OnChanged", typeof(Action<int>), 2));
         }
 
         [Fact]
         public void Render_BindToComponent_SpecifiesValueAndChangeEvent_WithoutMatchingProperties()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -156,15 +157,14 @@ namespace Test
                 frames,
                 frame => AssertFrame.Component(frame, "Test.MyComponent", 3, 0),
                 frame => AssertFrame.Attribute(frame, "Value", 42, 1),
-                frame => AssertFrame.Attribute(frame, "OnChanged", typeof(UIEventHandler), 2),
-                frame => AssertFrame.Whitespace(frame, 3));
+                frame => AssertFrame.Attribute(frame, "OnChanged", typeof(Action<UIEventArgs>), 2));
         }
 
         [Fact]
         public void Render_BindToElement_WritesAttributes()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -191,15 +191,14 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "div", 3, 0),
                 frame => AssertFrame.Attribute(frame, "myvalue", "hi", 1),
-                frame => AssertFrame.Attribute(frame, "myevent", typeof(UIEventHandler), 2),
-                frame => AssertFrame.Whitespace(frame, 3));
+                frame => AssertFrame.Attribute(frame, "myevent", typeof(Action<UIEventArgs>), 2));
         }
 
         [Fact]
         public void Render_BindToElementWithSuffix_WritesAttributes()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -226,15 +225,14 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "div", 3, 0),
                 frame => AssertFrame.Attribute(frame, "myvalue", "hi", 1),
-                frame => AssertFrame.Attribute(frame, "myevent", typeof(UIEventHandler), 2),
-                frame => AssertFrame.Whitespace(frame, 3));
+                frame => AssertFrame.Attribute(frame, "myevent", typeof(Action<UIEventArgs>), 2));
         }
 
         [Fact]
         public void Render_BindDuplicates_ReportsDiagnostic()
         {
             // Arrange
-            AdditionalSyntaxTrees.Add(CSharpSyntaxTree.ParseText(@"
+            AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor.Components;
 
@@ -284,8 +282,7 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "input", 3, 0),
                 frame => AssertFrame.Attribute(frame, "value", "42", 1),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 2),
-                frame => AssertFrame.Whitespace(frame, 3));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 2));
         }
 
         [Fact]
@@ -308,8 +305,7 @@ namespace Test
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
                 frame => AssertFrame.Attribute(frame, "value", new DateTime(2018, 1, 1).ToString("MM/dd/yyyy"), 2),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
-                frame => AssertFrame.Whitespace(frame, 4));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 3));
         }
 
         [Fact]
@@ -334,8 +330,7 @@ namespace Test
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
                 frame => AssertFrame.Attribute(frame, "value", new DateTime(2018, 1, 1).ToString("MM/dd/yyyy"), 2),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
-                frame => AssertFrame.Whitespace(frame, 4));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 3));
         }
 
         [Fact]
@@ -358,8 +353,7 @@ namespace Test
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
                 frame => AssertFrame.Attribute(frame, "value", "42", 2),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
-                frame => AssertFrame.Whitespace(frame, 4));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 3));
         }
 
         [Fact]
@@ -381,8 +375,7 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "input", 3, 0),
                 frame => AssertFrame.Attribute(frame, "type", "checkbox", 1),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
-                frame => AssertFrame.Whitespace(frame, 4));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 3));
         }
 
         [Fact]
@@ -405,8 +398,7 @@ namespace Test
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
                 frame => AssertFrame.Attribute(frame, "value", "42", 2),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
-                frame => AssertFrame.Whitespace(frame, 4));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 3));
         }
 
         [Fact]
@@ -429,8 +421,7 @@ namespace Test
                 frame => AssertFrame.Element(frame, "input", 4, 0),
                 frame => AssertFrame.Attribute(frame, "type", "text", 1),
                 frame => AssertFrame.Attribute(frame, "value", new DateTime(2018, 1, 1).ToString("MM/dd"), 2),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 3),
-                frame => AssertFrame.Whitespace(frame, 4));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 3));
         }
 
         [Fact] // Additional coverage of OrphanTagHelperLoweringPass
@@ -451,11 +442,37 @@ namespace Test
             Assert.Collection(
                 frames,
                 frame => AssertFrame.Element(frame, "input", 5, 0),
-                frame => AssertFrame.Attribute(frame, "visible", 1), // This gets reordered in the node writer
-                frame => AssertFrame.Attribute(frame, "type", "text", 2),
+                frame => AssertFrame.Attribute(frame, "type", "text", 1),
+                frame => AssertFrame.Attribute(frame, "visible", 2),
                 frame => AssertFrame.Attribute(frame, "value", "42", 3),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 4),
-                frame => AssertFrame.Whitespace(frame, 5));
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 4));
+        }
+
+        [Fact] // See https://github.com/aspnet/Blazor/issues/703
+        public void Workaround_703()
+        {
+            // Arrange
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+<input bind-value-onchange=""@ParentValue"" type=""text"" visible />
+@functions {
+    public int ParentValue { get; set; } = 42;
+}");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            //
+            // The workaround for 703 is that the value attribute MUST be after the type
+            // attribute.
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Element(frame, "input", 5, 0),
+                frame => AssertFrame.Attribute(frame, "type", "text", 1),
+                frame => AssertFrame.Attribute(frame, "visible", 2),
+                frame => AssertFrame.Attribute(frame, "value", "42", 3),
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 4));
         }
 
         [Fact] // Additional coverage of OrphanTagHelperLoweringPass
@@ -479,12 +496,11 @@ namespace Test
                 frames,
                 frame => AssertFrame.Element(frame, "div", 7, 0),
                 frame => AssertFrame.Attribute(frame, "value", "42", 1),
-                frame => AssertFrame.Attribute(frame, "onchange", typeof(UIEventHandler), 2),
+                frame => AssertFrame.Attribute(frame, "onchange", typeof(Action<UIEventArgs>), 2),
                 frame => AssertFrame.Whitespace(frame, 3),
                 frame => AssertFrame.Element(frame, "span", 2, 4),
                 frame => AssertFrame.Text(frame, "42", 5),
-                frame => AssertFrame.Whitespace(frame, 6),
-                frame => AssertFrame.Whitespace(frame, 7));
+                frame => AssertFrame.Whitespace(frame, 6));
         }
 
         [Fact]

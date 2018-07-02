@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "name": "blazor.forms",
+  "private": true,
+  "scripts": {
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/emscripten": "0.0.31",
+    "typescript": "^2.6.1",
+    "webpack": "^3.8.1",
+    "ts-loader": "^3.2.0"
+  }
+}

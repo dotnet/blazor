@@ -23,28 +23,42 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 });
         }
 
+        // This used to be a sugar syntax for lambdas, but we don't support that anymore
         [Fact]
-        public void RejectsEndTagWithDifferentNameToStartTag()
+        public void OldCodeBlockAttributeSyntax_ReportsError()
         {
             // Arrange/Act
-            var result = CompileToCSharp(
-                $"@{{\n" +
-                $"   var abc = 123;\n" +
-                $"}}\n" +
-                $"<root>\n" +
-                $"    <other />\n" +
-                $"    text\n" +
-                $"    <child>more text</root>\n" +
-                $"</child>\n");
+            var generated = CompileToCSharp(@"
+<elem attr=@{ DidInvokeCode = true; } />
+@functions {
+    public bool DidInvokeCode { get; set; } = false;
+}");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Equal("BL9979", diagnostic.Id);
+        }
+
+        [Fact]
+        public void RejectsScriptTag()
+        {
+            // Arrange/Act
+            var result = CompileToCSharp(@"Hello
+<div>
+    <script src='anything'>
+        something
+    </script>
+</div>
+Goodbye");
 
             // Assert
             Assert.Collection(result.Diagnostics,
                 item =>
                 {
-                    Assert.Equal("BL9982", item.Id);
-                    Assert.Equal("Mismatching closing tag. Found 'child' but expected 'root'.", item.GetMessage());
-                    Assert.Equal(6, item.Span.LineIndex);
-                    Assert.Equal(20, item.Span.CharacterIndex);
+                    Assert.Equal("BL9992", item.Id);
+                    Assert.Equal("Script tags should not be placed inside components because they cannot be updated dynamically. To fix this, move the script tag to the 'index.html' file or another static location. For more information see https://go.microsoft.com/fwlink/?linkid=872131", item.GetMessage());
+                    Assert.Equal(2, item.Span.LineIndex);
+                    Assert.Equal(4, item.Span.CharacterIndex);
                 });
         }
     }

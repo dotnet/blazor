@@ -8,11 +8,17 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Net.Http.Headers;
 using System.Net.Mime;
+using System;
 
 namespace Microsoft.AspNetCore.Builder
 {
+    /// <summary>
+    /// Provides extension methods that add Blazor-related middleware to the ASP.NET pipeline.
+    /// </summary>
     public static class BlazorAppBuilderExtensions
     {
+        const string DevServerApplicationName = "dotnet-blazor";
+
         /// <summary>
         /// Configures the middleware pipeline to work with Blazor.
         /// </summary>
@@ -48,6 +54,18 @@ namespace Microsoft.AspNetCore.Builder
                 ContentTypeProvider = CreateContentTypeProvider(),
                 OnPrepareResponse = SetCacheHeaders
             };
+
+            if (env.IsDevelopment() && config.EnableAutoRebuilding)
+            {
+                if (env.ApplicationName.Equals(DevServerApplicationName, StringComparison.OrdinalIgnoreCase))
+                {
+                    applicationBuilder.UseDevServerAutoRebuild(config);
+                }
+                else
+                {
+                    applicationBuilder.UseHostedAutoRebuild(config, env.ContentRootPath);
+                }
+            }
 
             // First, match the request against files in the client app dist directory
             applicationBuilder.UseStaticFiles(distDirStaticFiles);

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         static readonly char[] _queryOrHashStartChar = new[] { '?', '#' };
 
         RenderHandle _renderHandle;
-        string _baseUriPrefix;
+        string _baseUri;
         string _locationAbsolute;
 
         [Inject] private IUriHelper UriHelper { get; set; }
@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// Gets or sets the assembly that should be searched, along with its referenced
         /// assemblies, for components matching the URI.
         /// </summary>
-        public Assembly AppAssembly { get; set; }
+        [Parameter] private Assembly AppAssembly { get; set; }
 
         private RouteTable Routes { get; set; }
 
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void Init(RenderHandle renderHandle)
         {
             _renderHandle = renderHandle;
-            _baseUriPrefix = UriHelper.GetBaseUriPrefix();
+            _baseUri = UriHelper.GetBaseUri();
             _locationAbsolute = UriHelper.GetAbsoluteUri();
             UriHelper.OnLocationChanged += OnLocationChanged;
         }
@@ -65,23 +65,24 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 : str.Substring(0, firstIndex);
         }
 
+        /// <inheritdoc />
         protected virtual void Render(RenderTreeBuilder builder, Type handler, IDictionary<string, object> parameters)
         {
             builder.OpenComponent(0, typeof(LayoutDisplay));
-            builder.AddAttribute(1, nameof(LayoutDisplay.Page), handler);
-            builder.AddAttribute(2, nameof(LayoutDisplay.PageParameters), parameters);
+            builder.AddAttribute(1, LayoutDisplay.NameOfPage, handler);
+            builder.AddAttribute(2, LayoutDisplay.NameOfPageParameters, parameters);
             builder.CloseComponent();
         }
 
         private void Refresh()
         {
-            var locationPath = UriHelper.ToBaseRelativePath(_baseUriPrefix, _locationAbsolute);
+            var locationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
             locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
             var context = new RouteContext(locationPath);
             Routes.Route(context);
             if (context.Handler == null)
             {
-                throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '{locationPath}'.");
+                throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '/{locationPath}'.");
             }
 
             if (!typeof(IComponent).IsAssignableFrom(context.Handler))

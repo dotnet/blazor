@@ -1,8 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Blazor.Browser.Interop;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.JSInterop;
 using System;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
@@ -19,7 +18,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
         // This can be simplified in the future when the Mono WASM runtime is enhanced.
         public static void DispatchEvent(string eventDescriptorJson, string eventArgsJson)
         {
-            var eventDescriptor = JsonUtil.Deserialize<BrowserEventDescriptor>(eventDescriptorJson);
+            var eventDescriptor = Json.Deserialize<BrowserEventDescriptor>(eventDescriptorJson);
             var eventArgs = ParseEventArgsJson(eventDescriptor.EventArgsType, eventArgsJson);
             var browserRenderer = BrowserRendererRegistry.Find(eventDescriptor.BrowserRendererId);
             browserRenderer.DispatchBrowserEvent(
@@ -32,12 +31,30 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
         {
             switch (eventArgsType)
             {
-                case "mouse":
-                    return JsonUtil.Deserialize<UIMouseEventArgs>(eventArgsJson);
-                case "keyboard":
-                    return JsonUtil.Deserialize<UIKeyboardEventArgs>(eventArgsJson);
                 case "change":
-                    return JsonUtil.Deserialize<UIChangeEventArgs>(eventArgsJson);
+                    return Json.Deserialize<UIChangeEventArgs>(eventArgsJson);
+                case "clipboard":
+                    return Json.Deserialize<UIClipboardEventArgs>(eventArgsJson);
+                case "drag":
+                    return Json.Deserialize<UIDragEventArgs>(eventArgsJson);
+                case "error":
+                    return Json.Deserialize<UIErrorEventArgs>(eventArgsJson);
+                case "focus":
+                    return Json.Deserialize<UIFocusEventArgs>(eventArgsJson);
+                case "keyboard":
+                    return Json.Deserialize<UIKeyboardEventArgs>(eventArgsJson);
+                case "mouse":
+                    return Json.Deserialize<UIMouseEventArgs>(eventArgsJson);
+                case "pointer":
+                    return Json.Deserialize<UIPointerEventArgs>(eventArgsJson);
+                case "progress":
+                    return Json.Deserialize<UIProgressEventArgs>(eventArgsJson);
+                case "touch":
+                    return Json.Deserialize<UITouchEventArgs>(eventArgsJson);
+                case "unknown":
+                    return Json.Deserialize<UIEventArgs>(eventArgsJson);
+                case "wheel":
+                    return Json.Deserialize<UIWheelEventArgs>(eventArgsJson);
                 default:
                     throw new ArgumentException($"Unsupported value '{eventArgsType}'.", nameof(eventArgsType));
             }

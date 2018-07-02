@@ -33,18 +33,18 @@ else
             }
         </tbody>
     </table>
-    <p class="text-center">
-        <a href="/fetchdata/@StartDate.AddDays(-5).ToString("yyyy-MM-dd")" class="pull-left">
+    <p>
+        <a href="fetchdata/@StartDate.AddDays(-5).ToString("yyyy-MM-dd")" class="btn btn-secondary float-left">
             ◀ Previous
         </a>
-        <a href="/fetchdata/@StartDate.AddDays(5).ToString("yyyy-MM-dd")" class="pull-right">
+        <a href="fetchdata/@StartDate.AddDays(5).ToString("yyyy-MM-dd")" class="btn btn-secondary float-right">
             Next ▶
         </a>
     </p>
 }
 
 @functions {
-    public DateTime StartDate { get; set; }
+    [Parameter] DateTime StartDate { get; set; }
 
     WeatherForecast[] forecasts;
 
@@ -57,7 +57,7 @@ else
     protected override async Task OnParametersSetAsync()
     {
         forecasts = await Http.GetJsonAsync<WeatherForecast[]>(
-            $"/sample-data/weather.json?date={StartDate.ToString("yyyy-MM-dd")}");
+            $"sample-data/weather.json?date={StartDate.ToString("yyyy-MM-dd")}");
 
         // Because StandaloneApp doesn't really have a server endpoint to get dynamic data from,
         // fake the DateFormatted values here. This would not apply in a real app.

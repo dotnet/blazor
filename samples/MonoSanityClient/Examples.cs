@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Mono.WebAssembly.Interop;
 using System;
+using System.Runtime.InteropServices;
 using System.Text;
-using WebAssembly;
 
 namespace MonoSanityClient
 {
@@ -31,8 +32,7 @@ namespace MonoSanityClient
 
         public static string EvaluateJavaScript(string expression)
         {
-            // For tests that call this method, we'll exercise the 'InvokeJSArray' code path
-            var result = Runtime.InvokeJSArray<string>(out var exceptionMessage, "evaluateJsExpression", expression, null, null);
+            var result = InternalCalls.InvokeJSUnmarshalled<string, string, object, object>(out var exceptionMessage, "evaluateJsExpression", expression, null, null);
             if (exceptionMessage != null)
             {
                 return $".NET got exception: {exceptionMessage}";
@@ -43,9 +43,9 @@ namespace MonoSanityClient
 
         public static string CallJsNoBoxing(int numberA, int numberB)
         {
-            // For tests that call this method, we'll exercise the 'InvokeJS' code path
+            // For tests that call this method, we'll exercise the 'BlazorInvokeJS' code path
             // since that doesn't box the params
-            var result = Runtime.InvokeJS<int, int, object, int>(out var exceptionMessage, "divideNumbersUnmarshalled", numberA, numberB, null);
+            var result = InternalCalls.InvokeJSUnmarshalled<int, int, object, int>(out var exceptionMessage, "divideNumbersUnmarshalled", numberA, numberB, null);
             if (exceptionMessage != null)
             {
                 return $".NET got exception: {exceptionMessage}";
@@ -53,5 +53,10 @@ namespace MonoSanityClient
 
             return $".NET received: {result}";
         }
+
+        public static string GetRuntimeInformation()
+            => $"OSDescription: '{RuntimeInformation.OSDescription}';"
+            + $" OSArchitecture: '{RuntimeInformation.OSArchitecture}';"
+            + $" IsOSPlatform(WEBASSEMBLY): '{RuntimeInformation.IsOSPlatform(OSPlatform.Create("WEBASSEMBLY"))}'";
     }
 }

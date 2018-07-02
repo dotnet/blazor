@@ -23,8 +23,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
     /// Optional base class for Blazor components. Alternatively, Blazor components may
     /// implement <see cref="IComponent"/> directly.
     /// </summary>
-    public abstract class BlazorComponent : IComponent, IHandleEvent
+    public abstract class BlazorComponent : IComponent, IHandleEvent, IHandleAfterRender
     {
+        /// <summary>
+        /// Specifies the name of the <see cref="RenderTree"/>-building method.
+        /// </summary>
         public const string BuildRenderTreeMethodName = nameof(BuildRenderTree);
 
         private readonly RenderFragment _renderFragment;
@@ -33,6 +36,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
         private bool _hasNeverRendered = true;
         private bool _hasPendingQueuedRender;
 
+        /// <summary>
+        /// Constructs an instance of <see cref="BlazorComponent"/>.
+        /// </summary>
         public BlazorComponent()
         {
             _renderFragment = BuildRenderTree;
@@ -81,6 +87,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// Method invoked when the component has received parameters from its parent in
         /// the render tree, and the incoming values have been assigned to properties.
         /// </summary>
+        /// <returns>A <see cref="Task"/> representing any asynchronous operation, or <see langword="null"/>.</returns>
         protected virtual Task OnParametersSetAsync()
             => null;
 
@@ -109,6 +116,22 @@ namespace Microsoft.AspNetCore.Blazor.Components
         protected virtual bool ShouldRender()
             => true;
 
+        /// <summary>
+        /// Method invoked after each time the component has been rendered.
+        /// </summary>
+        protected virtual void OnAfterRender()
+        {
+        }
+
+        /// <summary>
+        /// Method invoked after each time the component has been rendered. Note that the component does
+        /// not automatically re-render after the completion of any returned <see cref="Task"/>, because
+        /// that would cause an infinite render loop.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing any asynchronous operation, or <see langword="null"/>.</returns>
+        protected virtual Task OnAfterRenderAsync()
+            => null;
+
         void IComponent.Init(RenderHandle renderHandle)
         {
             // This implicitly means a BlazorComponent can only be associated with a single
@@ -121,7 +144,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
             _renderHandle = renderHandle;
         }
-        
+
         /// <summary>
         /// Method invoked to apply initial or updated parameters to the component.
         /// </summary>
@@ -137,11 +160,19 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                 // If you override OnInitAsync and return a nonnull task, then by default
                 // we automatically re-render once that task completes.
-                OnInitAsync()?.ContinueWith(ContinueAfterLifecycleTask);
+                var initTask = OnInitAsync();
+                if (initTask != null && initTask.Status != TaskStatus.RanToCompletion)
+                {
+                    initTask.ContinueWith(ContinueAfterLifecycleTask);
+                }
             }
 
             OnParametersSet();
-            OnParametersSetAsync()?.ContinueWith(ContinueAfterLifecycleTask);
+            var parametersTask = OnParametersSetAsync();
+            if (parametersTask != null && parametersTask.Status != TaskStatus.RanToCompletion)
+            {
+                parametersTask.ContinueWith(ContinueAfterLifecycleTask);
+            }
 
             StateHasChanged();
         }
@@ -169,59 +200,40 @@ namespace Microsoft.AspNetCore.Blazor.Components
             Console.Error.WriteLine($"[{ex.GetType().FullName}] {ex.Message}\n{ex.StackTrace}");
         }
 
-        void IHandleEvent.HandleEvent(UIEventHandler handler, UIEventArgs args)
+        void IHandleEvent.HandleEvent(EventHandlerInvoker binding, UIEventArgs args)
         {
-            handler(args);
+            var task = binding.Invoke(args);
 
             // After each event, we synchronously re-render (unless !ShouldRender())
             // This just saves the developer the trouble of putting "StateHasChanged();"
             // at the end of every event callback.
             StateHasChanged();
+
+            if (task.Status == TaskStatus.RanToCompletion)
+            {
+                return;
+            }
+
+            task.ContinueWith(ContinueAfterLifecycleTask);
         }
 
-        // At present, if you have a .cshtml file in a project with <Project Sdk="Microsoft.NET.Sdk.Web">,
-        // Visual Studio will run design-time builds for it, codegenning a class that attempts to override
-        // this method. Therefore the virtual method must be defined, even though it won't be used at runtime,
-        // because otherwise VS will display a design-time error in its 'Error List' pane.
-        // TODO: Track down what triggers the design-time build for .cshtml files and how to stop it, then
-        // this method can be removed.
-        /// <summary>
-        /// Not used. Do not invoke this method.
-        /// </summary>
-        /// <returns>Always throws an exception.</returns>
-        public virtual Task ExecuteAsync()
-            => throw new NotImplementedException($"Blazor components do not implement {nameof(ExecuteAsync)}.");
+        void IHandleAfterRender.OnAfterRender()
+        {
+            OnAfterRender();
 
-        /// <summary>
-        /// Applies two-way data binding between the element and the property.
-        /// </summary>
-        /// <param name="value">The model property to be bound to the element.</param>
-        protected RenderTreeFrame bind(object value)
-            => throw new NotImplementedException($"{nameof(bind)} is a compile-time symbol only and should not be invoked.");
+            OnAfterRenderAsync()?.ContinueWith(task =>
+            {
+                // Note that we don't call StateHasChanged to trigger a render after
+                // handling this, because that would be an infinite loop. The only
+                // reason we have OnAfterRenderAsync is so that the developer doesn't
+                // have to use "async void" and do their own exception handling in
+                // the case where they want to start an async task.
 
-        /// <summary>
-        /// Applies two-way data binding between the element and the property.
-        /// </summary>
-        /// <param name="value">The model property to be bound to the element.</param>
-        protected RenderTreeFrame bind(DateTime value, string format)
-            => throw new NotImplementedException($"{nameof(bind)} is a compile-time symbol only and should not be invoked.");
-
-        /// <summary>
-        /// Handles click events by invoking <paramref name="handler"/>.
-        /// </summary>
-        /// <param name="handler">The handler to be invoked when the event occurs.</param>
-        /// <returns>A <see cref="RenderTreeFrame"/> that represents the event handler.</returns>
-        protected RenderTreeFrame onclick(Action handler)
-            // Note that the 'sequence' value is updated later when inserted into the tree
-            => RenderTreeFrame.Attribute(0, "onclick", _ => handler());
-
-        /// <summary>
-        /// Handles change events by invoking <paramref name="handler"/>.
-        /// </summary>
-        /// <param name="handler">The handler to be invoked when the event occurs. The handler will receive the new value as a parameter.</param>
-        /// <returns>A <see cref="RenderTreeFrame"/> that represents the event handler.</returns>
-        protected RenderTreeFrame onchange(Action<object> handler)
-            // Note that the 'sequence' value is updated later when inserted into the tree
-            => RenderTreeFrame.Attribute(0, "onchange", args => handler(((UIChangeEventArgs)args).Value));
+                if (task.Exception != null)
+                {
+                    HandleException(task.Exception);
+                }
+            });
+        }
     }
 }

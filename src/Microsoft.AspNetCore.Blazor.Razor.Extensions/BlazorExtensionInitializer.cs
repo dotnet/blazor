@@ -3,31 +3,44 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
 {
+    /// <summary>
+    /// Initializes the Blazor extension.
+    /// </summary>
     public class BlazorExtensionInitializer : RazorExtensionInitializer
     {
+        /// <summary>
+        /// Specifies the declaration configuration.
+        /// </summary>
         public static readonly RazorConfiguration DeclarationConfiguration;
 
+        /// <summary>
+        /// Specifies the default configuration.
+        /// </summary>
         public static readonly RazorConfiguration DefaultConfiguration;
 
         static BlazorExtensionInitializer()
         {
+            // The configuration names here need to match what we put in the MSBuild configuration
             DeclarationConfiguration = RazorConfiguration.Create(
-                RazorLanguageVersion.Version_2_1, // Cannot use experimental until 15.7p4
+                RazorLanguageVersion.Experimental,
                 "BlazorDeclaration-0.1",
                 Array.Empty<RazorExtension>());
 
             DefaultConfiguration = RazorConfiguration.Create(
-                RazorLanguageVersion.Version_2_1,
+                RazorLanguageVersion.Experimental,
                 "Blazor-0.1",
                 Array.Empty<RazorExtension>());
         }
 
+        /// <summary>
+        /// Registers the Blazor extension.
+        /// </summary>
+        /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
         public static void Register(RazorProjectEngineBuilder builder)
         {
             if (builder == null)
@@ -50,19 +63,29 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             builder.Features.Add(new ConfigureBlazorCodeGenerationOptions());
 
+            var isDeclarationOnlyCompile = builder.Configuration.ConfigurationName == DeclarationConfiguration.ConfigurationName;
+
             // Blazor-specific passes, in order.
+            if (!isDeclarationOnlyCompile)
+            {
+                // There's no benefit in this optimization during the declaration-only compile
+                builder.Features.Add(new TrimWhitespacePass());
+            }
             builder.Features.Add(new ComponentDocumentClassifierPass());
+            builder.Features.Add(new ComponentDocumentRewritePass());
+            builder.Features.Add(new ScriptTagPass());
             builder.Features.Add(new ComplexAttributeContentPass());
-            builder.Features.Add(new BindLoweringPass());
-            builder.Features.Add(new EventHandlerLoweringPass());
             builder.Features.Add(new ComponentLoweringPass());
-            builder.Features.Add(new OrphanTagHelperLoweringPass());
+            builder.Features.Add(new EventHandlerLoweringPass());
+            builder.Features.Add(new RefLoweringPass());
+            builder.Features.Add(new BindLoweringPass());
 
             builder.Features.Add(new ComponentTagHelperDescriptorProvider());
             builder.Features.Add(new BindTagHelperDescriptorProvider());
             builder.Features.Add(new EventHandlerTagHelperDescriptorProvider());
+            builder.Features.Add(new RefTagHelperDescriptorProvider());
 
-            if (builder.Configuration.ConfigurationName == DeclarationConfiguration.ConfigurationName)
+            if (isDeclarationOnlyCompile)
             {
                 // This is for 'declaration only' processing. We don't want to try and emit any method bodies during
                 // the design time build because we can't do it correctly until the set of components is known.
@@ -70,6 +93,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
         }
 
+        /// <summary>
+        /// Initializes the Blazor extension.
+        /// </summary>
+        /// <param name="builder">The <see cref="RazorProjectEngineBuilder"/>.</param>
         public override void Initialize(RazorProjectEngineBuilder builder)
         {
             if (builder == null)

@@ -7,3 +7,7 @@ artifacts/
 msbuild.binlog
 .vscode/
 BenchmarkDotNet.Artifacts/
+/startvs.bat
+/src/Microsoft.AspNetCore.Blazor.Browser.JS/npm-debug.log
+/packages
+/src/anglesharp/AngleSharpBuilder/dist

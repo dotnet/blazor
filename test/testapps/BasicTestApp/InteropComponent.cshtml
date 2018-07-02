@@ -1,0 +1,97 @@
+@using Microsoft.JSInterop
+@using BasicTestApp.InteropTest
+
+<button id="btn-interop" onclick="@InvokeInteropAsync">Invoke interop!</button>
+
+<div>
+    <h1>Invocations</h1>
+    @foreach (var invocation in Invocations)
+    {
+        <h2>@invocation.Key</h2>
+        <p id="@invocation.Key">@invocation.Value</p>
+    }
+</div>
+
+<div>
+    <h1>Return values and exceptions thrown from .NET</h1>
+    @foreach (var returnValue in ReturnValues)
+    {
+        <h2>@returnValue.Key</h2>
+        <p id="@returnValue.Key">@returnValue.Value</p>
+    }
+</div>
+
+<div>
+    <h1>Exceptions thrown from JavaScript</h1>
+    <h2>@nameof(ExceptionFromSyncMethod)</h2>
+    <p id="@nameof(ExceptionFromSyncMethod)">@ExceptionFromSyncMethod?.Message</p>
+    <h2>@nameof(SyncExceptionFromAsyncMethod)</h2>
+    <p id="@nameof(SyncExceptionFromAsyncMethod)">@SyncExceptionFromAsyncMethod?.Message</p>
+    <h2>@nameof(AsyncExceptionFromAsyncMethod)</h2>
+    <p id="@nameof(AsyncExceptionFromAsyncMethod)">@AsyncExceptionFromAsyncMethod?.Message</p>
+</div>
+@if (DoneWithInterop)
+{
+    <p id="done-with-interop">Done with interop.</p>
+}
+
+@functions {
+
+    public IDictionary<string, string> ReturnValues { get; set; } = new Dictionary<string, string>();
+    public IDictionary<string, string> Invocations { get; set; } = new Dictionary<string, string>();
+
+    public JSException ExceptionFromSyncMethod { get; set; }
+    public JSException SyncExceptionFromAsyncMethod { get; set; }
+    public JSException AsyncExceptionFromAsyncMethod { get; set; }
+
+    public bool DoneWithInterop { get; set; }
+
+    public async Task InvokeInteropAsync()
+    {
+        var inProcRuntime = ((IJSInProcessRuntime)JSRuntime.Current);
+
+        Console.WriteLine("Starting interop invocations.");
+        await JSRuntime.Current.InvokeAsync<object>("jsInteropTests.invokeDotNetInteropMethodsAsync");
+        Console.WriteLine("Showing interop invocation results.");
+        var collectResults = inProcRuntime.Invoke<Dictionary<string,string>>("jsInteropTests.collectInteropResults");
+
+        ReturnValues = collectResults.ToDictionary(kvp => kvp.Key,kvp => System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(kvp.Value)));
+
+        var invocations = new Dictionary<string, string>();
+        foreach (var interopResult in JavaScriptInterop.Invocations)
+        {
+            var interopResultValue = Json.Serialize(interopResult.Value);
+            invocations[interopResult.Key] = interopResultValue;
+        }
+
+        try
+        {
+            inProcRuntime.Invoke<object>("jsInteropTests.functionThrowsException");
+        }
+        catch (JSException e)
+        {
+            ExceptionFromSyncMethod = e;
+        }
+
+        try
+        {
+            await JSRuntime.Current.InvokeAsync<object>("jsInteropTests.asyncFunctionThrowsSyncException");
+        }
+        catch (JSException e)
+        {
+            SyncExceptionFromAsyncMethod = e;
+        }
+
+        try
+        {
+            await JSRuntime.Current.InvokeAsync<object>("jsInteropTests.asyncFunctionThrowsAsyncException");
+        }
+        catch (JSException e)
+        {
+            AsyncExceptionFromAsyncMethod = e;
+        }
+
+        Invocations = invocations;
+        DoneWithInterop = true;
+    }
+}

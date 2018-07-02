@@ -7,6 +7,8 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Blazor;
+    using Microsoft.AspNetCore.Blazor.Components;
     public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
@@ -24,27 +26,27 @@ global::System.Object __typeHelper = "*, TestAssembly";
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
-            __o = 
+            __o = Microsoft.AspNetCore.Blazor.Components.RuntimeHelpers.TypeCheck<System.Int32>(
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                  123
 
 #line default
 #line hidden
-            ;
-            __o = 
+            );
+            __o = Microsoft.AspNetCore.Blazor.Components.RuntimeHelpers.TypeCheck<System.Boolean>(
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
                   true
 
 #line default
 #line hidden
-            ;
-            __o = 
+            );
+            __o = Microsoft.AspNetCore.Blazor.Components.RuntimeHelpers.TypeCheck<Test.SomeType>(
 #line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
                     new SomeType()
 
 #line default
 #line hidden
-            ;
+            );
             builder.AddAttribute(-1, "ChildContent", (Microsoft.AspNetCore.Blazor.RenderFragment)((builder2) => {
             }
             ));

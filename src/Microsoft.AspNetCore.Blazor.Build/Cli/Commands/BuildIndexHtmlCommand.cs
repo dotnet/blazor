@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using Microsoft.Extensions.CommandLineUtils;
 
 namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
@@ -14,13 +15,13 @@ namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
                 "Path to the HTML Page containing the Blazor bootstrap script tag.",
                 CommandOptionType.SingleValue);
 
-            var references = command.Option("--reference",
-                "The path from the _bin folder to a given referenced dll file (typically just the dll name)",
-                CommandOptionType.MultipleValue);
+            var referencesFile = command.Option("--references",
+                "The path to a file that lists the paths to given referenced dll files",
+                CommandOptionType.SingleValue);
 
-            var embeddedResourcesSources = command.Option("--embedded-resources-source",
-                "The path to an assembly that may contain embedded resources (typically a referenced assembly in its pre-linked state)",
-                CommandOptionType.MultipleValue);
+            var embeddedResourcesFile = command.Option("--embedded-resources",
+                "The path to a file that lists the paths of .NET assemblies that may contain embedded resources (typically, referenced assemblies in their pre-linked states)",
+                CommandOptionType.SingleValue);
 
             var outputPath = command.Option("--output",
                 "Path to the output file",
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
             command.OnExecute(() =>
             {
                 if (string.IsNullOrEmpty(mainAssemblyPath.Value) ||
-                    !clientPage.HasValue() || !references.HasValue() || !outputPath.HasValue())
+                    !clientPage.HasValue() || !outputPath.HasValue())
                 {
                     command.ShowHelp(command.Name);
                     return 1;
@@ -44,11 +45,19 @@ namespace Microsoft.AspNetCore.Blazor.Build.Cli.Commands
 
                 try
                 {
+                    var referencesSources = referencesFile.HasValue()
+                        ? File.ReadAllLines(referencesFile.Value())
+                        : Array.Empty<string>();
+
+                    var embeddedResourcesSources = embeddedResourcesFile.HasValue()
+                        ? File.ReadAllLines(embeddedResourcesFile.Value())
+                        : Array.Empty<string>();
+
                     IndexHtmlWriter.UpdateIndex(
                         clientPage.Value(),
                         mainAssemblyPath.Value,
-                        references.Values.ToArray(),
-                        embeddedResourcesSources.Values.ToArray(),
+                        referencesSources,
+                        embeddedResourcesSources,
                         linkerEnabledFlag.HasValue(),
                         outputPath.Value());
                     return 0;

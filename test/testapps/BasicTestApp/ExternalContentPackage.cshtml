@@ -1,4 +1,4 @@
-﻿@addTagHelper *, TestContentPackage
+@addTagHelper *, TestContentPackage
 @using TestContentPackage
 
 <h1>Functionality and content from an external package</h1>
@@ -11,7 +11,7 @@
 
 <p>Click the following button to invoke a JavaScript function.</p>
 
-<button @onclick(ShowJavaScriptPrompt)>Show JavaScript prompt</button>
+<button onclick="@ShowJavaScriptPrompt">Show JavaScript prompt</button>
 
 @if (!string.IsNullOrEmpty(result))
 {
@@ -31,8 +31,8 @@
 {
     string result;
 
-    void ShowJavaScriptPrompt()
+    async Task ShowJavaScriptPrompt()
     {
-        result = MyPrompt.Show("Hello!");
+        result = await MyPrompt.Show("Hello!");
     }
 }

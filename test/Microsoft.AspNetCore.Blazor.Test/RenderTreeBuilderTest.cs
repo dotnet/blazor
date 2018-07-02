@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Blazor.Test.Helpers;
 using System;
 using System.Linq;
 using Xunit;
-using Xunit.Extensions;
 
 namespace Microsoft.AspNetCore.Blazor.Test
 {
@@ -168,7 +167,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var builder = new RenderTreeBuilder(new TestRenderer());
-            UIEventHandler eventHandler = eventInfo => { };
+            Action<UIEventArgs> eventHandler = eventInfo => { };
 
             // Act
             builder.OpenElement(0, "myelement");                    //  0: <myelement
@@ -257,6 +256,36 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 builder.OpenRegion(0);
                 builder.AddAttribute(1, "name", "value");
+            });
+        }
+
+        [Fact]
+        public void CannotAddAttributeToElementReferenceCapture()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.OpenElement(0, "some element");
+                builder.AddElementReferenceCapture(1, _ => { });
+                builder.AddAttribute(2, "name", "value");
+            });
+        }
+
+        [Fact]
+        public void CannotAddAttributeToComponentReferenceCapture()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.OpenComponent<TestComponent>(0);
+                builder.AddComponentReferenceCapture(1, _ => { });
+                builder.AddAttribute(2, "name", "value");
             });
         }
 
@@ -368,6 +397,184 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 frame => AssertFrame.Text(frame, "Hello from the fragment", 0),
                 frame => AssertFrame.Element(frame, "Fragment element", 2, 1),
                 frame => AssertFrame.Text(frame, "Some text", 2));
+        }
+
+        [Fact]
+        public void CanAddElementReferenceCaptureInsideElement()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+            Action<ElementRef> referenceCaptureAction = elementRef => { };
+
+            // Act
+            builder.OpenElement(0, "myelement");                    //  0: <myelement
+            builder.AddAttribute(1, "attribute2", 123);             //  1:     attribute2=intExpression123>
+            builder.AddElementReferenceCapture(2, referenceCaptureAction); //  2:     # capture: referenceCaptureAction
+            builder.AddContent(3, "some text");                     //  3:     some text
+            builder.CloseElement();                                 //     </myelement>
+
+            // Assert
+            Assert.Collection(builder.GetFrames(),
+                frame => AssertFrame.Element(frame, "myelement", 4, 0),
+                frame => AssertFrame.Attribute(frame, "attribute2", "123", 1),
+                frame => AssertFrame.ElementReferenceCapture(frame, referenceCaptureAction, 2),
+                frame => AssertFrame.Text(frame, "some text", 3));
+        }
+
+        [Fact]
+        public void CannotAddElementReferenceCaptureWithNoParent()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.AddElementReferenceCapture(0, _ => { });
+            });
+        }
+
+        [Fact]
+        public void CannotAddElementReferenceCaptureInsideComponent()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.OpenComponent<TestComponent>(0);
+                builder.AddElementReferenceCapture(1, _ => { });
+            });
+        }
+
+        [Fact]
+        public void CannotAddElementReferenceCaptureInsideRegion()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.OpenRegion(0);
+                builder.AddElementReferenceCapture(1, _ => { });
+            });
+        }
+
+        [Fact]
+        public void CanAddMultipleReferenceCapturesToSameElement()
+        {
+            // There won't be any way of doing this from Razor because there's no known use
+            // case for it. However it's harder to *not* support it than to support it, and
+            // there's no known reason to prevent it, so here's test coverage to show it
+            // just works.
+
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+            Action<ElementRef> referenceCaptureAction1 = elementRef => { };
+            Action<ElementRef> referenceCaptureAction2 = elementRef => { };
+
+            // Act
+            builder.OpenElement(0, "myelement");
+            builder.AddElementReferenceCapture(0, referenceCaptureAction1);
+            builder.AddElementReferenceCapture(0, referenceCaptureAction2);
+            builder.CloseElement();
+
+            // Assert
+            Assert.Collection(builder.GetFrames(),
+                frame => AssertFrame.Element(frame, "myelement", 3),
+                frame => AssertFrame.ElementReferenceCapture(frame, referenceCaptureAction1),
+                frame => AssertFrame.ElementReferenceCapture(frame, referenceCaptureAction2));
+        }
+
+        [Fact]
+        public void CanAddComponentReferenceCaptureInsideComponent()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+            Action<object> myAction = elementRef => { };
+
+            // Act
+            builder.OpenComponent<TestComponent>(0);                //  0: <TestComponent
+            builder.AddAttribute(1, "attribute2", 123);             //  1:     attribute2=intExpression123>
+            builder.AddComponentReferenceCapture(2, myAction);      //  2:     # capture: myAction
+            builder.AddContent(3, "some text");                     //  3:     some text
+            builder.CloseComponent();                               //     </TestComponent>
+
+            // Assert
+            Assert.Collection(builder.GetFrames(),
+                frame => AssertFrame.Component<TestComponent>(frame, 4, 0),
+                frame => AssertFrame.Attribute(frame, "attribute2", 123, 1),
+                frame => AssertFrame.ComponentReferenceCapture(frame, myAction, 2),
+                frame => AssertFrame.Text(frame, "some text", 3));
+        }
+
+        [Fact]
+        public void CannotAddComponentReferenceCaptureWithNoParent()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.AddComponentReferenceCapture(0, _ => { });
+            });
+        }
+
+        [Fact]
+        public void CannotAddComponentReferenceCaptureInsideElement()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.OpenElement(0, "myelement");
+                builder.AddComponentReferenceCapture(1, _ => { });
+            });
+        }
+
+        [Fact]
+        public void CannotAddComponentReferenceCaptureInsideRegion()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                builder.OpenRegion(0);
+                builder.AddComponentReferenceCapture(1, _ => { });
+            });
+        }
+
+        [Fact]
+        public void CanAddMultipleReferenceCapturesToSameComponent()
+        {
+            // There won't be any way of doing this from Razor because there's no known use
+            // case for it. However it's harder to *not* support it than to support it, and
+            // there's no known reason to prevent it, so here's test coverage to show it
+            // just works.
+
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+            Action<object> referenceCaptureAction1 = elementRef => { };
+            Action<object> referenceCaptureAction2 = elementRef => { };
+
+            // Act
+            builder.OpenComponent<TestComponent>(0);
+            builder.AddComponentReferenceCapture(0, referenceCaptureAction1);
+            builder.AddComponentReferenceCapture(0, referenceCaptureAction2);
+            builder.CloseComponent();
+
+            // Assert
+            Assert.Collection(builder.GetFrames(),
+                frame => AssertFrame.Component<TestComponent>(frame, 3),
+                frame => AssertFrame.ComponentReferenceCapture(frame, referenceCaptureAction1),
+                frame => AssertFrame.ComponentReferenceCapture(frame, referenceCaptureAction2));
         }
 
         [Fact]
@@ -503,7 +710,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             var builder = new RenderTreeBuilder(new TestRenderer());
 
-            var value = new UIEventHandler((e) => { });
+            var value = new Action<UIEventArgs>((e) => { });
 
             // Act
             builder.OpenElement(0, "elem");
@@ -525,7 +732,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             builder.OpenElement(0, "elem");
-            builder.AddAttribute(1, "attr", (UIEventHandler)null);
+            builder.AddAttribute(1, "attr", (Action<UIEventArgs>)null);
             builder.CloseElement();
 
             // Assert
@@ -534,15 +741,52 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 frame => AssertFrame.Element(frame, "elem", 1, 0));
         }
 
-        public static TheoryData<UIEventHandler> UIEventHandlerValues => new TheoryData<UIEventHandler>
+        [Fact]
+        public void AddAttribute_Element_Action_AddsFrame()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            var value = new Action(() => { });
+
+            // Act
+            builder.OpenElement(0, "elem");
+            builder.AddAttribute(1, "attr", value);
+            builder.CloseElement();
+
+            // Assert
+            Assert.Collection(
+                builder.GetFrames(),
+                frame => AssertFrame.Element(frame, "elem", 2, 0),
+                frame => AssertFrame.Attribute(frame, "attr", value, 1));
+        }
+
+        [Fact]
+        public void AddAttribute_Element_NullAction_IgnoresFrame()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act
+            builder.OpenElement(0, "elem");
+            builder.AddAttribute(1, "attr", (Action)null);
+            builder.CloseElement();
+
+            // Assert
+            Assert.Collection(
+                builder.GetFrames(),
+                frame => AssertFrame.Element(frame, "elem", 1, 0));
+        }
+
+        public static TheoryData<Action<UIEventArgs>> EventHandlerValues => new TheoryData<Action<UIEventArgs>>
         {
             null,
             (e) => { },
         };
 
         [Theory]
-        [MemberData(nameof(UIEventHandlerValues))]
-        public void AddAttribute_Component_EventHandlerValue_SetsAttributeValue(UIEventHandler value)
+        [MemberData(nameof(EventHandlerValues))]
+        public void AddAttribute_Component_EventHandlerValue_SetsAttributeValue(Action<UIEventArgs> value)
         {
             // Arrange
             var builder = new RenderTreeBuilder(new TestRenderer());
@@ -656,7 +900,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             var builder = new RenderTreeBuilder(new TestRenderer());
 
-            var value = new UIEventHandler((e) => { });
+            var value = new Action<UIEventArgs>((e) => { });
 
             // Act
             builder.OpenElement(0, "elem");
@@ -671,12 +915,52 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void AddAttribute_Component_ObjectEventHandleValue_SetsAttributeValue()
+        public void AddAttribute_Component_ObjectUIEventHandleValue_SetsAttributeValue()
         {
             // Arrange
             var builder = new RenderTreeBuilder(new TestRenderer());
 
-            var value = new UIEventHandler((e) => { });
+            var value = new Action<UIEventArgs>((e) => { });
+
+            // Act
+            builder.OpenComponent<TestComponent>(0);
+            builder.AddAttribute(1, "attr", (object)value);
+            builder.CloseComponent();
+
+            // Assert
+            Assert.Collection(
+                builder.GetFrames(),
+                frame => AssertFrame.Component<TestComponent>(frame, 2, 0),
+                frame => AssertFrame.Attribute(frame, "attr", value, 1));
+        }
+
+        [Fact]
+        public void AddAttribute_Element_ObjectAction_AddsFrame()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            var value = new Action(() => { });
+
+            // Act
+            builder.OpenElement(0, "elem");
+            builder.AddAttribute(1, "attr", (object)value);
+            builder.CloseElement();
+
+            // Assert
+            Assert.Collection(
+                builder.GetFrames(),
+                frame => AssertFrame.Element(frame, "elem", 2, 0),
+                frame => AssertFrame.Attribute(frame, "attr", value, 1));
+        }
+
+        [Fact]
+        public void AddAttribute_Component_ObjectAction_SetsAttributeValue()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            var value = new Action(() => { });
 
             // Act
             builder.OpenComponent<TestComponent>(0);
@@ -721,7 +1005,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
             }
 
-            protected override void UpdateDisplay(RenderBatch renderBatch)
+            protected override void UpdateDisplay(in RenderBatch renderBatch)
                 => throw new NotImplementedException();
         }
     }

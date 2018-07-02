@@ -1,10 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Browser.Http;
-using Microsoft.AspNetCore.Blazor.Browser.Interop;
 using Microsoft.AspNetCore.Blazor.Browser.Rendering;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Blazor.Browser.Services;
+using Microsoft.JSInterop;
 using System;
 
 namespace BasicTestApp
@@ -18,7 +18,8 @@ namespace BasicTestApp
             BrowserHttpMessageHandler.DefaultCredentials = FetchCredentialsOption.Include;
 
             // Signal to tests that we're ready
-            RegisteredFunction.Invoke<object>("testReady");
+            GC.KeepAlive(ActivateMonoJSRuntime.EnsureActivated());
+            JSRuntime.Current.InvokeAsync<object>("testReady");
         }
 
         public static void MountTestComponent(string componentTypeName)

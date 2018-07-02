@@ -13,6 +13,19 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.0.0" />
     <WebpackInputs Include="**\*.ts" Exclude="node_modules\**" />
+    <WebpackInputs Include="..\Microsoft.JSInterop\TypeScript\src\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="src\Rendering\Elements\**" />
+    <EmbeddedResource Remove="src\Rendering\Elements\**" />
+    <None Remove="src\Rendering\Elements\**" />
+    <WebpackInputs Remove="src\Rendering\Elements\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WebpackInputs Remove="src\Rendering\BlazorDOMComponent.ts" />
+    <WebpackInputs Remove="src\Rendering\BlazorDOMElement.ts" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\ReferenceFromSource.props" />

@@ -7,6 +7,8 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Blazor;
+    using Microsoft.AspNetCore.Blazor.Components;
     public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 1998
@@ -14,9 +16,8 @@ namespace Test
         {
             base.BuildRenderTree(builder);
             builder.OpenComponent<Test.MyComponent>(0);
-            builder.AddAttribute(1, "OnClick", new Microsoft.AspNetCore.Blazor.UIEventHandler(e => { Increment(); }));
+            builder.AddAttribute(1, "OnClick", new System.Action<Microsoft.AspNetCore.Blazor.UIEventArgs>(e => { Increment(); }));
             builder.CloseComponent();
-            builder.AddContent(2, "\n\n");
         }
         #pragma warning restore 1998
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"

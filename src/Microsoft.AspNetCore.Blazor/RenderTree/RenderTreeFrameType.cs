@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace Microsoft.AspNetCore.Blazor.RenderTree
@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
     /// <summary>
     /// Describes the type of a <see cref="RenderTreeFrame"/>.
     /// </summary>
-    public enum RenderTreeFrameType: int
+    public enum RenderTreeFrameType : int
     {
         /// <summary>
         /// Represents a container for other frames.
@@ -35,5 +35,15 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         /// fragment are not comparable to sequence numbers outside it.
         /// </summary>
         Region = 5,
+
+        /// <summary>
+        /// Represents an instruction to capture or update a reference to the parent element.
+        /// </summary>
+        ElementReferenceCapture = 6,
+
+        /// <summary>
+        /// Represents an instruction to capture or update a reference to the parent component.
+        /// </summary>
+        ComponentReferenceCapture = 7,
     }
 }

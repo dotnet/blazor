@@ -1,35 +1,34 @@
-﻿<Project>
+<Project>
 
   <!-- Require rebuild if the targets change -->
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <!-- Temporary workaround for using the Razor Sdk targeted at preview2 Web.Sdk in a Preview environment -->
-  <ItemGroup Condition="'$(EnableDefaultItems)' == 'true' And '$(EnableDefaultContentItems)' == 'true'">
-    <!-- Both the preview1 Web.Sdk and preview2 Sdk include chstml files as content. Workaround this by removing and re-adding cshtml files -->
-    <Content Remove="**\*.cshtml" />
-
-    <Content Include="**\*.cshtml" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(DefaultWebContentItemExcludes)">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-  </ItemGroup>
-
 
   <PropertyGroup>
     <!-- Passed to Razor tasks and loaded as a plugin -->
-    <_BlazorAngleSharpAssemblyPath>$(MSBuildThisFileDirectory)../tools/Microsoft.AspNetCore.Blazor.AngleSharp.dll</_BlazorAngleSharpAssemblyPath>
+    <_AngleSharpAssemblyPath>$(MSBuildThisFileDirectory)../tools/AngleSharp.dll</_AngleSharpAssemblyPath>
     <_BlazorExtensionAssemblyPath>$(MSBuildThisFileDirectory)../tools/Microsoft.AspNetCore.Blazor.Razor.Extensions.dll</_BlazorExtensionAssemblyPath>
 
     <!-- Deactivates the Razor SDK's build-time compilation. We do our own -->
     <RazorCompileOnBuild>false</RazorCompileOnBuild>
 
-    <RazorDefaultConfiguration>Blazor-0.1</RazorDefaultConfiguration>
+    <RazorLangVersion>Experimental</RazorLangVersion>
+
+    <!-- 
+      This version is used to build our RazorConfiguration, and is hardcoded into the tools in VS. If you change
+      This to a value that doesn't match VS, then the Blazor Razor experience won't work for those documents.
+    -->
+    <BlazorLanguageVersion>0.1</BlazorLanguageVersion>
+    <BlazorDefinitionConfiguration>Blazor-$(BlazorLanguageVersion)</BlazorDefinitionConfiguration>
+    <BlazorDeclarationConfiguration>BlazorDeclaration-$(BlazorLanguageVersion)</BlazorDeclarationConfiguration>
+    <RazorDefaultConfiguration>$(BlazorDefinitionConfiguration)</RazorDefaultConfiguration>
+    
   </PropertyGroup>
 
   <!-- Something quick for input/output tracking - the assumptions here should match what the CLI does -->
   <ItemGroup>
-    <BlazorGenerate Include="**\*.cshtml" />
     <_BlazorGenerateDeclarationContent Include="@(Content->WithMetadataValue('Extension', '.cshtml'))" />
     <Content Update="@(_BlazorGenerateDeclarationContent)">
       <Generator>MSBuild:BlazorGenerateDeclaration</Generator>
@@ -39,18 +38,18 @@
     <ProjectCapability Include="Blazor" />
     <ProjectCapability Include="DotNetCoreRazorConfiguration" />
     
-    <RazorConfiguration Include="Blazor-0.1">
-      <Extensions>Blazor-0.1;Blazor.AngleSharp-0.1;$(CustomRazorExtension)</Extensions>
+    <RazorConfiguration Include="$(BlazorDefinitionConfiguration)">
+      <Extensions>Blazor-$(BlazorLanguageVersion);Blazor.AngleSharp-$(BlazorLanguageVersion);$(CustomRazorExtension)</Extensions>
     </RazorConfiguration>
-    <RazorConfiguration Include="BlazorDeclaration-0.1">
-      <Extensions>Blazor-0.1;Blazor.AngleSharp-0.1;$(CustomRazorExtension)</Extensions>
+    <RazorConfiguration Include="$(BlazorDeclarationConfiguration)">
+      <Extensions>Blazor-$(BlazorLanguageVersion)Blazor.AngleSharp-$(BlazorLanguageVersion);$(CustomRazorExtension)</Extensions>
     </RazorConfiguration>
 
-    <RazorExtension Include="Blazor.AngleSharp-0.1">
-      <AssemblyName>Microsoft.AspNetCore.Blazor.AngleSharp</AssemblyName>
-      <AssemblyFilePath>$(_BlazorAngleSharpAssemblyPath)</AssemblyFilePath>
+    <RazorExtension Include="Blazor.AngleSharp-$(BlazorLanguageVersion)">
+      <AssemblyName>AngleSharp</AssemblyName>
+      <AssemblyFilePath>$(_AngleSharpAssemblyPath)</AssemblyFilePath>
     </RazorExtension>
-    <RazorExtension Include="Blazor-0.1">
+    <RazorExtension Include="Blazor-$(BlazorLanguageVersion)">
       <AssemblyName>Microsoft.AspNetCore.Blazor.Razor.Extensions</AssemblyName>
       <AssemblyFilePath>$(_BlazorExtensionAssemblyPath)</AssemblyFilePath>
     </RazorExtension>
@@ -69,6 +68,7 @@
   <PropertyGroup>
     <BlazorGenerateDeclarationDependsOn>
     _DefineBlazorPaths;
+    _ResolveBlazorInputs;
     _AssignBlazorGenerateTargetPaths;
     _HashBlazorGenerateInputs;
     </BlazorGenerateDeclarationDependsOn>
@@ -91,6 +91,12 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="_ResolveBlazorInputs">
+    <ItemGroup>
+      <BlazorGenerate Include="@(Content->WithMetadataValue('Extension', '.cshtml'))" />
+    </ItemGroup>
+  </Target>
+
   <!--
     Assigns each BlazorGenerate item a relative path based on where the directory structure. This accounts
     for <Link> and also for files outside of the project's folder hierarchy. So this is needed to support
@@ -98,8 +104,7 @@
 
     This step also assigns each item an output path for both stages of code generation.
   -->
-  <Target Name="_AssignBlazorGenerateTargetPaths">
-
+  <Target Name="_AssignBlazorGenerateTargetPaths"> 
     <AssignTargetPath Files="@(BlazorGenerate)" RootFolder="$(MSBuildProjectDirectory)">
       <Output TaskParameter="AssignedFiles" ItemName="BlazorGenerateWithTargetPath" />
     </AssignTargetPath>
@@ -171,7 +176,7 @@
       <_BlazorGenerateDeclarationWithTargetPath Include="@(BlazorGenerateWithTargetPath)">
         <GeneratedOutput>%(GeneratedDeclaration)</GeneratedOutput>
       </_BlazorGenerateDeclarationWithTargetPath>
-      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'BlazorDeclaration-0.1'))" />
+      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', '$(BlazorDeclarationConfiguration)'))" />
     </ItemGroup>
 
     <MakeDir Directories="%(BlazorDeclaration.RelativeDir)" />
@@ -212,7 +217,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'BlazorDeclaration-0.1'))" />
+      <_BlazorDeclarationConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', '$(BlazorDeclarationConfiguration)'))" />
     </ItemGroup>
 
     <!-- 
@@ -265,7 +270,7 @@
       <_BlazorGenerateDefinitionWithTargetPath Include="@(BlazorGenerateWithTargetPath)">
         <GeneratedOutput>%(GeneratedDefinition)</GeneratedOutput>
       </_BlazorGenerateDefinitionWithTargetPath>
-      <_BlazorDefinitionConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', 'Blazor-0.1'))" />
+      <_BlazorDefinitionConfiguration Include="@(RazorConfiguration->WithMetadataValue('Identity', '$(BlazorDefinitionConfiguration)'))" />
     </ItemGroup>
 
     <MakeDir Directories="%(BlazorDefinition.RelativeDir)" />

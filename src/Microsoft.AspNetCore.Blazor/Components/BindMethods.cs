@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Blazor.Components
 {
@@ -35,6 +36,24 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
+        public static MulticastDelegate GetEventHandlerValue<T>(Action value)
+            where T : UIEventArgs
+        {
+            return value;
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static MulticastDelegate GetEventHandlerValue<T>(Func<Task> value)
+            where T : UIEventArgs
+        {
+            return value;
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
         public static MulticastDelegate GetEventHandlerValue<T>(Action<T> value)
             where T : UIEventArgs
         {
@@ -44,7 +63,16 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
-        public static UIEventHandler SetValueHandler(Action<string> setter, string existingValue)
+        public static MulticastDelegate GetEventHandlerValue<T>(Func<T, Task> value)
+            where T : UIEventArgs
+        {
+            return value;
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<UIEventArgs> SetValueHandler(Action<string> setter, string existingValue)
         {
             return _ => setter((string)((UIChangeEventArgs)_).Value);
         }
@@ -52,7 +80,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
-        public static UIEventHandler SetValueHandler(Action<bool> setter, bool existingValue)
+        public static Action<UIEventArgs> SetValueHandler(Action<bool> setter, bool existingValue)
         {
             return _ => setter((bool)((UIChangeEventArgs)_).Value);
         }
@@ -60,7 +88,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
-        public static UIEventHandler SetValueHandler(Action<int> setter, int existingValue)
+        public static Action<UIEventArgs> SetValueHandler(Action<int> setter, int existingValue)
         {
             return _ => setter(int.Parse((string)((UIChangeEventArgs)_).Value));
         }
@@ -68,23 +96,55 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
-        public static UIEventHandler SetValueHandler(Action<DateTime> setter, DateTime existingValue)
+        public static Action<UIEventArgs> SetValueHandler(Action<long> setter, long existingValue)
         {
-            return _ => SetDateTimeValue(setter, (object)((UIChangeEventArgs)_).Value, null);
+            return _ => setter(long.Parse((string)((UIChangeEventArgs)_).Value));
         }
 
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
-        public static UIEventHandler SetValueHandler(Action<DateTime> setter, DateTime existingValue, string format)
+        public static Action<UIEventArgs> SetValueHandler(Action<float> setter, float existingValue)
         {
-            return _ => SetDateTimeValue(setter, (object)((UIChangeEventArgs)_).Value, format);
+            return _ => setter(float.Parse((string)((UIChangeEventArgs)_).Value));
         }
 
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
-        public static UIEventHandler SetValueHandler<T>(Action<T> setter, T existingValue)
+        public static Action<UIEventArgs> SetValueHandler(Action<double> setter, double existingValue)
+        {
+            return _ => setter(double.Parse((string)((UIChangeEventArgs)_).Value));
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<UIEventArgs> SetValueHandler(Action<decimal> setter, decimal existingValue)
+        {
+            return _ => setter(decimal.Parse((string)((UIChangeEventArgs)_).Value));
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<UIEventArgs> SetValueHandler(Action<DateTime> setter, DateTime existingValue)
+        {
+            return _ => SetDateTimeValue(setter, ((UIChangeEventArgs)_).Value, null);
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<UIEventArgs> SetValueHandler(Action<DateTime> setter, DateTime existingValue, string format)
+        {
+            return _ => SetDateTimeValue(setter, ((UIChangeEventArgs)_).Value, format);
+        }
+
+        /// <summary>
+        /// Not intended to be used directly.
+        /// </summary>
+        public static Action<UIEventArgs> SetValueHandler<T>(Action<T> setter, T existingValue)
         {
             if (!typeof(T).IsEnum)
             {
@@ -98,52 +158,6 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 setter(parsed);
             };
         }
-
-        /// <summary>
-        /// Not intended to be used directly.
-        /// </summary>
-        public static Action<object> SetValue(Action<string> setter, string existingValue)
-            => objValue => setter((string)objValue);
-
-        /// <summary>
-        /// Not intended to be used directly.
-        /// </summary>
-        public static Action<object> SetValue(Action<bool> setter, bool existingValue)
-            => objValue => setter((bool)objValue);
-
-        /// <summary>
-        /// Not intended to be used directly.
-        /// </summary>
-        public static Action<object> SetValue(Action<int> setter, int existingValue)
-            => objValue => setter(int.Parse((string)objValue));
-
-        /// <summary>
-        /// Not intended to be used directly.
-        /// </summary>
-        public static Action<object> SetValue<T>(Action<T> setter, T existingValue) => objValue =>
-        {
-            if (typeof(T).IsEnum)
-            {
-                var parsedValue = Enum.Parse(typeof(T), (string)objValue);
-                setter((T)parsedValue);
-            }
-            else
-            {
-                throw new ArgumentException($"@bind syntax does not accept values of type {typeof(T).FullName}. To read and write this value type, wrap it in a property of type string with suitable getters and setters.");
-            }
-        };
-
-        /// <summary>
-        /// Not intended to be used directly.
-        /// </summary>
-        public static Action<object> SetValue(Action<DateTime> setter, DateTime existingValue)
-            => objValue => SetDateTimeValue(setter, objValue, null);
-
-        /// <summary>
-        /// Not intended to be used directly.
-        /// </summary>
-        public static Action<object> SetValue(Action<DateTime> setter, DateTime existingValue, string format)
-            => objValue => SetDateTimeValue(setter, objValue, format);
 
         private static void SetDateTimeValue(Action<DateTime> setter, object objValue, string format)
         {

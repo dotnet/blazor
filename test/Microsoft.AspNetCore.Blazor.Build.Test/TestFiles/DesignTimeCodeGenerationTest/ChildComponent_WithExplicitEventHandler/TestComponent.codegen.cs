@@ -7,11 +7,8 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-using Microsoft.AspNetCore.Blazor;
-
-#line default
-#line hidden
+    using Microsoft.AspNetCore.Blazor;
+    using Microsoft.AspNetCore.Blazor.Components;
     public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
     {
         #pragma warning disable 219
@@ -29,8 +26,8 @@ global::System.Object __typeHelper = "*, TestAssembly";
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
-            __o = new Microsoft.AspNetCore.Blazor.UIEventHandler(
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+            __o = new System.Action<Microsoft.AspNetCore.Blazor.UIEventArgs>(
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                        Increment
 
 #line default
@@ -41,7 +38,7 @@ global::System.Object __typeHelper = "*, TestAssembly";
             ));
         }
         #pragma warning restore 1998
-#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
             
     private int counter;
     private void Increment(UIEventArgs e) {

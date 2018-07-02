@@ -1,19 +1,27 @@
-﻿import { System_Array, MethodHandle } from '../Platform/Platform';
+import { System_Array, MethodHandle } from '../Platform/Platform';
 import { getRenderTreeEditPtr, renderTreeEdit, RenderTreeEditPointer, EditType } from './RenderTreeEdit';
 import { getTreeFramePtr, renderTreeFrame, FrameType, RenderTreeFramePointer } from './RenderTreeFrame';
 import { platform } from '../Environment';
+import { EventDelegator } from './EventDelegator';
+import { EventForDotNet, UIEventArgs } from './EventForDotNet';
+import { LogicalElement, toLogicalElement, insertLogicalChild, removeLogicalChild, getLogicalParent, getLogicalChild, createAndInsertLogicalContainer, isSvgElement } from './LogicalElements';
+import { applyCaptureIdToElement } from './ElementReferenceCapture';
 const selectValuePropname = '_blazorSelectValue';
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
 
 export class BrowserRenderer {
-  private childComponentLocations: { [componentId: number]: Element } = {};
+  private eventDelegator: EventDelegator;
+  private childComponentLocations: { [componentId: number]: LogicalElement } = {};
 
   constructor(private browserRendererId: number) {
+    this.eventDelegator = new EventDelegator((event, componentId, eventHandlerId, eventArgs) => {
+      raiseEvent(event, this.browserRendererId, componentId, eventHandlerId, eventArgs);
+    });
   }
 
-  public attachComponentToElement(componentId: number, element: Element) {
-    this.childComponentLocations[componentId] = element;
+  public attachRootComponentToElement(componentId: number, element: Element) {
+    this.attachComponentToElement(componentId, toLogicalElement(element));
   }
 
   public updateComponent(componentId: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
@@ -29,7 +37,15 @@ export class BrowserRenderer {
     delete this.childComponentLocations[componentId];
   }
 
-  applyEdits(componentId: number, parent: Element, childIndex: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
+  public disposeEventHandler(eventHandlerId: number) {
+    this.eventDelegator.removeListener(eventHandlerId);
+  }
+
+  private attachComponentToElement(componentId: number, element: LogicalElement) {
+    this.childComponentLocations[componentId] = element;
+  }
+
+  private applyEdits(componentId: number, parent: LogicalElement, childIndex: number, edits: System_Array<RenderTreeEditPointer>, editsOffset: number, editsLength: number, referenceFrames: System_Array<RenderTreeFramePointer>) {
     let currentDepth = 0;
     let childIndexAtCurrentDepth = childIndex;
     const maxEditIndexExcl = editsOffset + editsLength;
@@ -46,39 +62,59 @@ export class BrowserRenderer {
         }
         case EditType.removeFrame: {
           const siblingIndex = renderTreeEdit.siblingIndex(edit);
-          removeNodeFromDOM(parent, childIndexAtCurrentDepth + siblingIndex);
+          removeLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
           break;
         }
         case EditType.setAttribute: {
           const frameIndex = renderTreeEdit.newTreeIndex(edit);
           const frame = getTreeFramePtr(referenceFrames, frameIndex);
           const siblingIndex = renderTreeEdit.siblingIndex(edit);
-          const element = parent.childNodes[childIndexAtCurrentDepth + siblingIndex] as HTMLElement;
-          this.applyAttribute(componentId, element, frame);
+          const element = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+          if (element instanceof HTMLElement) {
+            this.applyAttribute(componentId, element, frame);
+          } else {
+            throw new Error(`Cannot set attribute on non-element child`);
+          }
           break;
         }
         case EditType.removeAttribute: {
+          // Note that we don't have to dispose the info we track about event handlers here, because the
+          // disposed event handler IDs are delivered separately (in the 'disposedEventHandlerIds' array)
           const siblingIndex = renderTreeEdit.siblingIndex(edit);
-          removeAttributeFromDOM(parent, childIndexAtCurrentDepth + siblingIndex, renderTreeEdit.removedAttributeName(edit)!);
+          const element = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+          if (element instanceof HTMLElement) {
+            const attributeName = renderTreeEdit.removedAttributeName(edit)!;
+            // First try to remove any special property we use for this attribute
+            if (!this.tryApplySpecialProperty(element, attributeName, null)) {
+              // If that's not applicable, it's a regular DOM attribute so remove that
+              element.removeAttribute(attributeName);
+            }
+          } else {
+            throw new Error(`Cannot remove attribute from non-element child`);
+          }
           break;
         }
         case EditType.updateText: {
           const frameIndex = renderTreeEdit.newTreeIndex(edit);
           const frame = getTreeFramePtr(referenceFrames, frameIndex);
           const siblingIndex = renderTreeEdit.siblingIndex(edit);
-          const domTextNode = parent.childNodes[childIndexAtCurrentDepth + siblingIndex] as Text;
-          domTextNode.textContent = renderTreeFrame.textContent(frame);
+          const textNode = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+          if (textNode instanceof Text) {
+            textNode.textContent = renderTreeFrame.textContent(frame);
+          } else {
+            throw new Error(`Cannot set text content on non-text child`);
+          }
           break;
         }
         case EditType.stepIn: {
           const siblingIndex = renderTreeEdit.siblingIndex(edit);
-          parent = parent.childNodes[childIndexAtCurrentDepth + siblingIndex] as HTMLElement;
+          parent = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
           currentDepth++;
           childIndexAtCurrentDepth = 0;
           break;
         }
         case EditType.stepOut: {
-          parent = parent.parentElement!;
+          parent = getLogicalParent(parent)!;
           currentDepth--;
           childIndexAtCurrentDepth = currentDepth === 0 ? childIndex : 0; // The childIndex is only ever nonzero at zero depth
           break;
@@ -91,7 +127,7 @@ export class BrowserRenderer {
     }
   }
 
-  insertFrame(componentId: number, parent: Element, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number): number {
+  private insertFrame(componentId: number, parent: LogicalElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number): number {
     const frameType = renderTreeFrame.frameType(frame);
     switch (frameType) {
       case FrameType.element:
@@ -107,54 +143,44 @@ export class BrowserRenderer {
         return 1;
       case FrameType.region:
         return this.insertFrameRange(componentId, parent, childIndex, frames, frameIndex + 1, frameIndex + renderTreeFrame.subtreeLength(frame));
+      case FrameType.elementReferenceCapture:
+        if (parent instanceof Element) {
+          applyCaptureIdToElement(parent, renderTreeFrame.elementReferenceCaptureId(frame));
+          return 0; // A "capture" is a child in the diff, but has no node in the DOM
+        } else {
+          throw new Error('Reference capture frames can only be children of element frames.');
+        }
       default:
         const unknownType: never = frameType; // Compile-time verification that the switch was exhaustive
         throw new Error(`Unknown frame type: ${unknownType}`);
     }
   }
 
-  insertElement(componentId: number, parent: Element, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number) {
+  private insertElement(componentId: number, parent: LogicalElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, frame: RenderTreeFramePointer, frameIndex: number) {
     const tagName = renderTreeFrame.elementName(frame)!;
-    const newDomElement = tagName === 'svg' || parent.namespaceURI === 'http://www.w3.org/2000/svg' ?
+    const newDomElementRaw = tagName === 'svg' || isSvgElement(parent) ?
       document.createElementNS('http://www.w3.org/2000/svg', tagName) :
       document.createElement(tagName);
-    insertNodeIntoDOM(newDomElement, parent, childIndex);
+    const newElement = toLogicalElement(newDomElementRaw);
+    insertLogicalChild(newDomElementRaw, parent, childIndex);
 
     // Apply attributes
     const descendantsEndIndexExcl = frameIndex + renderTreeFrame.subtreeLength(frame);
     for (let descendantIndex = frameIndex + 1; descendantIndex < descendantsEndIndexExcl; descendantIndex++) {
       const descendantFrame = getTreeFramePtr(frames, descendantIndex);
       if (renderTreeFrame.frameType(descendantFrame) === FrameType.attribute) {
-        this.applyAttribute(componentId, newDomElement, descendantFrame);
+        this.applyAttribute(componentId, newDomElementRaw, descendantFrame);
       } else {
         // As soon as we see a non-attribute child, all the subsequent child frames are
         // not attributes, so bail out and insert the remnants recursively
-        this.insertFrameRange(componentId, newDomElement, 0, frames, descendantIndex, descendantsEndIndexExcl);
+        this.insertFrameRange(componentId, newElement, 0, frames, descendantIndex, descendantsEndIndexExcl);
         break;
       }
     }
   }
 
-  insertComponent(parent: Element, childIndex: number, frame: RenderTreeFramePointer) {
-    // Currently, to support O(1) lookups from render tree frames to DOM nodes, we rely on
-    // each child component existing as a single top-level element in the DOM. To guarantee
-    // that, we wrap child components in these 'blazor-component' wrappers.
-    // To improve on this in the future:
-    // - If we can statically detect that a given component always produces a single top-level
-    //   element anyway, then don't wrap it in a further nonstandard element
-    // - If we really want to support child components producing multiple top-level frames and
-    //   not being wrapped in a container at all, then every time a component is refreshed in
-    //   the DOM, we could update an array on the parent element that specifies how many DOM
-    //   nodes correspond to each of its render tree frames. Then when that parent wants to
-    //   locate the first DOM node for a render tree frame, it can sum all the frame counts for
-    //   all the preceding render trees frames. It's O(N), but where N is the number of siblings
-    //   (counting child components as a single item), so N will rarely if ever be large.
-    //   We could even keep track of whether all the child components happen to have exactly 1
-    //   top level frames, and in that case, there's no need to sum as we can do direct lookups.
-    const containerElement = parent.namespaceURI === 'http://www.w3.org/2000/svg' ?
-      document.createElementNS('http://www.w3.org/2000/svg', 'g') :
-      document.createElement('blazor-component');
-    insertNodeIntoDOM(containerElement, parent, childIndex);
+  private insertComponent(parent: LogicalElement, childIndex: number, frame: RenderTreeFramePointer) {
+    const containerElement = createAndInsertLogicalContainer(parent, childIndex);
 
     // All we have to do is associate the child component ID with its location. We don't actually
     // do any rendering here, because the diff for the child will appear later in the render batch.
@@ -162,102 +188,98 @@ export class BrowserRenderer {
     this.attachComponentToElement(childComponentId, containerElement);
   }
 
-  insertText(parent: Element, childIndex: number, textFrame: RenderTreeFramePointer) {
+  private insertText(parent: LogicalElement, childIndex: number, textFrame: RenderTreeFramePointer) {
     const textContent = renderTreeFrame.textContent(textFrame)!;
-    const newDomTextNode = document.createTextNode(textContent);
-    insertNodeIntoDOM(newDomTextNode, parent, childIndex);
+    const newTextNode = document.createTextNode(textContent);
+    insertLogicalChild(newTextNode, parent, childIndex);
   }
 
-  applyAttribute(componentId: number, toDomElement: Element, attributeFrame: RenderTreeFramePointer) {
+  private applyAttribute(componentId: number, toDomElement: Element, attributeFrame: RenderTreeFramePointer) {
     const attributeName = renderTreeFrame.attributeName(attributeFrame)!;
     const browserRendererId = this.browserRendererId;
     const eventHandlerId = renderTreeFrame.attributeEventHandlerId(attributeFrame);
 
-    if (attributeName === 'value') {
-      if (this.tryApplyValueProperty(toDomElement, renderTreeFrame.attributeValue(attributeFrame))) {
-        return; // If this DOM element type has special 'value' handling, don't also write it as an attribute
+    if (eventHandlerId) {
+      const firstTwoChars = attributeName.substring(0, 2);
+      const eventName = attributeName.substring(2);
+      if (firstTwoChars !== 'on' || !eventName) {
+        throw new Error(`Attribute has nonzero event handler ID, but attribute name '${attributeName}' does not start with 'on'.`);
       }
+      this.eventDelegator.setListener(toDomElement, eventName, componentId, eventHandlerId);
+      return;
     }
 
-    // TODO: Instead of applying separate event listeners to each DOM element, use event delegation
-    // and remove all the _blazor*Listener hacks
-    switch (attributeName) {
-      case 'onclick': {
-        toDomElement.removeEventListener('click', toDomElement['_blazorClickListener']);
-        const listener = evt => raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'mouse', { Type: 'click' });
-        toDomElement['_blazorClickListener'] = listener;
-        toDomElement.addEventListener('click', listener);
-        break;
-      }
-      case 'onchange': {
-        toDomElement.removeEventListener('change', toDomElement['_blazorChangeListener']);
-        const targetIsCheckbox = isCheckbox(toDomElement);
-        const listener = evt => {
-          const newValue = targetIsCheckbox ? evt.target.checked : evt.target.value;
-          raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'change', { Type: 'change', Value: newValue });
-        };
-        toDomElement['_blazorChangeListener'] = listener;
-        toDomElement.addEventListener('change', listener);
-        break;
-      }
-      case 'onkeypress': {
-        toDomElement.removeEventListener('keypress', toDomElement['_blazorKeypressListener']);
-        const listener = evt => {
-          // This does not account for special keys nor cross-browser differences. So far it's
-          // just to establish that we can pass parameters when raising events.
-          // We use C#-style PascalCase on the eventInfo to simplify deserialization, but this could
-          // change if we introduced a richer JSON library on the .NET side.
-          raiseEvent(evt, browserRendererId, componentId, eventHandlerId, 'keyboard', { Type: evt.type, Key: (evt as any).key });
-        };
-        toDomElement['_blazorKeypressListener'] = listener;
-        toDomElement.addEventListener('keypress', listener);
-        break;
-      }
-      default:
-        // Treat as a regular string-valued attribute
-        toDomElement.setAttribute(
-          attributeName,
-          renderTreeFrame.attributeValue(attributeFrame)!
-        );
-        break;
+    // First see if we have special handling for this attribute
+    if (!this.tryApplySpecialProperty(toDomElement, attributeName, attributeFrame)) {
+      // If not, treat it as a regular string-valued attribute
+      toDomElement.setAttribute(
+        attributeName,
+        renderTreeFrame.attributeValue(attributeFrame)!
+      );
     }
   }
 
-  tryApplyValueProperty(element: Element, value: string | null) {
-    // Certain elements have built-in behaviour for their 'value' property
-    switch (element.tagName) {
-      case 'INPUT':
-      case 'SELECT':
-      case 'TEXTAREA':
-        if (isCheckbox(element)) {
-          (element as HTMLInputElement).checked = value === '';
-        } else {
-          (element as any).value = value;
-
-          if (element.tagName === 'SELECT') {
-            // <select> is special, in that anything we write to .value will be lost if there
-            // isn't yet a matching <option>. To maintain the expected behavior no matter the
-            // element insertion/update order, preserve the desired value separately so
-            // we can recover it when inserting any matching <option>.
-            element[selectValuePropname] = value;
-          }
-        }
-        return true;
-      case 'OPTION':
-        element.setAttribute('value', value!);
-        // See above for why we have this special handling for <select>/<option>
-        const parentElement = element.parentElement;
-        if (parentElement && (selectValuePropname in parentElement) && parentElement[selectValuePropname] === value) {
-          this.tryApplyValueProperty(parentElement, value);
-          delete parentElement[selectValuePropname];
-        }
-        return true;
+  private tryApplySpecialProperty(element: Element, attributeName: string, attributeFrame: RenderTreeFramePointer | null) {
+    switch (attributeName) {
+      case 'value':
+        return this.tryApplyValueProperty(element, attributeFrame);
+      case 'checked':
+        return this.tryApplyCheckedProperty(element, attributeFrame);
       default:
         return false;
     }
   }
 
-  insertFrameRange(componentId: number, parent: Element, childIndex: number, frames: System_Array<RenderTreeFramePointer>, startIndex: number, endIndexExcl: number): number {
+  private tryApplyValueProperty(element: Element, attributeFrame: RenderTreeFramePointer | null) {
+    // Certain elements have built-in behaviour for their 'value' property
+    switch (element.tagName) {
+      case 'INPUT':
+      case 'SELECT':
+      case 'TEXTAREA': {
+        const value = attributeFrame ? renderTreeFrame.attributeValue(attributeFrame) : null;
+        (element as any).value = value;
+
+        if (element.tagName === 'SELECT') {
+          // <select> is special, in that anything we write to .value will be lost if there
+          // isn't yet a matching <option>. To maintain the expected behavior no matter the
+          // element insertion/update order, preserve the desired value separately so
+          // we can recover it when inserting any matching <option>.
+          element[selectValuePropname] = value;
+        }
+        return true;
+      }
+      case 'OPTION': {
+        const value = attributeFrame ? renderTreeFrame.attributeValue(attributeFrame) : null;
+        if (value) {
+          element.setAttribute('value', value);
+        } else {
+          element.removeAttribute('value');
+        }
+        // See above for why we have this special handling for <select>/<option>
+        const parentElement = element.parentElement;
+        if (parentElement && (selectValuePropname in parentElement) && parentElement[selectValuePropname] === value) {
+          this.tryApplyValueProperty(parentElement, attributeFrame);
+          delete parentElement[selectValuePropname];
+        }
+        return true;
+      }
+      default:
+        return false;
+    }
+  }
+
+  private tryApplyCheckedProperty(element: Element, attributeFrame: RenderTreeFramePointer | null) {
+    // Certain elements have built-in behaviour for their 'checked' property
+    if (element.tagName === 'INPUT') {
+      const value = attributeFrame ? renderTreeFrame.attributeValue(attributeFrame) : null;
+      (element as any).checked = value !== null;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private insertFrameRange(componentId: number, parent: LogicalElement, childIndex: number, frames: System_Array<RenderTreeFramePointer>, startIndex: number, endIndexExcl: number): number {
     const origChildIndex = childIndex;
     for (let index = startIndex; index < endIndexExcl; index++) {
       const frame = getTreeFramePtr(frames, index);
@@ -265,40 +287,28 @@ export class BrowserRenderer {
       childIndex += numChildrenInserted;
 
       // Skip over any descendants, since they are already dealt with recursively
-      const subtreeLength = renderTreeFrame.subtreeLength(frame);
-      if (subtreeLength > 1) {
-        index += subtreeLength - 1;
-      }
+      index += countDescendantFrames(frame);
     }
 
     return (childIndex - origChildIndex); // Total number of children inserted
   }
 }
 
-function isCheckbox(element: Element) {
-  return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';
-}
-
-function insertNodeIntoDOM(node: Node, parent: Element, childIndex: number) {
-  if (childIndex >= parent.childNodes.length) {
-    parent.appendChild(node);
-  } else {
-    parent.insertBefore(node, parent.childNodes[childIndex]);
+function countDescendantFrames(frame: RenderTreeFramePointer): number {
+  switch (renderTreeFrame.frameType(frame)) {
+    // The following frame types have a subtree length. Other frames may use that memory slot
+    // to mean something else, so we must not read it. We should consider having nominal subtypes
+    // of RenderTreeFramePointer that prevent access to non-applicable fields.
+    case FrameType.component:
+    case FrameType.element:
+    case FrameType.region:
+      return renderTreeFrame.subtreeLength(frame) - 1;
+    default:
+      return 0;
   }
 }
 
-function removeNodeFromDOM(parent: Element, childIndex: number) {
-  parent.removeChild(parent.childNodes[childIndex]);
-}
-
-function removeAttributeFromDOM(parent: Element, childIndex: number, attributeName: string) {
-  const element = parent.childNodes[childIndex] as Element;
-  element.removeAttribute(attributeName);
-}
-
-function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventInfoType: EventInfoType, eventInfo: any) {
-  event.preventDefault();
-
+function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
   if (!raiseEventMethod) {
     raiseEventMethod = platform.findMethod(
       'Microsoft.AspNetCore.Blazor.Browser', 'Microsoft.AspNetCore.Blazor.Browser.Rendering', 'BrowserRendererEventDispatcher', 'DispatchEvent'
@@ -306,16 +316,14 @@ function raiseEvent(event: Event, browserRendererId: number, componentId: number
   }
 
   const eventDescriptor = {
-    BrowserRendererId: browserRendererId,
-    ComponentId: componentId,
-    EventHandlerId: eventHandlerId,
-    EventArgsType: eventInfoType
+    browserRendererId,
+    componentId,
+    eventHandlerId,
+    eventArgsType: eventArgs.type
   };
 
   platform.callMethod(raiseEventMethod, null, [
     platform.toDotNetString(JSON.stringify(eventDescriptor)),
-    platform.toDotNetString(JSON.stringify(eventInfo))
+    platform.toDotNetString(JSON.stringify(eventArgs.data))
   ]);
 }
-
-type EventInfoType = 'mouse' | 'keyboard' | 'change';

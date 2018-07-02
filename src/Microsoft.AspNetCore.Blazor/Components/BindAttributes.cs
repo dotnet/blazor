@@ -15,11 +15,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
     // when a specific type attribute is applied.
     [BindInputElement(null, null, "value", "onchange")]
 
-    // For right now, the BrowserRenderer translates the value attribute to the checked attribute.
-    [BindInputElement("checkbox", null, "value", "onchange")]
+    [BindInputElement("checkbox", null, "checked", "onchange")]
     [BindInputElement("text", null, "value", "onchange")]
 
     [BindElement("select", null, "value", "onchange")]
+    [BindElement("textarea", null, "value", "onchange")]
     public static class BindAttributes
     {
     }

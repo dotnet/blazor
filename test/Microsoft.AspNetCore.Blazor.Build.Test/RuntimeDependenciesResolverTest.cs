@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -26,7 +26,9 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 "Microsoft.AspNetCore.Blazor.Browser.dll",
                 "Microsoft.AspNetCore.Blazor.dll",
                 "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-                "Microsoft.Extensions.DependencyInjection.dll"
+                "Microsoft.Extensions.DependencyInjection.dll",
+                "Microsoft.JSInterop.dll",
+                "Mono.WebAssembly.Interop.dll",
             }.Select(a => hintPaths.Single(p => Path.GetFileName(p) == a))
             .ToArray();
 
@@ -59,32 +61,27 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 "Microsoft.AspNetCore.Blazor.dll",
                 "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
                 "Microsoft.Extensions.DependencyInjection.dll",
+                "Microsoft.JSInterop.dll",
                 "Mono.Security.dll",
+                "Mono.WebAssembly.Interop.dll",
                 "mscorlib.dll",
                 "netstandard.dll",
                 "StandaloneApp.dll",
                 "System.ComponentModel.Composition.dll",
                 "System.Core.dll",
                 "System.Data.dll",
-                "System.Diagnostics.StackTrace.dll",
                 "System.dll",
                 "System.Drawing.dll",
-                "System.Globalization.Extensions.dll",
                 "System.IO.Compression.dll",
                 "System.IO.Compression.FileSystem.dll",
                 "System.Net.Http.dll",
                 "System.Numerics.dll",
                 "System.Runtime.Serialization.dll",
-                "System.Runtime.Serialization.Primitives.dll",
-                "System.Runtime.Serialization.Xml.dll",
-                "System.Security.Cryptography.Algorithms.dll",
-                "System.Security.SecureString.dll",
                 "System.ServiceModel.Internals.dll",
                 "System.Transactions.dll",
                 "System.Web.Services.dll",
                 "System.Xml.dll",
                 "System.Xml.Linq.dll",
-                "System.Xml.XPath.XDocument.dll",
             }.OrderBy(i => i, StringComparer.Ordinal)
             .ToArray();
 

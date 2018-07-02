@@ -2,7 +2,8 @@
 <div class="computed">I computed: @computedValue</div>
 
 @functions {
-    public int SuppliedValue { get; set; }
+    [Parameter]
+    int SuppliedValue { get; set; }
 
     private int computedValue;
 

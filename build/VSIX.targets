@@ -63,7 +63,6 @@
       <MSBuildArguments Include="
         $(VSIXProject);
         /t:Restore;
-        /m;
         /v:m;
         /p:Configuration=$(Configuration);
         /p:BuildNumber=$(BuildNumber);" />
@@ -95,15 +94,14 @@
     <ItemGroup>
       <MSBuildArguments Remove="@(MSBuildArguments)" />
       <MSBuildArguments Include="
-        $(VSIXProject);
-        /m;
+        &quot;$(VSIXProject)&quot;;
         /v:M;
         /fl;
-        /flp:LogFile=$(VSIXLogFilePath);
+        &quot;/flp:LogFile=$(VSIXLogFilePath)&quot;;
         /p:DeployExtension=false;
-        /p:TargetVSIXContainer=$(VSIXOutputPath);
-        /p:SymbolsPublishDir=$(BuildDir);
-        /p:Configuration=$(Configuration);" />
+        &quot;/p:TargetVSIXContainer=$(VSIXOutputPath)&quot;;
+        &quot;/p:SymbolsPublishDir=$(BuildDir)&quot;;
+        &quot;/p:Configuration=$(Configuration)&quot;;" />
     </ItemGroup>
 
     <MakeDir Directories="$(LogOutputDir)" />

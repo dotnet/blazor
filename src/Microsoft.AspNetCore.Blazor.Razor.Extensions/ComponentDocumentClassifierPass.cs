@@ -5,38 +5,62 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
 {
+    /// <summary>
+    /// A <see cref="DocumentClassifierPassBase"/> that recognizes Blazor components.
+    /// </summary>
     public class ComponentDocumentClassifierPass : DocumentClassifierPassBase, IRazorDocumentClassifierPass
     {
-        public static readonly string ComponentDocumentKind = "Blazor.Component-0.1";
+        /// <summary>
+        /// The component document kind.
+        /// </summary>
+        public static readonly string ComponentDocumentKind = "Blazor.Component";
+
+        private static readonly object BuildRenderTreeBaseCallAnnotation = new object();
 
         private static readonly char[] PathSeparators = new char[] { '/', '\\' };
 
+        private static readonly char[] NamespaceSeparators = new char[] { '.' };
+
+        /// <summary>
+        /// The base namespace.
+        /// </summary>
         // This is a fallback value and will only be used if we can't compute
         // a reasonable namespace.
         public string BaseNamespace { get; set; } = "__BlazorGenerated";
 
-        // Set to true in the IDE so we can generated mangled class names. This is needed
-        // to avoid conflicts between generated design-time code and the code in the editor.
-        //
-        // A better workaround for this would be to create a singlefilegenerator that overrides
-        // the codegen process when a document is open, but this is more involved, so hacking
-        // it for now.
+        /// <summary>
+        /// Gets or sets whether to mangle class names.
+        /// 
+        /// Set to true in the IDE so we can generated mangled class names. This is needed
+        /// to avoid conflicts between generated design-time code and the code in the editor.
+        ///
+        /// A better workaround for this would be to create a singlefilegenerator that overrides
+        /// the codegen process when a document is open, but this is more involved, so hacking
+        /// it for now.
+        /// </summary>
         public bool MangleClassNames { get; set; } = false;
 
+        internal static bool IsBuildRenderTreeBaseCall(CSharpCodeIntermediateNode node)
+            => node.Annotations[BuildRenderTreeBaseCallAnnotation] != null;
+
+        /// <inheritdoc />
         protected override string DocumentKind => ComponentDocumentKind;
 
+        /// <inheritdoc />
         protected override bool IsMatch(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
         {
             // Treat everything as a component by default if Blazor is part of the configuration.
             return true;
         }
 
+        /// <inheritdoc />
         protected override void OnDocumentStructureCreated(
             RazorCodeDocument codeDocument, 
             NamespaceDeclarationIntermediateNode @namespace, 
@@ -82,6 +106,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             // We need to call the 'base' method as the first statement.
             var callBase = new CSharpCodeIntermediateNode();
+            callBase.Annotations.Add(BuildRenderTreeBaseCallAnnotation, true);
             callBase.Children.Add(new IntermediateToken
             {
                 Kind = TokenKind.CSharp,
@@ -119,9 +144,17 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
 
             var builder = new StringBuilder();
-            builder.Append(baseNamespace); // Don't sanitize, we expect it to contain dots.
 
-            var segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
+            // Sanitize the base namespace, but leave the dots.
+            var segments = baseNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
+            builder.Append(CSharpIdentifier.SanitizeClassName(segments[0]));
+            for (var i = 1; i < segments.Length; i++)
+            {
+                builder.Append('.');
+                builder.Append(CSharpIdentifier.SanitizeClassName(segments[i]));
+            }
+
+            segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
 
             // Skip the last segment because it's the FileName.
             for (var i = 0; i < segments.Length - 1; i++)
@@ -145,6 +178,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             documentNode.Target = new BlazorCodeTarget(documentNode.Options, _targetExtensions);
         }
 
+        /// <inheritdoc />
         protected override void OnInitialized()
         {
             base.OnInitialized();

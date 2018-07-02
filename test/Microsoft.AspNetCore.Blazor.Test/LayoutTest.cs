@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Layouts;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using Microsoft.AspNetCore.Blazor.Test.Helpers;
@@ -29,7 +30,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange/Act
             _layoutDisplayComponent.SetParameters(new Dictionary<string, object>
             {
-                { nameof(LayoutDisplay.Page), typeof(ComponentWithLayout) }
+                { LayoutDisplay.NameOfPage, typeof(ComponentWithLayout) }
             });
 
             // Assert
@@ -86,7 +87,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange/Act
             _layoutDisplayComponent.SetParameters(new Dictionary<string, object>
             {
-                { nameof(LayoutDisplay.Page), typeof(ComponentWithNestedLayout) }
+                { LayoutDisplay.NameOfPage, typeof(ComponentWithNestedLayout) }
             });
 
             // Assert
@@ -113,13 +114,13 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             _layoutDisplayComponent.SetParameters(new Dictionary<string, object>
             {
-                { nameof(LayoutDisplay.Page), typeof(ComponentWithLayout) }
+                { LayoutDisplay.NameOfPage, typeof(ComponentWithLayout) }
             });
 
             // Act
             _layoutDisplayComponent.SetParameters(new Dictionary<string, object>
             {
-                { nameof(LayoutDisplay.Page), typeof(DifferentComponentWithLayout) }
+                { LayoutDisplay.NameOfPage, typeof(DifferentComponentWithLayout) }
             });
 
             // Assert
@@ -164,13 +165,13 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             _layoutDisplayComponent.SetParameters(new Dictionary<string, object>
             {
-                { nameof(LayoutDisplay.Page), typeof(ComponentWithLayout) }
+                { LayoutDisplay.NameOfPage, typeof(ComponentWithLayout) }
             });
 
             // Act
             _layoutDisplayComponent.SetParameters(new Dictionary<string, object>
             {
-                { nameof(LayoutDisplay.Page), typeof(ComponentWithNestedLayout) }
+                { LayoutDisplay.NameOfPage, typeof(ComponentWithNestedLayout) }
             });
 
             // Assert
@@ -217,9 +218,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 });
         }
 
-        private class RootLayout : AutoRenderComponent, ILayoutComponent
+        private class RootLayout : AutoRenderComponent
         {
-            public RenderFragment Body { get; set; }
+            [Parameter]
+            RenderFragment Body { get; set; }
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
@@ -230,9 +232,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Layout(typeof(RootLayout))]
-        private class NestedLayout : AutoRenderComponent, ILayoutComponent
+        private class NestedLayout : AutoRenderComponent
         {
-            public RenderFragment Body { get; set; }
+            [Parameter]
+            RenderFragment Body { get; set; }
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
