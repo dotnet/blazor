@@ -1,82 +1,123 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 {
-	internal class IntegerValidationAttribute : ValidationAttribute
-	{
-		internal IntegerValidationAttribute()
+    internal class NullableValidationAttributeBase : ValidationAttribute
+    {
+        bool _PermitStringEmpty;
+
+        internal NullableValidationAttributeBase(bool PermitStringEmpty)
+        {
+            _PermitStringEmpty = PermitStringEmpty;
+        }
+
+        public override bool IsValid(object value)
+        {
+            var vString = value?.ToString();
+            if (_PermitStringEmpty && string.IsNullOrWhiteSpace(vString))
+                return true;
+            else
+            {
+                return CheckValid(vString);
+            }
+        }
+
+        protected virtual bool CheckValid(string vString)
+        {
+            return false;
+        }
+    }
+
+    internal class IntegerValidationAttribute : NullableValidationAttributeBase
+    {
+        internal IntegerValidationAttribute(bool PermitStringEmpty) : base(PermitStringEmpty)
 		{
 		}
 
-		public override bool IsValid( object value )
+		protected override bool CheckValid( string vString)
 		{
-			if (int.TryParse(value?.ToString(), out int v))
+    		if (int.TryParse(vString, out int v))
 				return true;
 			else
 				return false;
 		}
 	}
 
-	internal class DoubleValidationAttribute : ValidationAttribute
-	{
-		internal DoubleValidationAttribute()
-		{
+	internal class DoubleValidationAttribute : NullableValidationAttributeBase
+    {
+		internal DoubleValidationAttribute(bool PermitStringEmpty) : base(PermitStringEmpty)
+        {
 		}
 
-		public override bool IsValid( object value )
-		{
-			if (double.TryParse(value?.ToString(), out double v))
+        protected override bool CheckValid(string vString)
+        {
+            if (double.TryParse(vString, out double v))
 				return true;
 			else
 				return false;
 		}
 	}
 
-	internal class FloatValidationAttribute : ValidationAttribute
-	{
-		internal FloatValidationAttribute()
-		{
+	internal class FloatValidationAttribute : NullableValidationAttributeBase
+    {
+		internal FloatValidationAttribute(bool PermitStringEmpty) : base(PermitStringEmpty)
+        {
 		}
 
-		public override bool IsValid( object value )
-		{
-			if (float.TryParse(value?.ToString(), out float v))
+        protected override bool CheckValid(string vString)
+        {
+            if (float.TryParse(vString, out float v))
 				return true;
 			else
 				return false;
 		}
 	}
 
-	internal class DecimalValidationAttribute : ValidationAttribute
-	{
-		internal DecimalValidationAttribute()
-		{
+	internal class DecimalValidationAttribute : NullableValidationAttributeBase
+    {
+		internal DecimalValidationAttribute(bool PermitStringEmpty) : base(PermitStringEmpty)
+        {
 		}
 
-		public override bool IsValid( object value )
-		{
-			if (decimal.TryParse(value?.ToString(), out decimal v))
+        protected override bool CheckValid(string vString)
+        {
+            if (decimal.TryParse(vString, out decimal v))
 				return true;
 			else
 				return false;
 		}
 	}
 
-	internal class BooleanValidationAttribute : ValidationAttribute
-	{
-		internal BooleanValidationAttribute()
-		{
+	internal class BooleanValidationAttribute : NullableValidationAttributeBase
+    {
+		internal BooleanValidationAttribute(bool PermitStringEmpty) : base(PermitStringEmpty)
+        {
 		}
 
-		public override bool IsValid( object value )
-		{
-			if (bool.TryParse(value?.ToString(), out bool v))
+        protected override bool CheckValid(string vString)
+        {
+            if (bool.TryParse(vString, out bool v))
 				return true;
 			else
 				return false;
 		}
 	}
+
+    internal class DateTimeValidationAttribute : NullableValidationAttributeBase
+    {
+        internal DateTimeValidationAttribute(bool PermitStringEmpty) : base(PermitStringEmpty)
+        {
+        }
+
+        protected override bool CheckValid(string vString)
+        {
+            if (System.DateTime.TryParse(vString, out System.DateTime v))
+                return true;
+            else
+                return false;
+        }
+    }
 }

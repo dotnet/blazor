@@ -1,0 +1,239 @@
+@using Microsoft.AspNetCore.Blazor.Forms.Rendering;
+@inherits Microsoft.AspNetCore.Blazor.Forms.Form<StandaloneApp.Models.TestModel>
+@page "/form"
+
+<form class="form-horizontal" autocomplete="off">
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.TextValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.TextValue, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.TextValue)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.IntValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.IntValue, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.IntValue)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.NullableIntValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.NullableIntValue, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.NullableIntValue)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.FloatValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.FloatValue, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.FloatValue)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.DoubleValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.DoubleValue, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.DoubleValue)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.DateTimeValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.DateTimeValue, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.DateTimeValue)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.NullableDateTimeValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.NullableDateTimeValue, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.NullableDateTimeValue)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.Email, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.TextBoxFor(m => m.Email, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.Email)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.ComboTestInt, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.DropDownListFor(m => m.ComboTestInt, new SelectListItem[] {
+                new SelectListItem() { Text = "", Value = "" },
+                new SelectListItem() { Text = "Value 1", Value = "1" },
+                new SelectListItem() { Text = "Value 2", Value = "2" }
+            }, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.ComboTestInt)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.ComboTestString, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.DropDownListFor(m => m.ComboTestString, new SelectListItem[] {
+                new SelectListItem() { Text = "", Value = "" },
+                new SelectListItem() { Text = "Value 1", Value = "Value1" },
+                new SelectListItem() { Text = "Value 2", Value = "Value2" }
+            }, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.ComboTestString)
+        </div>
+    </div>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.ComboTestEnum, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            @this.DropDownListFor(m => m.ComboTestEnum, new SelectListItem[] {
+                new SelectListItem() { Text = "", Value = "" },
+                new SelectListItem() { Text = Models.TestEnum.Value1.ToString(), Value = ((int)Models.TestEnum.Value1).ToString() },
+                new SelectListItem() { Text = Models.TestEnum.Value2.ToString(), Value = ((int)Models.TestEnum.Value2).ToString() },
+                new SelectListItem() { Text = Models.TestEnum.Value3.ToString(), Value = ((int)Models.TestEnum.Value3).ToString() },
+            }, new { @class = "form-control" })
+            @this.ValidationMessageFor(m => m.ComboTestEnum)
+        </div>
+    </div>
+
+    @if (this.ModelState.IsValid)
+    {
+    @:ModelState is valid
+    }
+    else
+    {
+    @:ModelState is not valid
+    }
+
+    <button onclick="@(() => this.UpdateModel())">Update model</button>
+
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.TextValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.TextValue))
+            <br />
+            Model: @(this.Model.TextValue)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.IntValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.IntValue))
+            <br />
+            Model: @(this.Model.IntValue)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.NullableIntValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.NullableIntValue))
+            <br />
+            Model: @(this.Model.NullableIntValue)
+            @if (this.Model.NullableIntValue == null)
+            {
+            @:NULL
+            }
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.FloatValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.FloatValue))
+            <br />
+            Model: @(this.Model.FloatValue)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.DoubleValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.DoubleValue))
+            <br />
+            Model: @(this.Model.DoubleValue)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.DateTimeValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.DateTimeValue))
+            <br />
+            Model: @(this.Model.DateTimeValue)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.NullableDateTimeValue, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.NullableDateTimeValue))
+            <br />
+            Model: @(this.Model.NullableDateTimeValue)
+            @if (this.Model.NullableDateTimeValue == null)
+            {
+            @:NULL
+            }
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.Email, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.Email))
+            <br />
+            Model: @(this.Model.Email)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.ComboTestInt, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.ComboTestInt))
+            <br />
+            Model: @(this.Model.ComboTestInt)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.ComboTestString, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.ComboTestString))
+            <br />
+            Model: @(this.Model.ComboTestString)
+        </div>
+    </div>
+    <div class="form-group row m-b-15">
+        @this.LabelFor(m => m.ComboTestEnum, new { @class = "col-md-4 col-sm-4 col-form-label" })
+        <div class="col-md-8 col-sm-8">
+            ModelState: @(this.ModelState?.GetValue(x => x.ComboTestEnum))
+            <br />
+            Model: @(this.Model.ComboTestEnum)
+        </div>
+    </div>
+
+</form>
+
+@functions {
+  protected override void OnInit()
+  {
+      this.Model = new StandaloneApp.Models.TestModel();
+      this.Model.Email = "pp";
+
+      this.ModelState.OnChange += (e) =>
+      {
+          this.StateHasChanged();
+      };
+      base.OnInit();
+  }
+
+  protected virtual void UpdateModel()
+  {
+      this.ValidateModel();
+      if( this.ModelState.IsValid)
+      {
+          this.ModelState.Update();
+      }
+  }
+}

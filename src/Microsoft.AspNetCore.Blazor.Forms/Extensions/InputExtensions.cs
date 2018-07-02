@@ -10,22 +10,22 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 	/// </summary>
 	public static class InputExtensions
 	{
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <typeparam name="V"></typeparam>
-		/// <param name="form"></param>
-		/// <param name="Field"></param>
-		/// <param name="htmlAttributes"></param>
-		/// <returns></returns>
-		public static Microsoft.AspNetCore.Blazor.RenderFragment TextBoxFor<T,V>( 
-			this Microsoft.AspNetCore.Blazor.Forms.Form<T> form, 
+        /// <summary>
+        /// </summary>
+        public static Microsoft.AspNetCore.Blazor.RenderFragment TextBoxFor<T, V>(
+            this IForm<T> form,
+            Expression<Func<T, V>> Field,
+            object htmlAttributes = null) => form.ModelState.TextBoxFor(Field, htmlAttributes);
+
+        /// <summary>
+        /// </summary>
+        public static Microsoft.AspNetCore.Blazor.RenderFragment TextBoxFor<T,V>( 
+			this ModelStateDictionary<T> model, 
 			Expression<Func<T, V>> Field, 
 			object htmlAttributes = null )
 		{
-			var property = Internals.PropertyHelpers.GetProperty<T, V>(Field);
-			string currentValue = form.ModelState.GetValue(property);
+			var property = Extensions.PropertyHelpers.GetProperty(Field);
+			string currentValue = model.GetValue(property)?.ToString();
 
 			return ( builder ) =>
 			{
@@ -35,40 +35,49 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 				builder.AddAttribute(sequence++, "type", "text");
 				builder.AddAttribute(sequence++, "name", property.Name);
 				builder.AddAttribute(sequence++, "id", property.Name);
-				builder.AddAttribute(sequence++, "value", (string)currentValue);
+				builder.AddAttribute(sequence++, "value", string.IsNullOrEmpty(currentValue) ? string.Empty : currentValue);
+                builder.AddAttribute(sequence++, "autocomplete", "nope");
 
 				builder.AddAttribute(sequence++, "onchange", 
 					Microsoft.AspNetCore.Blazor.Components.BindMethods.GetEventHandlerValue<Microsoft.AspNetCore.Blazor.UIChangeEventArgs>(e =>
-					{ 
-						form.SetValue(property, e.Value);
+					{
+                         model.SetValue(property.Name, property.PropertyType, e.Value);
 					}
 				));
 
-				ExtensionsFunctions.WriteHtmlAttributes(builder, ref sequence, htmlAttributes);
+                builder.WriteHtmlAttributes(ref sequence, htmlAttributes);
 
 				builder.CloseElement();
 			};
 		}
 
-		/// <summary>
-		/// 
+        /// <summary>
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <typeparam name="V"></typeparam>
-		/// <param name="form"></param>
-		/// <param name="Field"></param>
-		/// <param name="htmlAttributes"></param>
-		/// <returns></returns>
 		public static Microsoft.AspNetCore.Blazor.RenderFragment CheckBoxFor<T, V>(
-			this Microsoft.AspNetCore.Blazor.Forms.Form<T> form,
+			this IForm<T> form,
+			Expression<Func<T, V>> Field,
+			object htmlAttributes = null ) => form.ModelState.CheckBoxFor(Field, htmlAttributes);
+
+		/// <summary>
+		/// </summary>
+		public static Microsoft.AspNetCore.Blazor.RenderFragment CheckBoxFor<T, V>(
+			this ModelStateDictionary<T> model,
 			Expression<Func<T, V>> Field,
 			object htmlAttributes = null )
 		{
-			var property = Internals.PropertyHelpers.GetProperty<T, V>(Field);
-			string currentValue = form.ModelState.GetValue(property)?.ToString();
-			bool.TryParse(currentValue, out bool boolValue);
+			var property = Extensions.PropertyHelpers.GetProperty(Field);
+			string currentValue = model.GetValue(property)?.ToString();
+            if (bool.TryParse(currentValue, out bool boolValue) == false)
+            {
+                if (int.TryParse(currentValue, out int intValue) == true)
+                {
+                    boolValue = intValue == 0 ? false : true;
+                }
+            }
 
-			return ( builder ) =>
+            //Console.WriteLine($"CheckBoxFor value={currentValue} {boolValue}");
+        
+            return ( builder ) =>
 			{
 				int sequence = 1;
 
@@ -76,34 +85,35 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 				builder.AddAttribute(sequence++, "type", "checkbox");
 				builder.AddAttribute(sequence++, "name", property.Name);
 				builder.AddAttribute(sequence++, "id", property.Name);
-				builder.AddAttribute(sequence++, "value", boolValue);
-				builder.AddAttribute(sequence++, "onchange", new Action<UIChangeEventArgs>(( e ) => {
-					form.SetValue(property, e.Value);
+                if( boolValue == true) builder.AddAttribute(sequence++, "checked", "checked");
+                builder.AddAttribute(sequence++, "onchange", new Action<UIChangeEventArgs>(( e ) => {
+                    Console.WriteLine("checkbox=" + e.Value);
+                    model.SetValue(property.Name, property.PropertyType, e.Value);
 				}));
 
-				ExtensionsFunctions.WriteHtmlAttributes(builder, ref sequence, htmlAttributes);
+                builder.WriteHtmlAttributes(ref sequence, htmlAttributes);
 
 				builder.CloseElement();
 			};
 		}
 
+        /// <summary>
+        /// </summary>
+        public static Microsoft.AspNetCore.Blazor.RenderFragment LabelFor<T, V>(
+            this IForm<T> form,
+            Expression<Func<T, V>> Field,
+            object htmlAttributes = null) => form.ModelState.LabelFor(Field, htmlAttributes);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <typeparam name="V"></typeparam>
-		/// <param name="form"></param>
-		/// <param name="Field"></param>
-		/// <param name="htmlAttributes"></param>
-		/// <returns></returns>
-		public static Microsoft.AspNetCore.Blazor.RenderFragment LabelFor<T, V>(
-			this Microsoft.AspNetCore.Blazor.Forms.Form<T> form,
+        /// <summary>
+        /// </summary>
+        public static Microsoft.AspNetCore.Blazor.RenderFragment LabelFor<T, V>(
+			this ModelStateDictionary<T> model,
 			Expression<Func<T, V>> Field,
-			object htmlAttributes = null )
+			object htmlAttributes = null,
+            string DisplayName = null)
 		{
-			var property = Internals.PropertyHelpers.GetProperty<T, V>(Field);
-			string currentValue = form.ModelState.GetValue(property);
+			var property = Extensions.PropertyHelpers.GetProperty(Field);
+			string currentValue = model.GetValue(property)?.ToString();
 
 			return ( builder ) =>
 			{
@@ -112,9 +122,9 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 				builder.OpenElement(sequence++, "label");
 				builder.AddAttribute(sequence++, "for", property.Name);
 
-				ExtensionsFunctions.WriteHtmlAttributes(builder, ref sequence, htmlAttributes);
+                builder.WriteHtmlAttributes(ref sequence, htmlAttributes);
 
-				builder.AddContent(sequence++, ExtensionsFunctions.GetDisplayName(property));
+                if(DisplayName == null) builder.AddContent(sequence++, ExtensionsFunctions.GetDisplayName(property));
 				builder.CloseElement();
 			};
 		}

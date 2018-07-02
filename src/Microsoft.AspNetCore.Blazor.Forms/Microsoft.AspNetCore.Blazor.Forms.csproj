@@ -1,15 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <BlazorLinkOnBuild>false</BlazorLinkOnBuild>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="node_modules\**" />
-    <EmbeddedResource Remove="node_modules\**" />
-    <None Remove="node_modules\**" />
-  </ItemGroup>
-
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.1" />
@@ -20,4 +15,21 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
   </ItemGroup>
 
+    <ItemGroup>
+        <Content Remove="tsconfig.json" />
+        <None Include="tsconfig.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Components\" />
+    </ItemGroup>
+
+    <Target Name="RunWebpack" AfterTargets="BeforeBuild">
+        <RemoveDir Directories="dist" />
+        <Exec Command="npm run build" />
+        <ItemGroup>
+            <EmbeddedResource Include="dist\blazor.forms.js" LogicalName="blazor:js:blazor.forms.js" />
+        </ItemGroup>
+    </Target>
+    
 </Project>

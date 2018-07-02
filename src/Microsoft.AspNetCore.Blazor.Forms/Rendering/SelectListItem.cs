@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.AspNetCore.Blazor.Forms
+namespace Microsoft.AspNetCore.Blazor.Forms.Rendering
 {
 	/// <summary>
 	/// This class is typically rendered as an HTML <code>&lt;option&gt;</code> element with the specified

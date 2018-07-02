@@ -30,9 +30,9 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 		/// <param name="builder"></param>
 		/// <param name="sequence"></param>
 		/// <param name="htmlAttributes"></param>
-		public static void WriteHtmlAttributes( RenderTreeBuilder builder, ref int sequence, object htmlAttributes )
+		public static void WriteHtmlAttributes( this RenderTreeBuilder builder, ref int sequence, object htmlAttributes )
 		{
-            var attrs = Internals.Helpers.AnonymousObjectToHtmlAttributes(htmlAttributes);
+            var attrs = Rendering.Helpers.AnonymousObjectToAttributes(htmlAttributes);
             foreach (var attr in attrs)
                 builder.AddAttribute(sequence++, attr.Key, attr.Value);
         }

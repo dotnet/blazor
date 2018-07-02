@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,11 +6,15 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 
-namespace Microsoft.AspNetCore.Blazor.Forms.Internals
+namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 {
-	internal static class PropertyHelpers
+    /// <summary>
+    /// </summary>
+	public static class PropertyHelpers
 	{
-		internal static PropertyInfo GetProperty<T,V>( Expression<Func<T, V>> field )
+        /// <summary>
+        /// </summary>
+		public static PropertyInfo GetProperty<T,V>( Expression<Func<T, V>> field )
 		{
 			LambdaExpression lambda = field as LambdaExpression;
 			MemberExpression memberExpr = null;
@@ -24,8 +28,6 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 			}
 			if (memberExpr == null) throw new ArgumentException("method");
 
-			//string objectName = typeof(T).Name;
-			//string propertyName = memberExpr.Member.Name;
 			var property = memberExpr.Member as System.Reflection.PropertyInfo;
 			return property;
 		}

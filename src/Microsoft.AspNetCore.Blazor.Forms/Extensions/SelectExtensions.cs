@@ -5,53 +5,62 @@ using System.Text;
 
 namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 {
-	/// <summary>
-	/// </summary>
-	public static class SelectExtensions
-	{
-		/// <summary>
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <typeparam name="V"></typeparam>
-		/// <param name="form"></param>
-		/// <param name="Field"></param>
-		/// <param name="selectList"></param>
-		/// <param name="htmlAttributes"></param>
-		/// <returns></returns>
-		public static Microsoft.AspNetCore.Blazor.RenderFragment DropDownListFor<T, V>(
-			this Microsoft.AspNetCore.Blazor.Forms.Form<T> form,
-			Expression<Func<T, V>> Field,
-			IEnumerable<SelectListItem> selectList,
-			object htmlAttributes = null )
-		{
-			var property = Internals.PropertyHelpers.GetProperty<T, V>(Field);
-			string currentValue = form.ModelState.GetValue(property);
+    /// <summary>
+    /// </summary>
+    public static class SelectExtensions
+    {
+        /// <summary>
+        /// </summary>
+        public static Microsoft.AspNetCore.Blazor.RenderFragment DropDownListFor<T, V>(
+          this IForm<T> form,
+          Expression<Func<T, V>> Field,
+          IEnumerable<Rendering.SelectListItem> selectList,
+          object htmlAttributes = null) => form.ModelState.DropDownListFor(Field, selectList, htmlAttributes);
 
-			return ( builder ) =>
-			{
-				int sequence = 1;
+        /// <summary>
+        /// </summary>
+        public static Microsoft.AspNetCore.Blazor.RenderFragment DropDownListFor<T, V>(
+                this ModelStateDictionary<T> model,
+          Expression<Func<T, V>> Field,
+          IEnumerable<Rendering.SelectListItem> selectList,
+          object htmlAttributes = null)
+        {
+            var property = Extensions.PropertyHelpers.GetProperty<T, V>(Field);
+            object currentValue = model.GetValue(property);
 
-				builder.OpenElement(sequence++, "select");
-				builder.AddAttribute(sequence++, "name", property.Name);
-				builder.AddAttribute(sequence++, "id", property.Name);
-				builder.AddAttribute(sequence++, "value", (string)currentValue);
-				builder.AddAttribute(sequence++, "onchange", new Action<UIChangeEventArgs>(( e ) => {
-					form.SetValue(property, e.Value);
-				}));
+            return (builder) =>
+            {
+                int sequence = 1;
 
-				ExtensionsFunctions.WriteHtmlAttributes(builder, ref sequence, htmlAttributes);
+                builder.OpenElement(sequence++, "select");
+                builder.AddAttribute(sequence++, "name", property.Name);
+                builder.AddAttribute(sequence++, "id", property.Name);
+                if (property.PropertyType.IsEnum && currentValue.GetType().IsEnum)
+                {
+                    builder.AddAttribute(sequence++, "value", (int)currentValue);
+                }
+                else
+                {
+                    builder.AddAttribute(sequence++, "value", currentValue?.ToString());
+                }
+                builder.AddAttribute(sequence++, "onchange", new Action<UIChangeEventArgs>((e) =>
+                {
+                    model.SetValue(property.Name, property.PropertyType, e.Value);
+                }));
 
-				foreach (var item in selectList)
-				{
-					builder.OpenElement(sequence++, "option");
-					builder.AddAttribute(sequence++, "value", item.Value);
-					if (item.Disabled == true) builder.AddAttribute(sequence++, "disabled", item.Disabled);
-					if (item.Selected == true) builder.AddAttribute(sequence++, "selected", item.Selected);
-					builder.AddContent(sequence++, item.Text);
-					builder.CloseElement();
-				}
-				builder.CloseElement();
-			};
-		}
-	}
+                builder.WriteHtmlAttributes(ref sequence, htmlAttributes);
+
+                foreach (var item in selectList)
+                {
+                    builder.OpenElement(sequence++, "option");
+                    builder.AddAttribute(sequence++, "value", item.Value);
+                    if (item.Disabled == true) builder.AddAttribute(sequence++, "disabled", item.Disabled);
+                    if (item.Selected == true) builder.AddAttribute(sequence++, "selected", item.Selected);
+                    builder.AddContent(sequence++, item.Text);
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+            };
+        }
+    }
 }

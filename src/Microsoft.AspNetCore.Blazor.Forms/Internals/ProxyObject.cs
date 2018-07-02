@@ -12,10 +12,10 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 {
 	/// <summary>
 	/// </summary>
-	public class MasqueradeObjectTypeDescriptionProvider : TypeDescriptionProvider
+	internal class MasqueradeObjectTypeDescriptionProvider : TypeDescriptionProvider
 	{
 		private static TypeDescriptionProvider defaultTypeProvider =
-								TypeDescriptor.GetProvider(typeof(MasqueradeObject<>));
+								TypeDescriptor.GetProvider(typeof(ProxyObject<>));
 
 		/// <summary>
 		/// </summary>
@@ -58,13 +58,13 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 
 		public override PropertyDescriptorCollection GetProperties( Attribute[] attributes )
 		{
-			return CustomPropertiesProvider.GetPropertiesInternal(_parentType, attributes, _instance as MasqueradeObjectBase);
+			return CustomPropertiesProvider.GetPropertiesInternal(_parentType, attributes, _instance as ProxyObjectBase);
 		}
 	}
 
 	/// <summary>
 	/// </summary>
-	public class MasqueradeObjectBase /*: System.Dynamic.DynamicObject*/
+	internal class ProxyObjectBase
     {
 		/// <summary>
 		/// </summary>
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 
 		/// <summary>
 		/// </summary>
-		public MasqueradeObjectBase( object parent )
+		public ProxyObjectBase( object parent )
 		{
 			_parent = parent;
 		}
@@ -88,29 +88,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 			else
 				return pd.GetValue(component);
 		}
-
-        //public IEnumerable<ValidationResult> Validate( ValidationContext validationContext )
-        //{
-        //	List<ValidationResult> result = new List<ValidationResult>();
-
-        //	var properties = TypeDescriptor.GetProperties(_parent.GetType());
-        //	foreach (PropertyDescriptor prop in properties)
-        //	{
-        //		if (prop.PropertyType == typeof(int))
-        //		{
-        //			var obj = GetValue(prop)?.ToString();
-        //			int check = 0;
-        //			if (int.TryParse(obj, out check) == false)
-        //			{
-        //				string errorMessage = $"Il formato di {validationContext.DisplayName} non è valido";
-        //				result.Add(new ValidationResult(errorMessage, new string[] { validationContext.MemberName }));
-        //			}
-        //		}
-        //	}
-
-        //	return result;
-        //}
-        
+       
         internal bool TryValidateObject(ValidationContext validationContext, List<ValidationResult> validationResults, System.Collections.Generic.List<string> PropertiesToValidate)
         {
             var properties = TypeDescriptor.GetProperties(this);
@@ -121,15 +99,21 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
                 if (PropertiesToValidate != null && !PropertiesToValidate.Contains(prop.Name))
                     continue;
 
-                //Console.WriteLine(prop.Name);
-
                 object value = this.GetValue(prop);
                 var attrs = prop.Attributes.OfType<ValidationAttribute>();
 
                 validationContext.MemberName = prop.Name;
                 validationContext.DisplayName = prop.DisplayName;
-                isValid &= Validator.TryValidateValue(value, validationContext, validationResults, attrs);
+
+                bool _valid = Validator.TryValidateValue(value, validationContext, validationResults, attrs);
+                isValid &= _valid;
+
+                //Console.WriteLine($"Validate: {prop.Name} value: {value} attrs:{attrs?.Count()} valid={_valid}");
             }
+
+            //var custom = this._parent as IValidatableObject;
+            //if (custom != null)
+            //    custom.Validate(validationContext);
 
             return isValid;
         }
@@ -138,13 +122,13 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 	/// <summary>
 	/// </summary>
 	[TypeDescriptionProvider(typeof(MasqueradeObjectTypeDescriptionProvider))]
-	public class MasqueradeObject<T> : MasqueradeObjectBase, System.ComponentModel.ICustomTypeDescriptor
+	internal class ProxyObject<T> : ProxyObjectBase, System.ComponentModel.ICustomTypeDescriptor
 	{
 		Type _parentType;
 
 		/// <summary>
 		/// </summary>
-		public MasqueradeObject( T parent ) : base(parent)
+		public ProxyObject( T parent ) : base(parent)
 		{
 			_parentType = parent.GetType();
 		}
@@ -238,11 +222,11 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
 	internal class MasqueradeProperty : PropertyDescriptor
 	{
 		PropertyDescriptor _pd;
-		MasqueradeObjectBase _parent;
+		ProxyObjectBase _parent;
 
 		internal List<Attribute> CustomAttributes { get; } = new List<Attribute>();
 
-		internal MasqueradeProperty( PropertyDescriptor md, MasqueradeObjectBase parent ) : base(md)
+		internal MasqueradeProperty( PropertyDescriptor md, ProxyObjectBase parent ) : base(md)
 		{
 			_pd = md;
 			_parent = parent;
@@ -292,44 +276,5 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Internals
         protected virtual IEnumerable<ValidationAttribute> GetAttributes(MemberInfo propertyInfo) {
             return propertyInfo.GetCustomAttributes(typeof(ValidationAttribute), true).Cast<ValidationAttribute>();
         }
-
-    //    #region IPropertyValidator interface
-
-    //    public virtual IEnumerable<string> GetValidationProperties(object proxiedObject)
-    //    {
-    //        if (proxiedObject == null)
-    //            throw new ArgumentNullException("proxy");
-    //        return proxiedObject.GetType().GetProperties().Where(pi => GetAttributes(pi).Any()).Select(pi => pi.Name);
-    //    }
-
-    //    public bool Validate(object proxiedObject, string propertyName, object value, ICollection<ValidationResult> validationResults)
-    //    {
-    //        var info = GlobalTypeInfoCache.GetTypeInfo(proxiedObject.GetType()).GetPropertyInfo(propertyName);
-    //        var validationAttributes = GetAttributes(info);
-    //        if (validationAttributes.Count() == 0)
-    //            return true;
-
-    //        var validationContext = new ValidationContext(proxiedObject, null, null);
-
-    //        var isValid = Validator.TryValidateValue(value, validationContext, validationResults, validationAttributes);
-
-    //        if (isValid)
-    //        {
-    //            var propertyType = proxiedObject.GetPropertyType(propertyName);
-    //            try
-    //            {
-    //                if (propertyType != value.GetType())
-    //                    Convert.ChangeType(value, propertyType);
-    //            }
-    //            catch (Exception)
-    //            {
-    //                validationResults.Add(new ValidationResult("Cannot convert value to type " + propertyType));
-    //                isValid = false;
-    //            }
-    //        }
-    //        return isValid;
-    //    }
-
-    //    #endregion
     }
 }
