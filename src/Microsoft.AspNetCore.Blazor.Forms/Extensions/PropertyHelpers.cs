@@ -10,11 +10,30 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 {
     /// <summary>
     /// </summary>
-	public static class PropertyHelpers
+	public class PropertyHelper<T>
 	{
+        //private System.Collections.Generic.Dictionary<string, PropertyInfo> cachedResult = new Dictionary<string, PropertyInfo>();
+
         /// <summary>
         /// </summary>
-		public static PropertyInfo GetProperty<T,V>( Expression<Func<T, V>> field )
+        public PropertyInfo Property<V>(Expression<Func<T, V>> field)
+        {
+            //var hc = field.Body.ToString();
+            //PropertyInfo pi = null;
+            //if (!cachedResult.TryGetValue(hc, out pi))
+            //{
+            //    Console.WriteLine($"No cached! - {hc}");
+            //    pi = GetProperty(field);
+            //    cachedResult[hc] = pi;
+            //}
+            //return pi;
+
+            return GetProperty(field);
+        }
+
+        /// <summary>
+        /// </summary>
+        public static PropertyInfo GetProperty<V>( Expression<Func<T, V>> field )
 		{
 			LambdaExpression lambda = field as LambdaExpression;
 			MemberExpression memberExpr = null;

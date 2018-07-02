@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -12,6 +13,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms
     public class ModelStateDictionary<T> : Dictionary<string, object>
     {
         private static bool _EnableLog = false;
+        private Extensions.PropertyHelper<T> cachedProperties = new Extensions.PropertyHelper<T>();
 
         /// <summary>
         /// </summary>
@@ -42,6 +44,46 @@ namespace Microsoft.AspNetCore.Blazor.Forms
         /// </summary>
         public T Binder { get { return _binder; } }
 
+        #region Simil Tag-Helper
+
+        /// <summary>
+        /// </summary>
+        public string this[Expression<Func<T,object>> Field]
+        {
+            get
+            {
+                return GetValue<object>(Field)?.ToString();
+            }
+            set
+            {
+                var property = GetPropertyInfo(Field);
+                SetValue(property, value);
+            }
+        }
+
+        /// <summary>
+        /// </summary>
+        public string ValidationFor(Expression<Func<T, object>> Field)
+        {
+            var property = GetPropertyInfo(Field);
+
+            string errorDescription = this.GetValidationResults()?
+                .Where(x => ((IEnumerable<string>)x.MemberNames).Contains(property.Name))
+                .Select(x => x.ErrorMessage)
+                .FirstOrDefault();
+            return errorDescription;
+        }
+
+        /// <summary>
+        /// </summary>
+        public string DisplayName(Expression<Func<T, object>> Field)
+        {
+            var property = GetPropertyInfo(Field);
+            return Extensions.ExtensionsFunctions.GetDisplayName(property);
+        }
+
+        #endregion
+
         #region Get/Set Values
 
         internal bool ContainsValue(PropertyInfo property)
@@ -53,7 +95,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms
         /// </summary>
         public object GetValue<V>(Expression<Func<T, V>> Field)
         {
-            var property = Extensions.PropertyHelpers.GetProperty<T, V>(Field);
+            var property = GetPropertyInfo(Field);
             return GetValue(property);
         }
 
@@ -79,7 +121,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms
         /// </summary>
         public void SetValue<V>(Expression<Func<T, V>> Field, V Value)
         {
-            var property = Extensions.PropertyHelpers.GetProperty<T, V>(Field);
+            var property = GetPropertyInfo(Field);
             SetValue(property, Value);
         }
 
@@ -193,7 +235,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms
         /// </summary>
         public void AddModelError<V>(Expression<Func<T, V>> Field, string Message)
         {
-            var property = Extensions.PropertyHelpers.GetProperty<T, V>(Field);
+            var property = GetPropertyInfo(Field);
             AddModelError(property.Name, Message);
         }
 
@@ -271,6 +313,17 @@ namespace Microsoft.AspNetCore.Blazor.Forms
         /// </summary>
         protected virtual void OnCustomValidateModel()
         {
+        }
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// </summary>
+        public PropertyInfo GetPropertyInfo<V>(Expression<Func<T, V>> Field)
+        {
+            return cachedProperties.Property(Field);
         }
 
         #endregion

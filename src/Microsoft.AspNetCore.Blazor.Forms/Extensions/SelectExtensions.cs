@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
           IEnumerable<Rendering.SelectListItem> selectList,
           object htmlAttributes = null)
         {
-            var property = Extensions.PropertyHelpers.GetProperty<T, V>(Field);
+            var property = Extensions.PropertyHelper<T>.GetProperty<V>(Field);
             object currentValue = model.GetValue(property);
 
             return (builder) =>

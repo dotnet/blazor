@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 			Expression<Func<T, V>> Field, 
 			object htmlAttributes = null )
 		{
-			var property = Extensions.PropertyHelpers.GetProperty(Field);
+			var property = PropertyHelper<T>.GetProperty(Field);
 			string currentValue = model.GetValue(property)?.ToString();
 
 			return ( builder ) =>
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 			Expression<Func<T, V>> Field,
 			object htmlAttributes = null )
 		{
-			var property = Extensions.PropertyHelpers.GetProperty(Field);
+			var property = PropertyHelper<T>.GetProperty(Field);
 			string currentValue = model.GetValue(property)?.ToString();
             if (bool.TryParse(currentValue, out bool boolValue) == false)
             {
@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Blazor.Forms.Extensions
 			object htmlAttributes = null,
             string DisplayName = null)
 		{
-			var property = Extensions.PropertyHelpers.GetProperty(Field);
+			var property = PropertyHelper<T>.GetProperty<V>(Field);
 			string currentValue = model.GetValue(property)?.ToString();
 
 			return ( builder ) =>
