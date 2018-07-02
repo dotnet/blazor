@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Blazor
         /// E.g., if Left button and Right button are pressed, returns 3 (=1 | 2).
         /// </summary>
         public long Buttons { get; set; }
-        
+
         /// <summary>
         /// true if the control key was down when the event was fired. false otherwise.
         /// </summary>
@@ -515,17 +515,4 @@ namespace Microsoft.AspNetCore.Blazor
         /// </summary>
         public long DeltaMode { get; set; }
     }
-
-	
-	  /// <summary>
-    /// Custom event
-    /// </summary>
-    public class UICustomEventArgs : UIEventArgs
-    {
-        /// <summary>
-        /// Custom Event Value. This is a <see cref="string"/>
-        /// </summary>
-        public object Value { get; set; }
-    }
-
 }

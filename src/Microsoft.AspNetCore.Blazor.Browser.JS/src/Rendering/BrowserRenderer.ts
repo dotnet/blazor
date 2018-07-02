@@ -30,10 +30,7 @@ export class BrowserRenderer {
       throw new Error(`No element is currently associated with component ${componentId}`);
     }
 
-    let t0 = performance.now();
     this.applyEdits(componentId, element, 0, edits, editsOffset, editsLength, referenceFrames);
-    let t1 = performance.now();
-    console.log("updateComponent took " + (t1 - t0) + " milliseconds.")
   }
 
   public disposeComponent(componentId: number) {
@@ -312,9 +309,6 @@ function countDescendantFrames(frame: RenderTreeFramePointer): number {
 }
 
 function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
-	if (event.preventDefault !== undefined)
-		event.preventDefault();
-
   if (!raiseEventMethod) {
     raiseEventMethod = platform.findMethod(
       'Microsoft.AspNetCore.Blazor.Browser', 'Microsoft.AspNetCore.Blazor.Browser.Rendering', 'BrowserRendererEventDispatcher', 'DispatchEvent'
@@ -328,11 +322,8 @@ function raiseEvent(event: Event, browserRendererId: number, componentId: number
     eventArgsType: eventArgs.type
   };
 
-  let t0 = performance.now();
   platform.callMethod(raiseEventMethod, null, [
     platform.toDotNetString(JSON.stringify(eventDescriptor)),
     platform.toDotNetString(JSON.stringify(eventArgs.data))
   ]);
-  let t1 = performance.now();
-  console.log("raiseEvent took " + (t1 - t0) + " milliseconds.")
 }

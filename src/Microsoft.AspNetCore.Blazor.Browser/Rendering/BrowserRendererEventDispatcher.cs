@@ -55,11 +55,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
                     return Json.Deserialize<UIEventArgs>(eventArgsJson);
                 case "wheel":
                     return Json.Deserialize<UIWheelEventArgs>(eventArgsJson);
-								case "custom":
-										return Json.Deserialize<UICustomEventArgs>(eventArgsJson);
-
                 default:
-                     throw new ArgumentException($"Unsupported value '{eventArgsType}'.", nameof(eventArgsType));
+                    throw new ArgumentException($"Unsupported value '{eventArgsType}'.", nameof(eventArgsType));
             }
         }
 

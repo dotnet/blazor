@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -93,11 +93,6 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         // RenderTreeFrameType.Component
         // --------------------------------------------------------------------------------
 
-				/// <summary>
-        /// Describes the custome registred type of this component.
-        /// </summary>
-        [FieldOffset(6)] public readonly short CustomComponentType;
-
         /// <summary>
         /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Component"/>
         /// gets the number of frames in the subtree for which this frame is the root.
@@ -188,10 +183,9 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
             Sequence = sequence;
             ComponentType = componentType;
             ComponentSubtreeLength = componentSubtreeLength;
-						CustomComponentType = ComponentFactoryRegister.GetRegisteredCustomComponent(componentType);
-				}
+        }
 
-				private RenderTreeFrame(int sequence, Type componentType, int subtreeLength, int componentId, IComponent component)
+        private RenderTreeFrame(int sequence, Type componentType, int subtreeLength, int componentId, IComponent component)
             : this(sequence, componentType, subtreeLength)
         {
             ComponentId = componentId;
