@@ -13,15 +13,23 @@ export class SharedMemoryRenderBatch implements RenderBatch {
   }
 
   // Keep in sync with memory layout in RenderBatch.cs
-  updatedComponents = () => platform.readStructField<Pointer>(this.batchAddress, 0) as any as ArrayRange<RenderTreeDiff>;
-  referenceFrames = () => platform.readStructField<Pointer>(this.batchAddress, arrayRangeReader.structLength) as any as ArrayRange<RenderTreeDiff>;
-  disposedComponentIds = () => platform.readStructField<Pointer>(this.batchAddress, arrayRangeReader.structLength * 2) as any as ArrayRange<number>;
-  disposedEventHandlerIds = () => platform.readStructField<Pointer>(this.batchAddress, arrayRangeReader.structLength * 3) as any as ArrayRange<number>;
+  updatedComponents() { return platform.readStructField<Pointer>(this.batchAddress, 0) as any as ArrayRange<RenderTreeDiff>; }
+  referenceFrames() { return platform.readStructField<Pointer>(this.batchAddress, arrayRangeReader.structLength) as any as ArrayRange<RenderTreeDiff>; }
+  disposedComponentIds() { return platform.readStructField<Pointer>(this.batchAddress, arrayRangeReader.structLength * 2) as any as ArrayRange<number>; }
+  disposedEventHandlerIds() { return platform.readStructField<Pointer>(this.batchAddress, arrayRangeReader.structLength * 3) as any as ArrayRange<number>; }
 
-  updatedComponentsEntry = (values: ArrayValues<RenderTreeDiff>, index: number) => arrayValuesEntry(values, index, diffReader.structLength);
-  referenceFramesEntry = (values: ArrayValues<RenderTreeFrame>, index: number) => arrayValuesEntry(values, index, frameReader.structLength);
-  disposedComponentIdsEntry = (values: ArrayValues<number>, index: number) => arrayValuesEntry(values, index, /* int length */ 4);
-  disposedEventHandlerIdsEntry = (values: ArrayValues<number>, index: number) => arrayValuesEntry(values, index, /* int length */ 4);
+  updatedComponentsEntry(values: ArrayValues<RenderTreeDiff>, index: number) {
+    return arrayValuesEntry(values, index, diffReader.structLength);
+  }
+  referenceFramesEntry(values: ArrayValues<RenderTreeFrame>, index: number) {
+    return arrayValuesEntry(values, index, frameReader.structLength);
+  }
+  disposedComponentIdsEntry(values: ArrayValues<number>, index: number) {
+    return arrayValuesEntry(values, index, /* int length */ 4);
+  }
+  disposedEventHandlerIdsEntry(values: ArrayValues<number>, index: number) {
+    return arrayValuesEntry(values, index, /* int length */ 4);
+  }
 
   arrayRangeReader = arrayRangeReader;
   arraySegmentReader = arraySegmentReader;
