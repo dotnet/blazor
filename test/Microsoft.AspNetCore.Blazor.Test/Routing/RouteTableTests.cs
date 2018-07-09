@@ -225,7 +225,6 @@ namespace Microsoft.AspNetCore.Blazor.Test.Routing
 
             // Assert
             Assert.NotNull(context.Handler);
-            Assert.Null(context.Parameters);
         }
 
         [Fact]
@@ -292,6 +291,24 @@ namespace Microsoft.AspNetCore.Blazor.Test.Routing
                 .AddRoute(right).Build());
 
             Assert.Equal(expectedMessage, exception.Message);
+        }
+
+        [Fact]
+        public void SetParameterToEmptyValueIfOneRouteReferenceIt()
+        {
+            // Arrange
+            var routeTable = new TestRouteTableBuilder()
+                .AddRoute("/tags/{tag}")
+                .AddRoute("/tags/").Build();
+            var context = new RouteContext("/tags/");
+
+            // Act
+            routeTable.Route(context);
+
+            // Assert
+            Assert.NotNull(context.Parameters);
+            Assert.True(context.Parameters.ContainsKey("tag"));
+            Assert.Null(context.Parameters["tag"]);
         }
 
         private class TestRouteTableBuilder
