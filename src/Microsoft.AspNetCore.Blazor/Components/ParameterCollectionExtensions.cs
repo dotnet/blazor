@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Reflection;
@@ -17,8 +17,6 @@ namespace Microsoft.AspNetCore.Blazor.Components
     public static class ParameterCollectionExtensions
     {
         private const BindingFlags _bindablePropertyFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase;
-
-        private delegate void WriteParameterAction(ref RenderTreeFrame frame, object target);
 
         private readonly static IDictionary<Type, IDictionary<string, WriteParameterAction>> _cachedParameterWriters
             = new ConcurrentDictionary<Type, IDictionary<string, WriteParameterAction>>();
@@ -44,6 +42,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 parameterWriters = CreateParameterWriters(targetType);
                 _cachedParameterWriters[targetType] = parameterWriters;
             }
+            var usedWriters = new List<WriteParameterAction>();
 
             foreach (var parameter in parameterCollection)
             {
@@ -55,7 +54,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                 try
                 {
-                    parameterWriter(ref parameter.Frame, target);
+                    parameterWriter.Setter(ref parameter.Frame, target);
+                    usedWriters.Add(parameterWriter);
                 }
                 catch (Exception ex)
                 {
@@ -63,6 +63,12 @@ namespace Microsoft.AspNetCore.Blazor.Components
                         $"Unable to set property '{parameterName}' on object of " +
                         $"type '{target.GetType().FullName}'. The error was: {ex.Message}", ex);
                 }
+            }
+            foreach (var nonUsedParameter in parameterWriters.Values.Except(usedWriters))
+            {
+                var type = nonUsedParameter.PropertyType;
+                var nullValueTreeFrame = RenderTreeFrame.Attribute(0, null, type.IsValueType ? Activator.CreateInstance(type) : null);
+                nonUsedParameter.Setter(ref nullValueTreeFrame, target);
             }
         }
 
@@ -82,10 +88,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
                         $"name '{propertyName.ToLowerInvariant()}'. Parameter names are case-insensitive and must be unique.");
                 }
 
-                result.Add(propertyName, (ref RenderTreeFrame frame, object target) =>
+                result.Add(propertyName, new WriteParameterAction((ref RenderTreeFrame frame, object target) =>
                 {
                     propertySetter.SetValue(target, frame.AttributeValue);
-                });
+                },
+                propertyInfo.PropertyType));
             }
 
             return result;
@@ -121,6 +128,21 @@ namespace Microsoft.AspNetCore.Blazor.Components
                     $"Object of type '{targetType.FullName}' does not have a property " +
                     $"matching the name '{parameterName}'.");
             }
+        }
+
+
+        private class WriteParameterAction
+        {
+            public WriteParameterAction(WriteParameterActionSetter setter, Type propertyType)
+            {
+                Setter = setter;
+                PropertyType = propertyType;
+            }
+
+            public delegate void WriteParameterActionSetter(ref RenderTreeFrame frame, object target);
+            public WriteParameterActionSetter Setter { get; set; }
+
+            public Type PropertyType { get; set; }
         }
     }
 }

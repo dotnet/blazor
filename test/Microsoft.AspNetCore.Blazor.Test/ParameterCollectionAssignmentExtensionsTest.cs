@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void NoIncomingParameterMatchesDeclaredParameter_LeavesValueUnchanged()
+        public void NoIncomingParameterMatchesDeclaredParameter_SetValuesDefault()
         {
             // Arrange
             var existingObjectValue = new object();
@@ -89,11 +89,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
             parameterCollection.AssignToProperties(target);
 
             // Assert
-            Assert.Equal(456, target.IntProp);
-            Assert.Equal("Existing value", target.StringProp);
-            Assert.Same(existingObjectValue, target.ObjectPropCurrentValue);
+            Assert.Equal(0, target.IntProp);
+            Assert.Null(target.StringProp);
+            Assert.Null(target.ObjectPropCurrentValue);
         }
-
         [Fact]
         public void IncomingParameterMatchesNoDeclaredParameter_Throws()
         {
