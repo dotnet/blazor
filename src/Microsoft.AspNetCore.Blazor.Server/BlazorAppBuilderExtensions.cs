@@ -48,12 +48,6 @@ namespace Microsoft.AspNetCore.Builder
             // hence all the path manipulation here. We shouldn't be hardcoding 'dist' here either.
             var env = (IHostingEnvironment)app.ApplicationServices.GetService(typeof(IHostingEnvironment));
             var config = BlazorConfig.Read(options.ClientAssemblyPath);
-            var distDirStaticFiles = new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(config.DistPath),
-                ContentTypeProvider = CreateContentTypeProvider(config.EnableDebugging),
-                OnPrepareResponse = SetCacheHeaders
-            };
 
             if (env.IsDevelopment() && config.EnableAutoRebuilding)
             {
@@ -68,20 +62,26 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             // First, match the request against files in the client app dist directory
-            app.UseStaticFiles(distDirStaticFiles);
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(config.DistPath),
+                ContentTypeProvider = CreateContentTypeProvider(config.EnableDebugging),
+                OnPrepareResponse = SetCacheHeaders
+            });
 
             // Next, match the request against static files in wwwroot
+            StaticFileOptions devModeWebRootStaticFileOptions = null;
             if (!string.IsNullOrEmpty(config.WebRootPath))
             {
                 // In development, we serve the wwwroot files directly from source
                 // (and don't require them to be copied into dist).
-                // TODO: When publishing is implemented, have config.WebRootPath set
-                // to null so that it only serves files that were copied to dist
-                app.UseStaticFiles(new StaticFileOptions
+                // During publishing they are copied into 'dist' and served from there.
+                devModeWebRootStaticFileOptions = new StaticFileOptions
                 {
                     FileProvider = new PhysicalFileProvider(config.WebRootPath),
                     OnPrepareResponse = SetCacheHeaders
-                });
+                };
+                app.UseStaticFiles(devModeWebRootStaticFileOptions);
             }
 
             // Accept debugger connections
@@ -94,10 +94,13 @@ namespace Microsoft.AspNetCore.Builder
             // excluding /_framework/*)
             app.MapWhen(IsNotFrameworkDir, childAppBuilder =>
             {
-                childAppBuilder.UseSpa(spa =>
+                if (devModeWebRootStaticFileOptions != null)
                 {
-                    spa.Options.DefaultPageStaticFileOptions = distDirStaticFiles;
-                });
+                    childAppBuilder.UseSpa(spa =>
+                    {
+                        spa.Options.DefaultPageStaticFileOptions = devModeWebRootStaticFileOptions;
+                    });
+                }
             });
         }
 
