@@ -15,26 +15,19 @@ async function boot() {
     renderBatch(browserRendererId, new SharedMemoryRenderBatch(batchAddress));
   };
 
-  // Read startup config from the <script> element that's importing this file
-  const allScriptElems = document.getElementsByTagName('script');
-  const thisScriptElem = (document.currentScript || allScriptElems[allScriptElems.length - 1]) as HTMLScriptElement;
-  const isLinkerEnabled = thisScriptElem.getAttribute('linker-enabled') === 'true';
-  const entryPointDll = getRequiredBootScriptAttribute(thisScriptElem, 'main');
-  const entryPointMethod = getRequiredBootScriptAttribute(thisScriptElem, 'entrypoint');
-  const entryPointAssemblyName = getAssemblyNameFromUrl(entryPointDll);
-  const referenceAssembliesCommaSeparated = thisScriptElem.getAttribute('references') || '';
-  const referenceAssemblies = referenceAssembliesCommaSeparated
-    .split(',')
-    .map(s => s.trim())
-    .filter(s => !!s);
+  // Fetch the boot JSON file
+  // Later we might make the location of this configurable (e.g., as an attribute on the <script>
+  // element that's importing this file), but currently there isn't a use case for that.
+  const bootConfigResponse = await fetch('_framework/blazor.boot.json');
+  const bootConfig: BootJsonData = await bootConfigResponse.json();
 
-  if (!isLinkerEnabled) {
+  if (!bootConfig.linkerEnabled) {
     console.info('Blazor is running in dev mode without IL stripping. To make the bundle size significantly smaller, publish the application or see https://go.microsoft.com/fwlink/?linkid=870414');
   }
 
   // Determine the URLs of the assemblies we want to load
-  const loadAssemblyUrls = [entryPointDll]
-    .concat(referenceAssemblies)
+  const loadAssemblyUrls = [bootConfig.main]
+    .concat(bootConfig.assemblyReferences)
     .map(filename => `_framework/_bin/${filename}`);
 
   try {
@@ -44,15 +37,18 @@ async function boot() {
   }
 
   // Start up the application
-  platform.callEntryPoint(entryPointAssemblyName, entryPointMethod, []);
+  const mainAssemblyName = getAssemblyNameFromUrl(bootConfig.main);
+  platform.callEntryPoint(mainAssemblyName, bootConfig.entryPoint, []);
 }
 
-function getRequiredBootScriptAttribute(elem: HTMLScriptElement, attributeName: string): string {
-  const result = elem.getAttribute(attributeName);
-  if (!result) {
-    throw new Error(`Missing "${attributeName}" attribute on Blazor script tag.`);
-  }
-  return result;
+// Keep in sync with BootJsonData in Microsoft.AspNetCore.Blazor.Build
+interface BootJsonData {
+  main: string;
+  entryPoint: string;
+  assemblyReferences: string[];
+  cssReferences: string[];
+  jsReferences: string[];
+  linkerEnabled: boolean;
 }
 
 boot();
