@@ -5,7 +5,8 @@
     DependsOnTargets="PrepareBlazorOutputs"
     Inputs="@(BlazorItemOutput)"
     Outputs="@(BlazorItemOutput->'%(TargetOutputPath)')"
-    AfterTargets="CopyFilesToOutputDirectory">
+    AfterTargets="CopyFilesToOutputDirectory"
+    Condition="'$(OutputType.ToLowerInvariant())'=='exe'">
 
     <!-- Copy the blazor output files  -->
     <Copy
