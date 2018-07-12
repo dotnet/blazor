@@ -15,8 +15,7 @@ namespace Microsoft.AspNetCore.Blazor.Build
                 Name = "Microsoft.AspNetCore.Blazor.Build"
             };
             app.HelpOption("-?|-h|--help");
-            
-            app.Command("build", BuildIndexHtmlCommand.Command);
+
             app.Command("resolve-dependencies", ResolveRuntimeDependenciesCommand.Command);
             app.Command("write-boot-json", WriteBootJsonCommand.Command);
 
