@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Blazor.Build
                 assemblyReferences,
                 embeddedContent,
                 linkerEnabled);
-            var normalizedOutputPath = Normalize(outputPath);
+            var normalizedOutputPath = Path.GetFullPath(outputPath);
             Console.WriteLine("Writing boot data to: " + normalizedOutputPath);
             File.WriteAllText(normalizedOutputPath, bootJsonText);
         }
@@ -56,9 +56,6 @@ namespace Microsoft.AspNetCore.Blazor.Build
                 return $"{entryPoint.DeclaringType.FullName}::{entryPoint.Name}";
             }
         }
-
-        private static string Normalize(string outputPath) =>
-            Path.Combine(Path.GetDirectoryName(outputPath), Path.GetFileName(outputPath).ToLowerInvariant());
 
         /// <summary>
         /// Defines the structure of a Blazor boot JSON file
