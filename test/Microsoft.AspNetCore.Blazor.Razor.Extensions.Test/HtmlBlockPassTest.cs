@@ -109,6 +109,42 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         }
 
         [Fact]
+        public void Execute_RewritesHtml_SelfClosing()
+        {
+            // Arrange
+            var document = CreateDocument(@"<a href=""...""></a>");
+
+            var expected = NormalizeContent(@"<a href=""...""/>");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            var block = documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>().Single();
+            Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
+        public void Execute_RewritesHtml_Void()
+        {
+            // Arrange
+            var document = CreateDocument(@"<link rel=""..."" href=""...""/>");
+
+            var expected = NormalizeContent(@"<link rel=""..."" href=""..."">");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            var block = documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>().Single();
+            Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
         public void Execute_CannotRewriteHtml_CSharpInCode()
         {
             // Arrange
@@ -120,6 +156,48 @@ namespace Microsoft.AspNetCore.Blazor.Razor
     @hello
   </head>
   }
+</html>");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            Assert.Empty(documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>());
+        }
+
+        [Fact]
+        public void Execute_CannotRewriteHtml_Script()
+        {
+            // Arrange
+            var document = CreateDocument(@"
+<html>
+  @if (some_bool)
+  {
+  <head cool=""beans"">
+    <script>...</script>
+  </head>
+  }
+</html>");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            Assert.Empty(documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>());
+        }
+
+        // The unclosed tag will have errors, so we won't rewrite it or its parent.
+        [Fact]
+        public void Execute_CannotRewriteHtml_Errors()
+        {
+            // Arrange
+            var document = CreateDocument(@"
+<html>
+  <a href=""..."">
 </html>");
 
             var documentNode = Lower(document);
