@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -66,6 +66,15 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
             ref var entry = ref _entries.Buffer[indexOfEntryBeingClosed];
             entry = entry.WithElementSubtreeLength(_entries.Count - indexOfEntryBeingClosed);
         }
+
+        /// <summary>
+        /// Appends a frame representing markup text content.
+        /// </summary>
+        /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
+        /// <param name="textContent">Content for the new markup text frame.</param>
+        public void AddMarkupContent(int sequence, string textContent) =>
+            // TODO stevesa implement me
+            throw null;
 
         /// <summary>
         /// Appends a frame representing text content.
