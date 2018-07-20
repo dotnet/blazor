@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -74,39 +74,42 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
-        public void SupportsElements()
+        public void SupportsElementsWithDynamicContent()
         {
             // Arrange/Act
-            var component = CompileToComponent("<myelem>Hello</myelem>");
+            var component = CompileToComponent("<myelem>Hello @(\"there\")</myelem>");
 
             // Assert
             Assert.Collection(GetRenderTree(component),
-                frame => AssertFrame.Element(frame, "myelem", 2, 0),
-                frame => AssertFrame.Text(frame, "Hello", 1));
+                frame => AssertFrame.Element(frame, "myelem", 3, 0),
+                frame => AssertFrame.Text(frame, "Hello ", 1),
+                frame => AssertFrame.Text(frame, "there", 2));
         }
 
         [Fact]
-        public void SupportsSelfClosingElements()
+        public void SupportsSelfClosingElementsWithDynamicContent()
         {
             // Arrange/Act
-            var component = CompileToComponent("Some text so elem isn't at position 0 <myelem />");
+            var component = CompileToComponent("Some text so elem isn't at position 0 <myelem myattr=@(\"val\") />");
 
             // Assert
             Assert.Collection(GetRenderTree(component),
                 frame => AssertFrame.Text(frame, "Some text so elem isn't at position 0 ", 0),
-                frame => AssertFrame.Element(frame, "myelem", 1, 1));
+                frame => AssertFrame.Element(frame, "myelem", 2, 1),
+                frame => AssertFrame.Attribute(frame, "myattr", "val", 2));
         }
 
         [Fact]
-        public void SupportsVoidHtmlElements()
+        public void SupportsVoidHtmlElementsWithDynamicContent()
         {
             // Arrange/Act
-            var component = CompileToComponent("Some text so elem isn't at position 0 <img>");
+            var component = CompileToComponent("Some text so elem isn't at position 0 <img src=@(\"url\")>");
 
             // Assert
             Assert.Collection(GetRenderTree(component),
                 frame => AssertFrame.Text(frame, "Some text so elem isn't at position 0 ", 0),
-                frame => AssertFrame.Element(frame, "img", 1, 1));
+                frame => AssertFrame.Element(frame, "img", 2, 1),
+                frame => AssertFrame.Attribute(frame, "src", "url", 2));
         }
 
         [Fact]
@@ -126,13 +129,14 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         public void SupportsAttributesWithLiteralValues()
         {
             // Arrange/Act
-            var component = CompileToComponent("<elem attrib-one=\"Value 1\" a2='v2' />");
+            var component = CompileToComponent("<elem attrib-one=\"Value 1\" a2='v2'>@(\"Hello\")</elem>");
 
             // Assert
             Assert.Collection(GetRenderTree(component),
-                frame => AssertFrame.Element(frame, "elem", 3, 0),
+                frame => AssertFrame.Element(frame, "elem", 4, 0),
                 frame => AssertFrame.Attribute(frame, "attrib-one", "Value 1", 1),
-                frame => AssertFrame.Attribute(frame, "a2", "v2", 2));
+                frame => AssertFrame.Attribute(frame, "a2", "v2", 2),
+                frame => AssertFrame.Text(frame, "Hello", 3));
         }
 
         [Fact]
@@ -222,33 +226,21 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
-        public void SupportsDataDashAttributesWithLiteralValues()
-        {
-            // Arrange/Act
-            var component = CompileToComponent(
-                "<elem data-abc=\"Hello\" />");
-
-            // Assert
-            Assert.Collection(GetRenderTree(component),
-                frame => AssertFrame.Element(frame, "elem", 2, 0),
-                frame => AssertFrame.Attribute(frame, "data-abc", "Hello", 1));
-        }
-
-        [Fact]
-        public void SupportsDataDashAttributesWithCSharpExpressionValues()
+        public void SupportsDataDashAttributes()
         {
             // Arrange/Act
             var component = CompileToComponent(@"
 @{ 
-  var myValue = ""My string"";
+  var myValue = ""Expression value"";
 }
-<elem data-abc=""@myValue"" />");
+<elem data-abc=""Literal value"" data-def=""@myValue"" />");
 
             // Assert
             Assert.Collection(
                 GetRenderTree(component),
-                frame => AssertFrame.Element(frame, "elem", 2, 0),
-                frame => AssertFrame.Attribute(frame, "data-abc", "My string", 1));
+                frame => AssertFrame.Element(frame, "elem", 3, 0),
+                frame => AssertFrame.Attribute(frame, "data-abc", "Literal value", 1),
+                frame => AssertFrame.Attribute(frame, "data-def", "Expression value", 2));
         }
 
         [Fact]
