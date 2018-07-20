@@ -6,6 +6,8 @@ import { EventForDotNet, UIEventArgs } from './EventForDotNet';
 import { LogicalElement, toLogicalElement, insertLogicalChild, removeLogicalChild, getLogicalParent, getLogicalChild, createAndInsertLogicalContainer, isSvgElement } from './LogicalElements';
 import { applyCaptureIdToElement } from './ElementReferenceCapture';
 const selectValuePropname = '_blazorSelectValue';
+const sharedTemplateElemForParsing = document.createElement('template');
+const sharedSvgElemForParsing = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
 
@@ -158,6 +160,9 @@ export class BrowserRenderer {
         } else {
           throw new Error('Reference capture frames can only be children of element frames.');
         }
+      case FrameType.markup:
+        this.insertMarkup(batch, parent, childIndex, frame);
+        return 1;
       default:
         const unknownType: never = frameType; // Compile-time verification that the switch was exhaustive
         throw new Error(`Unknown frame type: ${unknownType}`);
@@ -201,6 +206,17 @@ export class BrowserRenderer {
     const textContent = batch.frameReader.textContent(textFrame)!;
     const newTextNode = document.createTextNode(textContent);
     insertLogicalChild(newTextNode, parent, childIndex);
+  }
+
+  private insertMarkup(batch: RenderBatch, parent: LogicalElement, childIndex: number, markupFrame: RenderTreeFrame) {
+    const markupContent = batch.frameReader.markupContent(markupFrame);
+
+    const parsedMarkup = parseMarkup(markupContent, isSvgElement(parent));
+    if (parsedMarkup.childNodes.length !== 1) {
+      throw new Error(`Invalid markup content - not a single element: ${markupContent}`);
+    }
+
+    insertLogicalChild(parsedMarkup.firstChild!, parent, childIndex);
   }
 
   private applyAttribute(batch: RenderBatch, componentId: number, toDomElement: Element, attributeFrame: RenderTreeFrame) {
@@ -302,6 +318,16 @@ export class BrowserRenderer {
     }
 
     return (childIndex - origChildIndex); // Total number of children inserted
+  }
+}
+
+function parseMarkup(markup: string, isSvg: boolean) {
+  if (isSvg) {
+    sharedSvgElemForParsing.innerHTML = markup || ' ';
+    return sharedSvgElemForParsing;
+  } else {
+    sharedTemplateElemForParsing.innerHTML = markup || ' ';
+    return sharedTemplateElemForParsing.content;
   }
 }
 

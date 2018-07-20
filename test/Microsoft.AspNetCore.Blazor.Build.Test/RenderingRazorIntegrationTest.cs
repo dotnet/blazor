@@ -3,10 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.AspNetCore.Blazor.Layouts;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using Microsoft.AspNetCore.Blazor.Test.Helpers;
 using Xunit;
@@ -95,6 +91,28 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             // Assert
             Assert.Collection(GetRenderTree(component),
                 frame => AssertFrame.Markup(frame, "<myelem>Hello</myelem>", 0));
+        }
+
+        [Fact]
+        public void CreatesSeparateMarkupFrameForEachTopLevelStaticElement()
+        {
+            // The JavaScript-side rendering code relies on markup blocks representing
+            // exactly one self-contained element. This test is to show that we don't
+            // coalesce together markup blocks that happen to be next to each other.
+
+            // Arrange/Act
+            var component = CompileToComponent(
+                "<root>@(\"Hi\") <child1>a</child1> <child2><another>b</another></child2> </root>");
+
+            // Assert
+            Assert.Collection(GetRenderTree(component),
+                frame => AssertFrame.Element(frame, "root", 7, 0),
+                frame => AssertFrame.Text(frame, "Hi", 1),
+                frame => AssertFrame.Text(frame, " ", 2),
+                frame => AssertFrame.Markup(frame, "<child1>a</child1>", 3),
+                frame => AssertFrame.Text(frame, " ", 4),
+                frame => AssertFrame.Markup(frame, "<child2><another>b</another></child2>", 5),
+                frame => AssertFrame.Text(frame, " ", 6));
         }
 
         [Fact]
