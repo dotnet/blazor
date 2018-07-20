@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -494,6 +494,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
                         break;
                     }
                 case RenderTreeFrameType.Text:
+                case RenderTreeFrameType.Markup:
                     {
                         var referenceFrameIndex = diffContext.ReferenceFrames.Append(newFrame);
                         diffContext.Edits.Append(RenderTreeEdit.PrependFrame(diffContext.SiblingIndex, referenceFrameIndex));
@@ -510,6 +511,8 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
                         InitializeNewComponentReferenceCaptureFrame(ref diffContext, ref newFrame);
                         break;
                     }
+                default:
+                    throw new NotImplementedException($"Unexpected frame type during {nameof(InsertNewFrame)}: {newFrame.FrameType}");
             }
         }
 
@@ -548,10 +551,13 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
                         break;
                     }
                 case RenderTreeFrameType.Text:
+                case RenderTreeFrameType.Markup:
                     {
                         diffContext.Edits.Append(RenderTreeEdit.RemoveFrame(diffContext.SiblingIndex));
                         break;
                     }
+                default:
+                    throw new NotImplementedException($"Unexpected frame type during {nameof(RemoveOldFrame)}: {oldFrame.FrameType}");
             }
         }
 

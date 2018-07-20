@@ -55,6 +55,39 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void CanAddMarkup()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act
+            builder.OpenElement(0, "some elem");
+            builder.AddMarkupContent(1, "Blah");
+            builder.AddMarkupContent(2, string.Empty);
+            builder.CloseElement();
+
+            // Assert
+            var frames = builder.GetFrames();
+            Assert.Collection(frames,
+                frame => AssertFrame.Element(frame, "some elem", 3),
+                frame => AssertFrame.Markup(frame, "Blah"),
+                frame => AssertFrame.Markup(frame, string.Empty));
+        }
+
+        [Fact]
+        public void CannotAddNullMarkup()
+        {
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act/Assert
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                builder.AddMarkupContent(0, null);
+            });
+        }
+
+        [Fact]
         public void CanAddNonStringValueAsText()
         {
             // Arrange

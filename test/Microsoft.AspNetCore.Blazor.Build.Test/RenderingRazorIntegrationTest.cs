@@ -87,6 +87,17 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
+        public void SupportsElementsAsStaticBlock()
+        {
+            // Arrange/Act
+            var component = CompileToComponent("<myelem>Hello</myelem>");
+
+            // Assert
+            Assert.Collection(GetRenderTree(component),
+                frame => AssertFrame.Markup(frame, "<myelem>Hello</myelem>", 0));
+        }
+
+        [Fact]
         public void SupportsSelfClosingElementsWithDynamicContent()
         {
             // Arrange/Act
@@ -100,16 +111,27 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
-        public void SupportsVoidHtmlElementsWithDynamicContent()
+        public void SupportsSelfClosingElementsAsStaticBlock()
         {
             // Arrange/Act
-            var component = CompileToComponent("Some text so elem isn't at position 0 <img src=@(\"url\")>");
+            var component = CompileToComponent("Some text so elem isn't at position 0 <myelem />");
 
             // Assert
             Assert.Collection(GetRenderTree(component),
                 frame => AssertFrame.Text(frame, "Some text so elem isn't at position 0 ", 0),
-                frame => AssertFrame.Element(frame, "img", 2, 1),
-                frame => AssertFrame.Attribute(frame, "src", "url", 2));
+                frame => AssertFrame.Markup(frame, "<myelem/>", 1));
+        }
+
+        [Fact]
+        public void SupportsVoidHtmlElements()
+        {
+            // Arrange/Act
+            var component = CompileToComponent("Some text so elem isn't at position 0 <img>");
+
+            // Assert
+            Assert.Collection(GetRenderTree(component),
+                frame => AssertFrame.Text(frame, "Some text so elem isn't at position 0 ", 0),
+                frame => AssertFrame.Markup(frame, "<img>", 1));
         }
 
         [Fact]
