@@ -335,6 +335,19 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
                         break;
                     }
 
+                case RenderTreeFrameType.Markup:
+                    {
+                        var oldMarkup = oldFrame.MarkupContent;
+                        var newMarkup = newFrame.MarkupContent;
+                        if (!string.Equals(oldMarkup, newMarkup, StringComparison.Ordinal))
+                        {
+                            var referenceFrameIndex = diffContext.ReferenceFrames.Append(newFrame);
+                            diffContext.Edits.Append(RenderTreeEdit.UpdateMarkup(diffContext.SiblingIndex, referenceFrameIndex));
+                        }
+                        diffContext.SiblingIndex++;
+                        break;
+                    }
+
                 case RenderTreeFrameType.Element:
                     {
                         var oldElementName = oldFrame.ElementName;
