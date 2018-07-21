@@ -70,6 +70,7 @@ export enum EditType {
   updateText = 5,
   stepIn = 6,
   stepOut = 7,
+  updateMarkup = 8,
 }
 
 export enum FrameType {

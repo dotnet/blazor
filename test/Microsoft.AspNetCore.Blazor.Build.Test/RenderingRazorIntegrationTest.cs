@@ -96,9 +96,10 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         [Fact]
         public void CreatesSeparateMarkupFrameForEachTopLevelStaticElement()
         {
-            // The JavaScript-side rendering code relies on markup blocks representing
-            // exactly one self-contained element. This test is to show that we don't
-            // coalesce together markup blocks that happen to be next to each other.
+            // The JavaScript-side rendering code does not rely on this behavior. It supports
+            // inserting markup frames with arbitrary markup (e.g., multiple top-level elements
+            // or none). This test exists only as an observation of the current behavior rather
+            // than a promise that we never want to change it.
 
             // Arrange/Act
             var component = CompileToComponent(

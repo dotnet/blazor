@@ -115,6 +115,14 @@ export class BrowserRenderer {
           }
           break;
         }
+        case EditType.updateMarkup: {
+          const frameIndex = editReader.newTreeIndex(edit);
+          const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
+          const siblingIndex = editReader.siblingIndex(edit);
+          removeLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+          this.insertMarkup(batch, parent, childIndexAtCurrentDepth + siblingIndex, frame);
+          break;
+        }
         case EditType.stepIn: {
           const siblingIndex = editReader.siblingIndex(edit);
           parent = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
@@ -209,14 +217,14 @@ export class BrowserRenderer {
   }
 
   private insertMarkup(batch: RenderBatch, parent: LogicalElement, childIndex: number, markupFrame: RenderTreeFrame) {
+    const markupContainer = createAndInsertLogicalContainer(parent, childIndex);
+
     const markupContent = batch.frameReader.markupContent(markupFrame);
-
     const parsedMarkup = parseMarkup(markupContent, isSvgElement(parent));
-    if (parsedMarkup.childNodes.length !== 1) {
-      throw new Error(`Invalid markup content - not a single element: ${markupContent}`);
+    let logicalSiblingIndex = 0;
+    while (parsedMarkup.firstChild) {
+      insertLogicalChild(parsedMarkup.firstChild, markupContainer, logicalSiblingIndex++);
     }
-
-    insertLogicalChild(parsedMarkup.firstChild!, parent, childIndex);
   }
 
   private applyAttribute(batch: RenderBatch, componentId: number, toDomElement: Element, attributeFrame: RenderTreeFrame) {
