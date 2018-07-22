@@ -9,6 +9,7 @@ function decodeImpl(bytes: Uint8Array): string {
   let pos = 0;
   const len = bytes.length;
   const out: number[] = [];
+  const substrings: string[] = [];
 
   while (pos < len) {
     const byte1 = bytes[pos++];
@@ -42,7 +43,16 @@ function decodeImpl(bytes: Uint8Array): string {
     } else {
       // FIXME: we're ignoring this
     }
+
+    // As a workaround for https://github.com/samthor/fast-text-encoding/issues/1,
+    // make sure the 'out' array never gets too long. When it reaches a limit, we
+    // stringify what we have so far and append to a list of outputs.
+    if (out.length > 1024) {
+      substrings.push(String.fromCharCode.apply(null, out));
+      out.length = 0;
+    }
   }
 
-  return String.fromCharCode.apply(null, out);
+  substrings.push(String.fromCharCode.apply(null, out));
+  return substrings.join('');
 }
