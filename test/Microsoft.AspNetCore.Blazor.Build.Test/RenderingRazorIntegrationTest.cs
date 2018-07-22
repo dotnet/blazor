@@ -117,6 +117,20 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         }
 
         [Fact]
+        public void RendersMarkupStringAsMarkupFrame()
+        {
+            // Arrange/Act
+            var component = CompileToComponent(
+                "@{ var someMarkup = new MarkupString(\"<div>Hello</div>\"); }"
+                + "<p>@someMarkup</p>");
+
+            // Assert
+            Assert.Collection(GetRenderTree(component),
+                frame => AssertFrame.Element(frame, "p", 2, 0),
+                frame => AssertFrame.Markup(frame, "<div>Hello</div>", 1));
+        }
+
+        [Fact]
         public void SupportsSelfClosingElementsWithDynamicContent()
         {
             // Arrange/Act

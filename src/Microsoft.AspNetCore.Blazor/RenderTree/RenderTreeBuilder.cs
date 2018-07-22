@@ -110,6 +110,14 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         }
 
         /// <summary>
+        /// Appends a frame representing markup content.
+        /// </summary>
+        /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
+        /// <param name="markupContent">Content for the new markup frame.</param>
+        public void AddContent(int sequence, MarkupString markupContent)
+            => AddMarkupContent(sequence, markupContent.ToString());
+
+        /// <summary>
         /// Appends a frame representing text content.
         /// </summary>
         /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>

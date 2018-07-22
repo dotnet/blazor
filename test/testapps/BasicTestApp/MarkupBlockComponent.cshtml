@@ -18,8 +18,16 @@
 
 <button onclick=@(() => { changeOutput = true; })>Change output</button>
 
+<h2>Markup string</h2>
+
+<p>It's also possible to declare a value of a special type that renders as markup:</p>
+
+@((MarkupString)myMarkup)
+
 @functions {
     bool changeOutput;
+
+    string myMarkup = "<p class='markup-string-value'>This is a <em>markup string</em>.</p>";
 
     void EmitMarkupBlock(RenderTreeBuilder builder)
     {

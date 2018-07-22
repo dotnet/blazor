@@ -75,6 +75,26 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void CanAddMarkupViaMarkupString()
+        {
+            // This represents putting @someMarkupString into the component,
+            // as opposed to calling builder.AddMarkupContent directly.
+
+            // Arrange
+            var builder = new RenderTreeBuilder(new TestRenderer());
+
+            // Act - can use either constructor or cast
+            builder.AddContent(0, (MarkupString)"Some markup");
+            builder.AddContent(1, new MarkupString(null));
+
+            // Assert
+            var frames = builder.GetFrames();
+            Assert.Collection(frames,
+                frame => AssertFrame.Markup(frame, "Some markup"),
+                frame => AssertFrame.Markup(frame, string.Empty));
+        }
+
+        [Fact]
         public void CannotAddNullMarkup()
         {
             // Arrange
