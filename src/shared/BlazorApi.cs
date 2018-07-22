@@ -57,7 +57,6 @@ namespace Microsoft.AspNetCore.Blazor.Shared
 
             public static readonly string CloseComponent = nameof(CloseComponent);
 
-            // TODO: stevesa rename this if you want.
             public static readonly string AddMarkupContent = nameof(AddMarkupContent);
 
             public static readonly string AddContent = nameof(AddContent);
