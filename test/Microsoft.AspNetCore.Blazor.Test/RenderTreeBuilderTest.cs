@@ -95,16 +95,18 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void CannotAddNullMarkup()
+        public void CanAddNullMarkup()
         {
             // Arrange
             var builder = new RenderTreeBuilder(new TestRenderer());
 
-            // Act/Assert
-            Assert.Throws<ArgumentNullException>(() =>
-            {
-                builder.AddMarkupContent(0, null);
-            });
+            // Act
+            builder.AddMarkupContent(0, null);
+
+            // Assert
+            var frames = builder.GetFrames();
+            Assert.Collection(frames,
+                frame => AssertFrame.Markup(frame, string.Empty));
         }
 
         [Fact]

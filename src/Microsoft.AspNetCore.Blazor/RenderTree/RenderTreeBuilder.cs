@@ -73,14 +73,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
         /// <param name="markupContent">Content for the new markup frame.</param>
         public void AddMarkupContent(int sequence, string markupContent)
-        {
-            if (markupContent == null)
-            {
-                throw new ArgumentNullException(nameof(markupContent));
-            }
-
-            Append(RenderTreeFrame.Markup(sequence, markupContent));
-        }
+            => Append(RenderTreeFrame.Markup(sequence, markupContent ?? string.Empty));
 
         /// <summary>
         /// Appends a frame representing text content.
@@ -115,7 +108,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         /// <param name="sequence">An integer that represents the position of the instruction in the source code.</param>
         /// <param name="markupContent">Content for the new markup frame.</param>
         public void AddContent(int sequence, MarkupString markupContent)
-            => AddMarkupContent(sequence, markupContent.ToString());
+            => AddMarkupContent(sequence, markupContent.Value);
 
         /// <summary>
         /// Appends a frame representing text content.

@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-
 namespace Microsoft.AspNetCore.Blazor
 {
     /// <summary>
@@ -10,16 +8,19 @@ namespace Microsoft.AspNetCore.Blazor
     /// </summary>
     public struct MarkupString
     {
-        private readonly string _value;
-
         /// <summary>
         /// Constructs an instance of <see cref="MarkupString"/>.
         /// </summary>
         /// <param name="value">The value for the new instance.</param>
         public MarkupString(string value)
         {
-            _value = value ?? string.Empty;
+            Value = value;
         }
+
+        /// <summary>
+        /// Gets the value of the <see cref="MarkupString"/>.
+        /// </summary>
+        public string Value { get; }
 
         /// <summary>
         /// Casts a <see cref="string"/> to a <see cref="MarkupString"/>.
@@ -30,6 +31,6 @@ namespace Microsoft.AspNetCore.Blazor
 
         /// <inheritdoc />
         public override string ToString()
-            => _value;
+            => Value ?? string.Empty;
     }
 }
