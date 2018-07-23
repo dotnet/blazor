@@ -5,13 +5,17 @@ import { attachRootComponentToElement } from './Rendering/Renderer';
 import { Pointer } from './Platform/Platform';
 
 // Make the following APIs available in global scope for invocation from JS
-window['Blazor'] = {
-  platform,
-  navigateTo,
+export function exportBlazor() {
+  window['Blazor'] = {
+    platform,
+    navigateTo,
+  
+    _internal: {
+      attachRootComponentToElement,
+      http: httpInternalFunctions,
+      uriHelper: uriHelperInternalFunctions
+    }
+  };
+}
 
-  _internal: {
-    attachRootComponentToElement,
-    http: httpInternalFunctions,
-    uriHelper: uriHelperInternalFunctions
-  }
-};
+exportBlazor();
