@@ -15,8 +15,8 @@ namespace BlazorServerSide_CSharp.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            // Adds the Server-Side Blazor services, and those registered by the client project's startup.
-            services.AddServerSideBlazor<Client.Startup>();
+            // Adds the Server-Side Blazor services, and those registered by the app project's startup.
+            services.AddServerSideBlazor<App.Startup>();
 
             services.AddResponseCompression(options =>
             {
@@ -38,8 +38,8 @@ namespace BlazorServerSide_CSharp.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            // Use component registrations and static files from the client startup.
-            app.UseServerSideBlazor<Client.Startup>();
+            // Use component registrations and static files from the app startup.
+            app.UseServerSideBlazor<App.Startup>();
         }
     }
 }

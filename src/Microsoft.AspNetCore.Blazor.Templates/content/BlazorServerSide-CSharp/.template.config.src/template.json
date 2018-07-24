@@ -30,11 +30,11 @@
     },
     {
       "condition": "(OS == \"Windows_NT\" && HostIdentifier != \"dotnetcli\" && HostIdentifier != \"dotnetcli-preview\")",
-      "path": "BlazorServerSide-CSharp.Client\\BlazorServerSide-CSharp.Client.csproj"
+      "path": "BlazorServerSide-CSharp.App\\BlazorServerSide-CSharp.App.csproj"
     },
     {
       "condition": "(OS != \"Windows_NT\" && HostIdentifier != \"dotnetcli\" && HostIdentifier != \"dotnetcli-preview\")",
-      "path": "BlazorServerSide-CSharp.Client/BlazorServerSide-CSharp.Client.csproj"
+      "path": "BlazorServerSide-CSharp.App/BlazorServerSide-CSharp.App.csproj"
     }
   ],
   "shortName": "blazorserverside",

@@ -3,8 +3,9 @@
 
 using Microsoft.AspNetCore.Blazor.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using BlazorServerSide_CSharp.App.Services;
 
-namespace BlazorServerSide_CSharp.Client
+namespace BlazorServerSide_CSharp.App
 {
     public class Startup
     {
