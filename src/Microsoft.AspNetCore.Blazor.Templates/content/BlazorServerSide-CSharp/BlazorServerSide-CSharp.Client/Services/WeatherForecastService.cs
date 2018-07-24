@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorServerSide_CSharp.Client
+namespace BlazorServerSide_CSharp.Client.Services
 {
     public class WeatherForecastService
     {

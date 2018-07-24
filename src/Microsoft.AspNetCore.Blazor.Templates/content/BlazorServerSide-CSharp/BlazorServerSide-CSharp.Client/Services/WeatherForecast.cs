@@ -3,7 +3,7 @@
 
 using System;
 
-namespace BlazorServerSide_CSharp.Client
+namespace BlazorServerSide_CSharp.Client.Services
 {
     public class WeatherForecast
     {

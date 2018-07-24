@@ -15,7 +15,7 @@ namespace BlazorServerSide_CSharp.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            // Adds the Server-Side Blazor services, and those registered by the client startup.
+            // Adds the Server-Side Blazor services, and those registered by the client project's startup.
             services.AddServerSideBlazor<Client.Startup>();
 
             services.AddResponseCompression(options =>

@@ -13,7 +13,7 @@
     "0AFFA7FD-4E37-4636-AB91-3753E746DB98"
   ],
   "identity": "Microsoft.Web.Blazor.ServerSide.CSharp",
-  "name": "Blazor (Server-Side in ASP.NET Core)",
+  "name": "Blazor (Server-side in ASP.NET Core)",
   "preferNameDirectory": true,
   "primaryOutputs": [
     {
