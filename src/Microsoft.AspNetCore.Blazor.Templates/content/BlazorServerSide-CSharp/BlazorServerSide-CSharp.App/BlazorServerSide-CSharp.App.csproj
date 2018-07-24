@@ -8,7 +8,7 @@
     </RestoreAdditionalProjectSources>
     <LangVersion>7.3</LangVersion>
 
-    <!-- The linker is not useful for server-side execution. Re-enable this if you switch to WebAssembly execution. -->
+    <!-- The linker is not beneficial for server-side execution. Re-enable this if you switch to WebAssembly execution. -->
     <BlazorLinkOnBuild>false</BlazorLinkOnBuild>
   </PropertyGroup>
 
