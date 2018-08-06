@@ -32,7 +32,7 @@
     <VsixVersion>15.7</VsixVersion>
     <VsixVersion Condition="'$(BuildNumber)'!='' AND '$(BuildNumber)'!='t000'">$(VsixVersion).$(BuildNumber)</VsixVersion>
     <VsixVersion Condition="'$(BuildNumber)'=='' AND '$(CI)'!='true'">$(VsixVersion).999999</VsixVersion>
-    <VsixVersion Condition="'$(BuildNumber)'=='' AND '$(CI)'=='true'">$(VsixVersion).0</VsixVersion>
+    <VsixVersion Condition="'$(BuildNumber)'=='' AND '$(CI)'=='true'">$(VsixVersion).ERROR-MISSING_BUILD_NUMBER</VsixVersion>
   </PropertyGroup>
   <!--
     Used by the .vsixmanifest to insert the the VSIX version based on $(VsixVersion)
