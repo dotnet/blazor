@@ -173,9 +173,9 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal(
 @"
 <!--!-->
-<div><p>Some-Static-Text</p></div>
-<div id=""bar""><span>More-Static-Text</span></div>
-<div id=""baz""><span>Some-Dynamic-Text</span><span>But this is static</span></div>
+<!--!--><div><p>Some-Static-Text</p></div>
+<!--!--><div id=""bar""><span>More-Static-Text</span></div>
+<div id=""baz""><span>Some-Dynamic-Text</span><!--!--><span>But this is static</span></div>
 
 ",
                 appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
@@ -189,9 +189,9 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal(
 @"
 <!--!-->
-<div><p>Some-Static-Text</p></div>
-<div id=""bar"">&lt;span&gt;More-Static-Text&lt;/span&gt;</div>
-<div id=""baz""><span>Some-Dynamic-Text</span><span>But this is static</span></div>
+<!--!--><div><p>Some-Static-Text</p></div>
+<!--!--><div id=""bar"">&lt;span&gt;More-Static-Text&lt;/span&gt;</div>
+<div id=""baz""><span>Some-Dynamic-Text</span><!--!--><span>But this is static</span></div>
 
 ",
                 appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
