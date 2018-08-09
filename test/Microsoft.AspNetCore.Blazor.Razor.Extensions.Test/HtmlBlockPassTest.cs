@@ -113,6 +113,30 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         }
 
         [Fact]
+        public void Execute_RewritesHtml_EncodesHtmlEntities()
+        {
+            // Arrange
+            var document = CreateDocument(@"
+<div>
+    &lt;span&gt;Hi&lt;/span&gt;
+</div>");
+
+            var expected = NormalizeContent(@"
+<div>
+    &lt;span&gt;Hi&lt;/span&gt;
+</div>");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            var block = documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>().Single();
+            Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
         public void Execute_RewritesHtml_EmptyNonvoid()
         {
             // Arrange
