@@ -156,6 +156,47 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal("somevalue", styledElement.GetAttribute("customattribute"));
         }
 
+        // Verifies we can render HTML content as a single block
+        [Fact]
+        public void CanRenderChildContent_StaticHtmlBlock()
+        {
+            var appElement = MountTestComponent<HtmlBlockChildContent>();
+            Assert.Equal("<p>Some-Static-Text</p>",
+                appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
+        }
+
+        // Verifies we can rewite more complex HTML content into blocks
+        [Fact]
+        public void CanRenderChildContent_MixedHtmlBlock()
+        {
+            var appElement = MountTestComponent<HtmlMixedChildContent>();
+            Assert.Equal(
+@"
+<!--!-->
+<div><p>Some-Static-Text</p></div>
+<div id=""bar""><span>More-Static-Text</span></div>
+<div id=""baz""><span>Some-Dynamic-Text</span><span>But this is static</span></div>
+
+",
+                appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
+        }
+
+        // Verifies we can rewrite HTML blocks with encoded HTML
+        [Fact]
+        public void CanRenderChildContent_EncodedHtmlInBlock()
+        {
+            var appElement = MountTestComponent<HtmlEncodedChildContent>();
+            Assert.Equal(
+@"
+<!--!-->
+<div><p>Some-Static-Text</p></div>
+<div id=""bar"">&lt;span&gt;More-Static-Text&lt;/span&gt;</div>
+<div id=""baz""><span>Some-Dynamic-Text</span><span>But this is static</span></div>
+
+",
+                appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
+        }
+
         [Fact]
         public void CanTriggerEventsOnChildComponents()
         {
