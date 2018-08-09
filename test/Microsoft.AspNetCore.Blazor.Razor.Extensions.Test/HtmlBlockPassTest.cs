@@ -22,7 +22,11 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 b =>
                 {
                     BlazorExtensionInitializer.Register(b);
-                    b.Features.Remove(b.Features.OfType<HtmlBlockPass>().Single());
+
+                    if (b.Features.OfType<HtmlBlockPass>().Any())
+                    {
+                        b.Features.Remove(b.Features.OfType<HtmlBlockPass>().Single());
+                    }
                 }).Engine;
 
             Pass.Engine = Engine;
@@ -32,7 +36,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private HtmlBlockPass Pass { get; }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_Basic()
         {
             // Arrange
@@ -60,7 +64,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_CSharpInAttributes()
         {
             // Arrange
@@ -83,7 +87,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_CSharpInBody()
         {
             // Arrange
@@ -108,7 +112,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_EmptyNonvoid()
         {
             // Arrange
@@ -126,7 +130,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_Void()
         {
             // Arrange
@@ -144,7 +148,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_CannotRewriteHtml_CSharpInCode()
         {
             // Arrange
@@ -167,7 +171,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Empty(documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>());
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_CannotRewriteHtml_Script()
         {
             // Arrange
@@ -191,7 +195,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         }
 
         // The unclosed tag will have errors, so we won't rewrite it or its parent.
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_CannotRewriteHtml_Errors()
         {
             // Arrange
@@ -209,7 +213,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Empty(documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>());
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_MismatchedClosingTag()
         {
             // Arrange
