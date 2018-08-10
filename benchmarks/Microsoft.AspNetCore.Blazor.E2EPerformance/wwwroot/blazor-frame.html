@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>E2EPerformance</title>
+</head>
+<body>
+    <script>
+      // Pass through benchmark events to the iframe parent
+      window.receiveBenchmarkEvent = function () {
+        return window.parent.receiveBenchmarkEvent.apply(null, arguments);
+      };
+
+      // Behave as if we were loaded from / instead of /blazor-frame.html
+      history.pushState('', null, '/');
+    </script>
+
+    <app>Loading...</app>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

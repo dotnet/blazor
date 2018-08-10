@@ -1,12 +1,16 @@
-suite('App Startup', () => {
-  bench('Time to first UI', async function (deferred) {
-    await delay(100);
-    deferred.resolve();
-  }, { defer: true });
-});
+import { BlazorApp } from './Util/BlazorApp.js';
 
-function delay(duration) {
-  return new Promise(resolve => {
-    setTimeout(resolve, duration);
-  });
-}
+suite('App Startup', () => {
+
+  bench('Time to first UI', async function (deferred) {
+    const app = new BlazorApp();
+
+    try {
+      await app.start();
+      deferred.resolve();
+    } finally {
+      app.dispose();
+    }
+  }, { defer: true });
+
+});

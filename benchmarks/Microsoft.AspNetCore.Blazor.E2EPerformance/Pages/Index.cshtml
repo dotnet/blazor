@@ -1,3 +1,10 @@
 @page "/"
 
-Home
+Hello, world!
+
+@functions {
+    protected override void OnAfterRender()
+    {
+        BenchmarkEvent.Send("Rendered index.cshtml");
+    }
+}
