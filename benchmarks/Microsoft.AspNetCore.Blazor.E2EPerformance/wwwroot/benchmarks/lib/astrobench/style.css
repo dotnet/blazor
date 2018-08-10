@@ -1,0 +1,178 @@
+body {
+	margin: 0;
+}
+
+#astrobench {
+	font-size: 85%;
+	font-family: "Droid Sans", sans-serif;
+	max-width: 960px;
+	margin: 3em auto;
+	padding: 0 30px;
+}
+
+#astrobench a {
+	text-decoration: none;
+	color: #428BCA;
+}
+#astrobench a:hover {
+	text-decoration: underline;
+}
+#astrobench h1 {
+	font-size: 1.3em;
+	margin: 0;
+}
+#astrobench h2 {
+	margin: 0;
+	font-size: 1em;
+	font-weight: normal;
+}
+#astrobench code {
+	font: 12px/1.5 Consolas, "Liberation Mono", Courier, monospace;
+}
+#astrobench pre {
+	padding: 1em;
+	border: 1px solid #DDD;
+	border-radius: 3px;
+	background-color: #F8F8F8;
+}
+
+#astrobench .hidden {
+	display: none;
+}
+#astrobench .btn {
+	display: inline-block;
+	margin-bottom: 0;
+	cursor: pointer;
+	color: #FFF;
+	background-color: #5CB85C;
+	border: 1px solid #4CAE4C;
+	white-space: nowrap;
+	padding: 6px 12px;
+	line-height: 1.5;
+	border-radius: 4px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+#astrobench .btn:hover {
+	text-decoration: none;
+	background-color: #47A447;
+	border-color: #398439;
+}
+
+/* Suite */
+#astrobench .suite-title {
+	padding: 0.75em 0.5em 0 0;
+	margin: 1em 0 0;
+	overflow: hidden;
+	border-top: 1px solid #DDD;
+	cursor: pointer;
+}
+#astrobench .suite-title:hover .suite-title-text {
+	text-decoration: underline;
+}
+#astrobench .suite-title-text {
+	float: left;
+}
+#astrobench .suite-controls {
+	float: right;
+}
+#astrobench .suite-controls a {
+	color: #aaa;
+}
+#astrobench .suite-controls a:hover {
+	color: #000;
+}
+#astrobench .suite-bench-list {
+	margin: 0.75em 0 0;
+}
+
+/* Benchmark */
+#astrobench .bench {
+	margin: 0 0 0.75em;
+	position: relative;
+}
+#astrobench .bench-title {
+	position: relative;
+	z-index: 100;
+	border: 1px solid #DDD;
+	overflow: hidden;
+	line-height: 1.5em;
+	padding: 0.5em;
+	cursor: pointer;
+	border-radius: 3px;
+}
+#astrobench .bench-title:hover {
+	border-color: #ADADAD;
+}
+#astrobench .bench-state {
+	color: #aaa;
+}
+#astrobench .bench-title-text {
+	float: left;
+}
+#astrobench .bench-background {
+	position: absolute;
+	left: 0;
+	top: 0;
+	height:  100%;
+	width:0%;
+	background-color: #DFF0D8;
+	z-index: 50;
+}
+
+#astrobench .bench-controls {
+	float: right;
+}
+#astrobench .bench-status {
+	color: #A94442;
+	font-weight: bold;
+}
+#astrobench .bench-result.error {
+	color: #A94442;
+}
+#astrobench .bench.opened .bench-title {
+	border-radius: 3px 3px 0 0;
+}
+#astrobench .bench.opened .bench-source {
+	position:relative;
+	z-index:100;
+	border-radius: 0 0 3px 3px;
+	margin: 0;
+	border-top: 0;
+	display: block;
+}
+#astrobench .bench.fastest .bench-title {
+	background-color: #DFF0D8;
+	border-color: #D6E9C6;
+	color: #3C763D;
+}
+#astrobench .bench.fastest .bench-title:hover {
+	border-color: #A3DA75;
+}
+#astrobench .bench.fastest .bench-status {
+	color: #3C763D;
+}
+#astrobench .bench.fastest a {
+	color: #3C763D;
+}
+#astrobench .bench.warning .bench-title {
+	background-color: #FCF8E3;
+	border-color: #FAEBCC;
+	color: #8A6D3B;
+}
+#astrobench .bench.warning .bench-title:hover {
+	border-color: #DDCBA6;
+}
+#astrobench .bench.warning a {
+	color: #8A6D3B;
+}
+
+/* Code */
+#astrobench code .comment { color: #998 }
+#astrobench code .init { color: #2F6FAD }
+#astrobench code .string { color: #D14 }
+#astrobench code .keyword { color: #0086B3; font-weight: bold; }
+#astrobench code .number { color: #099 }
