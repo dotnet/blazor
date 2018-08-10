@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         {
             var appElement = MountTestComponent<HtmlBlockChildContent>();
             Assert.Equal("<p>Some-Static-Text</p>",
-                appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
+                appElement.FindElement(By.Id("foo")).GetAttribute("innerHTML"));
         }
 
         // Verifies we can rewite more complex HTML content into blocks
@@ -170,15 +170,18 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         public void CanRenderChildContent_MixedHtmlBlock()
         {
             var appElement = MountTestComponent<HtmlMixedChildContent>();
-            Assert.Equal(
-@"
-<!--!-->
-<!--!--><div><p>Some-Static-Text</p></div>
-<!--!--><div id=""bar""><span>More-Static-Text</span></div>
-<div id=""baz""><span>Some-Dynamic-Text</span><!--!--><span>But this is static</span></div>
 
-",
-                appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
+            var one = appElement.FindElement(By.Id("one"));
+            Assert.Equal("<p>Some-Static-Text</p>", one.GetAttribute("innerHTML"));
+
+            var two = appElement.FindElement(By.Id("two"));
+            Assert.Equal("<span>More-Static-Text</span>", two.GetAttribute("innerHTML"));
+
+            var three = appElement.FindElement(By.Id("three"));
+            Assert.Equal("Some-Dynamic-Text", three.GetAttribute("innerHTML"));
+
+            var four = appElement.FindElement(By.Id("four"));
+            Assert.Equal("But this is static", four.GetAttribute("innerHTML"));
         }
 
         // Verifies we can rewrite HTML blocks with encoded HTML
@@ -186,15 +189,18 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         public void CanRenderChildContent_EncodedHtmlInBlock()
         {
             var appElement = MountTestComponent<HtmlEncodedChildContent>();
-            Assert.Equal(
-@"
-<!--!-->
-<!--!--><div><p>Some-Static-Text</p></div>
-<!--!--><div id=""bar"">&lt;span&gt;More-Static-Text&lt;/span&gt;</div>
-<div id=""baz""><span>Some-Dynamic-Text</span><!--!--><span>But this is static</span></div>
 
-",
-                appElement.FindElement(By.CssSelector("#foo")).GetAttribute("innerHTML"));
+            var one = appElement.FindElement(By.Id("one"));
+            Assert.Equal("<p>Some-Static-Text</p>", one.GetAttribute("innerHTML"));
+
+            var two = appElement.FindElement(By.Id("two"));
+            Assert.Equal("&lt;span&gt;More-Static-Text&lt;/span&gt;", two.GetAttribute("innerHTML"));
+
+            var three = appElement.FindElement(By.Id("three"));
+            Assert.Equal("Some-Dynamic-Text", three.GetAttribute("innerHTML"));
+
+            var four = appElement.FindElement(By.Id("four"));
+            Assert.Equal("But this is static", four.GetAttribute("innerHTML"));
         }
 
         [Fact]
