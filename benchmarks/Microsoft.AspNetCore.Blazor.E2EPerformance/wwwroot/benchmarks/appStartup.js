@@ -1,16 +1,15 @@
-import { BlazorApp } from './Util/BlazorApp.js';
+import { group, benchmark } from './lib/minibench/minibench.js';
+import { BlazorApp } from './util/BlazorApp.js';
 
-suite('App Startup', () => {
+group('App Startup', () => {
 
-  bench('Time to first UI', async function (deferred) {
+  benchmark('Time to first UI', async () => {
     const app = new BlazorApp();
-
     try {
       await app.start();
-      deferred.resolve();
     } finally {
       app.dispose();
     }
-  }, { defer: true });
+  });
 
 });
