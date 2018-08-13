@@ -12,7 +12,7 @@
     <MicrosoftNETCoreApp21PackageVersion>2.1.2</MicrosoftNETCoreApp21PackageVersion>
     <SignalRPackageVersion>1.0.0</SignalRPackageVersion>
     <TemplateBlazorPackageVersion>0.6.0-preview1-20180807.1</TemplateBlazorPackageVersion>
-    <RazorPackageVersion>2.1.0</RazorPackageVersion>
+    <RazorPackageVersion>2.1.1</RazorPackageVersion>
   </PropertyGroup>
 
   <Import Project="$(DotNetPackageVersionPropsPath)" Condition=" '$(DotNetPackageVersionPropsPath)' != '' " />
