@@ -465,12 +465,12 @@ class HtmlUI {
     }
 
     updateDisplay() {
-        const isAnyRunning = groups.reduce(
-            (prev, next) => prev || next.status === BenchmarkStatus.running,
-            false
+        const areAllIdle = groups.reduce(
+            (prev, next) => prev && next.status === BenchmarkStatus.idle,
+            true
         );
-        this.runButton.style.display = isAnyRunning ? 'none' : 'block';
-        this.stopButton.style.display = isAnyRunning ? 'block' : 'none';
+        this.runButton.style.display = areAllIdle ? 'block' : 'none';
+        this.stopButton.style.display = areAllIdle ? 'none' : 'block';
     }
 
     get globalRunOptions() {
