@@ -52,14 +52,13 @@ Number of items: <input id="num-items" type="number" bind=@numItems />
 
     static IEnumerable<WeatherForecast> GenerateForecasts(int count)
     {
-        var rng = new Random();
         for (var i = 0; i < count; i++)
         {
             yield return new WeatherForecast
             {
                 DateFormatted = DateTime.Now.AddDays(i).ToShortDateString(),
-                TemperatureC = rng.Next(0, 100),
-                TemperatureF = rng.Next(0, 100),
+                TemperatureC = i % 100,
+                TemperatureF = (int)((i % 100) * 1.8) + 32,
                 Summary = $"Item {i}",
             };
         }
