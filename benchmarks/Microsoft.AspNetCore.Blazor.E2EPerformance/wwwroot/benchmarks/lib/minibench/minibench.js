@@ -93,7 +93,7 @@ window.addEventListener('message', evt => {
 
 const totalDurationMs = 6000;
 const blockDurationMs = 400;
-const minExecutions = 5;
+const minExecutions = 10;
 
 class ExecutionTimer {
     constructor(fn) {
