@@ -100,20 +100,25 @@ class ExecutionTimer {
         this._fn = fn;
     }
 
-    async run(progressCallback) {
+    async run(progressCallback, runOptions) {
         this._isAborted = false;
         this.numExecutions = 0;
         this.bestExecutionsPerMs = null;
 
-        const endTime = performance.now() + totalDurationMs;
-        while (performance.now() < endTime || this.numExecutions < minExecutions) {
+        // 'verify only' means just do a single execution to check it doesn't error
+        const targetBlockDuration = runOptions.verifyOnly ? 1 : blockDurationMs;
+        const targetMinExecutions = runOptions.verifyOnly ? 1 : minExecutions;
+        const targetTotalDuration = runOptions.verifyOnly ? 0 : totalDurationMs;
+
+        const endTime = performance.now() + targetTotalDuration;
+        while (performance.now() < endTime || this.numExecutions < targetMinExecutions) {
             if (this._isAborted) {
                 this.numExecutions = 0;
                 this.bestExecutionsPerMs = null;
                 break;
             }
 
-            const { blockDuration, blockExecutions } = await this._runBlock();
+            const { blockDuration, blockExecutions } = await this._runBlock(targetBlockDuration);
             this.numExecutions += blockExecutions;
 
             const blockExecutionsPerMs = blockExecutions / blockDuration;
@@ -129,11 +134,11 @@ class ExecutionTimer {
         this._isAborted = true;
     }
 
-    async _runBlock() {
+    async _runBlock(targetBlockDuration) {
         await nextTickPromise();
 
         const blockStartTime = performance.now();
-        const blockEndTime = blockStartTime + blockDurationMs;
+        const blockEndTime = blockStartTime + targetBlockDuration;
         let executions = 0;
 
         while ((performance.now() < blockEndTime) && !this._isAborted) {
@@ -155,8 +160,9 @@ class ExecutionTimer {
 }
 
 class Benchmark extends EventEmitter {
-    constructor(name, fn, options) {
+    constructor(group, name, fn, options) {
         super();
+        this._group = group;
         this.name = name;
         this._fn = fn;
         this._options = options;
@@ -167,16 +173,25 @@ class Benchmark extends EventEmitter {
         return this._state;
     }
 
-    run() {
+    run(runOptions) {
+        this._currentRunWasAborted = false;
         if (this._state.status === BenchmarkStatus.idle) {
             this._updateState({ status: BenchmarkStatus.queued });
             this.workQueueCancelHandle = addToWorkQueue(async () => {
                 try {
+                    if (!(runOptions && runOptions.skipGroupSetup)) {
+                        await this._group.runSetup();
+                    }
+
                     this._updateState({ status: BenchmarkStatus.running });
                     this._options && this._options.setup && await this._options.setup();
-                    await this._measureTimings();
+                    await this._measureTimings(runOptions);
 
                     this._options && this._options.teardown && await this._options.teardown();
+                    if (this._currentRunWasAborted || !(runOptions && runOptions.skipGroupTeardown)) {
+                        await this._group.runTeardown();
+                    }
+
                     this._updateState({ status: BenchmarkStatus.idle });
                 } catch (ex) {
                     this._updateState({ status: BenchmarkStatus.error });
@@ -187,12 +202,13 @@ class Benchmark extends EventEmitter {
     }
 
     stop() {
+        this._currentRunWasAborted = true;
         this.timer && this.timer.abort();
         this.workQueueCancelHandle && this.workQueueCancelHandle.cancel();
         this._updateState({ status: BenchmarkStatus.idle });
     }
 
-    async _measureTimings() {
+    async _measureTimings(runOptions) {
         this._updateState({ numExecutions: 0, estimatedExecutionDurationMs: null });
 
         this.timer = new ExecutionTimer(this._fn);
@@ -203,7 +219,7 @@ class Benchmark extends EventEmitter {
             });
         };
 
-        await this.timer.run(updateTimingsDisplay);
+        await this.timer.run(updateTimingsDisplay, { verifyOnly: runOptions.verifyOnly });
         updateTimingsDisplay();
         this.timer = null;
     }
@@ -233,12 +249,25 @@ class Group extends EventEmitter {
         benchmark.on('changed', () => this._emit('changed'));
     }
 
-    runAll() {
-        this.benchmarks.forEach(b => b.run());
+    runAll(runOptions) {
+        this.benchmarks.forEach((benchmark, index) => {
+            benchmark.run(Object.assign({
+                skipGroupSetup: index > 0,
+                skipGroupTeardown: index < this.benchmarks.length - 1,
+            }, runOptions));
+        });
     }
 
     stopAll() {
         this.benchmarks.forEach(b => b.stop());
+    }
+
+    async runSetup() {
+        this.setup && await this.setup();
+    }
+
+    async runTeardown() {
+        this.teardown && await this.teardown();
     }
 
     get status() {
@@ -249,38 +278,28 @@ class Group extends EventEmitter {
     }
 }
 
-let currentGroupSetup;
-let currentGroupTeardown;
-
 const groups = [];
 
 function group(name, configure) {
-    currentGroupSetup = null;
-    currentGroupTeardown = null;
-
     groups.push(new Group(name));
     configure && configure();
 }
 
 function benchmark(name, fn, options) {
-    options = Object.assign({
-        setup: currentGroupSetup,
-        teardown: currentGroupTeardown,
-    }, options);
-
-    groups[groups.length - 1].add(new Benchmark(name, fn, options));
+    const group = groups[groups.length - 1];
+    group.add(new Benchmark(group, name, fn, options));
 }
 
 function setup(fn) {
-    currentGroupSetup = fn;
+    groups[groups.length - 1].setup = fn;
 }
 
 function teardown(fn) {
-    currentGroupTeardown = fn;
+    groups[groups.length - 1].teardown = fn;
 }
 
 class BenchmarkDisplay {
-    constructor(benchmark) {
+    constructor(htmlUi, benchmark) {
         this.benchmark = benchmark;
         this.elem = document.createElement('tr');
         
@@ -304,7 +323,7 @@ class BenchmarkDisplay {
         this.runButton.textContent = 'Run';
         this.runButton.onclick = evt => {
             evt.preventDefault();
-            this.benchmark.run();
+            this.benchmark.run(htmlUi.globalRunOptions);
         };
 
         benchmark.on('changed', state => this.updateDisplay(state));
@@ -360,7 +379,7 @@ function rowClass(status) {
 }
 
 class GroupDisplay {
-    constructor(group) {
+    constructor(htmlUi, group) {
         this.group = group;
 
         this.elem = document.createElement('div');
@@ -379,7 +398,7 @@ class GroupDisplay {
         this.runButton.textContent = 'Run all';
         this.runButton.onclick = evt => {
             evt.preventDefault();
-            group.runAll();
+            group.runAll(htmlUi.globalRunOptions);
         };
 
         const table = this.elem.appendChild(document.createElement('table'));
@@ -387,7 +406,7 @@ class GroupDisplay {
         const tbody = table.appendChild(document.createElement('tbody'));
 
         group.benchmarks.forEach(benchmark => {
-            const benchmarkDisplay = new BenchmarkDisplay(benchmark);
+            const benchmarkDisplay = new BenchmarkDisplay(htmlUi, benchmark);
             tbody.appendChild(benchmarkDisplay.elem);
         });
 
@@ -409,15 +428,23 @@ class HtmlUI {
         headerDiv.className = 'd-flex align-items-center';
 
         const header = headerDiv.appendChild(document.createElement('h2'));
-        header.className = 'mx-3';
+        header.className = 'mx-3 flex-grow-1';
         header.textContent = title;
+
+        const verifyCheckboxLabel = document.createElement('label');
+        verifyCheckboxLabel.className = 'ml-auto mr-5';
+        headerDiv.appendChild(verifyCheckboxLabel);
+        this.verifyCheckbox = verifyCheckboxLabel.appendChild(document.createElement('input'));
+        this.verifyCheckbox.type = 'checkbox';
+        this.verifyCheckbox.className = 'mr-2';
+        verifyCheckboxLabel.appendChild(document.createTextNode('Verify only'));
 
         this.runButton = document.createElement('button');
         this.runButton.className = 'btn btn-success ml-auto px-4 run-button';
         headerDiv.appendChild(this.runButton);
         this.runButton.textContent = 'Run all';
         this.runButton.onclick = () => {
-            groups.forEach(g => g.runAll());
+            groups.forEach(g => g.runAll(this.globalRunOptions));
         };
 
         this.stopButton = document.createElement('button');
@@ -429,7 +456,7 @@ class HtmlUI {
         };
 
         groups.forEach(group$$1 => {
-            const groupDisplay = new GroupDisplay(group$$1);
+            const groupDisplay = new GroupDisplay(this, group$$1);
             this.containerElement.appendChild(groupDisplay.elem);
             group$$1.on('changed', () => this.updateDisplay());
         });
@@ -444,6 +471,10 @@ class HtmlUI {
         );
         this.runButton.style.display = isAnyRunning ? 'none' : 'block';
         this.stopButton.style.display = isAnyRunning ? 'block' : 'none';
+    }
+
+    get globalRunOptions() {
+        return { verifyOnly: this.verifyCheckbox.checked };
     }
 }
 
