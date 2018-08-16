@@ -1,5 +1,6 @@
 import { RenderBatch, ArrayRange, RenderTreeDiff, ArrayValues, RenderTreeEdit, EditType, FrameType, RenderTreeFrame, RenderTreeDiffReader, RenderTreeFrameReader, RenderTreeEditReader, ArrayRangeReader, ArraySegmentReader, ArraySegment } from './RenderBatch';
 import { decodeUtf8 } from './Utf8Decoder';
+import { inflate } from 'pako/lib/inflate';
 
 const updatedComponentsEntryLength = 4; // Each is a single int32 giving the location of the data
 const referenceFramesEntryLength = 16; // 1 byte for frame type, then 3 bytes for type-specific data
@@ -9,7 +10,10 @@ const editsEntryLength = 16; // 4 ints
 const stringTableEntryLength = 4; // Each is an int32 giving the string data location, or -1 for null
 
 export class OutOfProcessRenderBatch implements RenderBatch {
-  constructor(private batchData: Uint8Array) {
+  private batchData: Uint8Array;
+
+  constructor(batchDataCompressed: Uint8Array) {
+    const batchData = this.batchData = inflate(batchDataCompressed) as Uint8Array;
     const stringReader = new OutOfProcessStringReader(batchData);
 
     this.arrayRangeReader = new OutOfProcessArrayRangeReader(batchData);

@@ -6,6 +6,7 @@ using MessagePack.Formatters;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using System;
 using System.IO;
+using System.IO.Compression;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Circuits
 {
@@ -29,15 +30,54 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
 
             public int Serialize(ref byte[] bytes, int offset, RenderBatch value, IFormatterResolver formatterResolver)
             {
+                // TODO: Instead of directly using MemoryStream here and in CompressStream below,
+                // consider using https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream
+                // That automatically provides pooling for the underlying buffers and avoids using
+                // the large object heap where possible. The logic here is already written to
+                // avoid calling memoryStream.GetBuffer() or memoryStream.ToArray(), so it should
+                // be possible to use RecyclableMemoryStream as a drop-in replacement.
+
                 using (var memoryStream = new MemoryStream())
                 using (var renderBatchWriter = new RenderBatchWriter(memoryStream, leaveOpen: false))
                 {
                     renderBatchWriter.Write(value);
-                    
-                    var bytesBuffer = memoryStream.GetBuffer();
-                    return MessagePackBinary.WriteBytes(ref bytes, offset, bytesBuffer, 0, (int)memoryStream.Length);
+
+                    var compressedStream = CompressStream(memoryStream);
+                    try
+                    {
+                        return CopyStreamToMessagePack(compressedStream, ref bytes, offset);
+                    }
+                    finally
+                    {
+                        compressedStream.Dispose();
+                    }
                 }
-                    
+            }
+
+            private static Stream CompressStream(Stream input)
+            {
+                var output = new MemoryStream();
+                using (var gzipStream = new GZipStream(output, CompressionLevel.Optimal, leaveOpen: true))
+                {
+                    input.Seek(0, SeekOrigin.Begin);
+                    input.CopyTo(gzipStream);
+                    gzipStream.Flush();
+                    return output;
+                }
+            }
+
+            private static int CopyStreamToMessagePack(Stream stream, ref byte[] bytes, int offset)
+            {
+                var buffer = new byte[32768];
+                int read;
+
+                stream.Seek(0, SeekOrigin.Begin);
+                while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    offset += MessagePackBinary.WriteBytes(ref bytes, offset, buffer, 0, read);
+                }
+
+                return offset;
             }
         }
     }
