@@ -34,11 +34,13 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
     internal class RenderBatchWriter : IDisposable
     {
         private readonly List<string> _strings;
+        private readonly Dictionary<string, int> _stringIndices;
         private readonly BinaryWriter _binaryWriter;
 
         public RenderBatchWriter(Stream output, bool leaveOpen)
         {
             _strings = new List<string>();
+            _stringIndices = new Dictionary<string, int>(StringComparer.Ordinal);
             _binaryWriter = new BinaryWriter(output, Encoding.UTF8, leaveOpen);
         }
 
@@ -215,9 +217,20 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
             }
             else
             {
-                var stringIndex = _strings.Count;
-                _binaryWriter.Write(stringIndex);
-                _strings.Add(value);
+                // If this string is already in the string table, use the existing index.
+                // That avoids duplication within the table, plus means that frames referencing
+                // it can be better compressed.
+                if (_stringIndices.TryGetValue(value, out var existingIndex))
+                {
+                    _binaryWriter.Write(existingIndex);
+                }
+                else
+                {
+                    var stringIndex = _strings.Count;
+                    _binaryWriter.Write(stringIndex);
+                    _strings.Add(value);
+                    _stringIndices.Add(value, stringIndex);
+                }
             }
         }
 
