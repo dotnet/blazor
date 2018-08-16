@@ -4,6 +4,7 @@
 using MessagePack;
 using MessagePack.Formatters;
 using Microsoft.AspNetCore.Blazor.Rendering;
+using Microsoft.IO;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -17,6 +18,9 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
     /// </summary>
     internal class RenderBatchFormatterResolver : IFormatterResolver
     {
+        private static RecyclableMemoryStreamManager recyclableMemoryStreamManager
+            = new RecyclableMemoryStreamManager();
+
         public IMessagePackFormatter<T> GetFormatter<T>()
             => typeof(T) == typeof(RenderBatch) ? (IMessagePackFormatter<T>)RenderBatchFormatter.Instance : null;
 
@@ -30,14 +34,10 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
 
             public int Serialize(ref byte[] bytes, int offset, RenderBatch value, IFormatterResolver formatterResolver)
             {
-                // TODO: Instead of directly using MemoryStream here and in CompressStream below,
-                // consider using https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream
-                // That automatically provides pooling for the underlying buffers and avoids using
-                // the large object heap where possible. The logic here is already written to
-                // avoid calling memoryStream.GetBuffer() or memoryStream.ToArray(), so it should
-                // be possible to use RecyclableMemoryStream as a drop-in replacement.
-
-                using (var memoryStream = new MemoryStream())
+                // WARNING: Be careful never to execute .GetBuffer() or .ToArray() on this memory
+                // stream we get from recyclableMemoryStreamManager. If you do that, you'll silently
+                // eliminate all the benefit of RecyclableMemoryStream.
+                using (var memoryStream = recyclableMemoryStreamManager.GetStream($"{nameof(RenderBatchFormatter)}.{nameof(Serialize)}"))
                 using (var renderBatchWriter = new RenderBatchWriter(memoryStream, leaveOpen: false))
                 {
                     renderBatchWriter.Write(value);
@@ -56,7 +56,11 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
 
             private static Stream CompressStream(Stream input)
             {
-                var output = new MemoryStream();
+                // WARNING: Be careful never to execute .GetBuffer() or .ToArray() on this memory
+                // stream we get from recyclableMemoryStreamManager. If you do that, you'll silently
+                // eliminate all the benefit of RecyclableMemoryStream.
+                var output = recyclableMemoryStreamManager.GetStream($"{nameof(RenderBatchFormatter)}.{nameof(CompressStream)}");
+
                 using (var gzipStream = new GZipStream(output, CompressionLevel.Optimal, leaveOpen: true))
                 {
                     input.Seek(0, SeekOrigin.Begin);
