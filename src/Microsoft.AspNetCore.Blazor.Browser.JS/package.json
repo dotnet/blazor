@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@types/emscripten": "0.0.31",
+    "pako": "^1.0.6",
     "ts-loader": "^4.4.1",
     "typescript": "^2.9.2",
     "webpack": "^4.12.0",
