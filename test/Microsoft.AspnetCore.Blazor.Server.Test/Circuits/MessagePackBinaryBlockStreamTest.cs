@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Blazor.Server.Circuits;
 using System;
 using Xunit;
 
-namespace Microsoft.AspnetCore.Blazor.Server.Test.Circuits
+namespace Microsoft.AspNetCore.Blazor.Server
 {
     public class MessagePackBinaryBlockStreamTest
     {
