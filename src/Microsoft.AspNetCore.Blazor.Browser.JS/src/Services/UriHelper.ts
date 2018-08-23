@@ -27,9 +27,10 @@ function enableNavigationInterception(assemblyName: string, functionName: string
     if (anchorTarget && anchorTarget.hasAttribute(hrefAttributeName) && event.button === 0) {
       const href = anchorTarget.getAttribute(hrefAttributeName)!;
       const absoluteHref = toAbsoluteUri(href);
+      const blank = anchorTarget.getAttribute('target') == '_blank';
 
       // Don't stop ctrl/meta-click (etc) from opening links in new tabs/windows
-      if (isWithinBaseUriSpace(absoluteHref) && !eventHasSpecialKey(event)) {
+      if (isWithinBaseUriSpace(absoluteHref) && !eventHasSpecialKey(event) && !blank) {
         event.preventDefault();
         performInternalNavigation(absoluteHref);
       }
