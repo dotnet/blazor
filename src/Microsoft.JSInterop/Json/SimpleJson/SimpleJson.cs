@@ -1380,6 +1380,14 @@ namespace SimpleJson
                 type = type.GetEnumUnderlyingType();
             }
 
+            if (ReflectionUtils.IsNullableType(type) && Nullable.GetUnderlyingType(type).IsEnum)
+            {
+                if (value != null)
+                {
+                    return Enum.ToObject(Nullable.GetUnderlyingType(type), value);
+                }
+            }
+
             if (value == null)
                 return null;
             

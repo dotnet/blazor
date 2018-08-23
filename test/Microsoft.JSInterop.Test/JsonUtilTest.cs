@@ -51,6 +51,7 @@ namespace Microsoft.JSInterop.Test
                 Name = "Athos",
                 Pets = new[] { "Aramis", "Porthos", "D'Artagnan" },
                 Hobby = Hobbies.Swordfighting,
+                SecondaryHobby = Hobbies.Reading,
                 Nicknames = new List<string> { "Comte de la Fère", "Armand" },
                 BirthInstant = new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)),
                 Age = new TimeSpan(7665, 1, 30, 0),
@@ -59,7 +60,7 @@ namespace Microsoft.JSInterop.Test
 
             // Act/Assert
             Assert.Equal(
-                "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\",\"allergies\":{\"Ducks\":true,\"Geese\":false}}",
+                "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"secondaryHobby\":1,\"nullHobby\":null,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\",\"allergies\":{\"Ducks\":true,\"Geese\":false}}",
                 Json.Serialize(person));
         }
 
@@ -67,7 +68,7 @@ namespace Microsoft.JSInterop.Test
         public void CanDeserializeClassFromJson()
         {
             // Arrange
-            var json = "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\",\"allergies\":{\"Ducks\":true,\"Geese\":false}}";
+            var json = "{\"id\":1844,\"name\":\"Athos\",\"pets\":[\"Aramis\",\"Porthos\",\"D'Artagnan\"],\"hobby\":2,\"secondaryHobby\":1,\"nullHobby\":null,\"nicknames\":[\"Comte de la Fère\",\"Armand\"],\"birthInstant\":\"1825-08-06T18:45:21.0000000-06:00\",\"age\":\"7665.01:30:00\",\"allergies\":{\"Ducks\":true,\"Geese\":false}}";
 
             // Act
             var person = Json.Deserialize<Person>(json);
@@ -77,6 +78,8 @@ namespace Microsoft.JSInterop.Test
             Assert.Equal("Athos", person.Name);
             Assert.Equal(new[] { "Aramis", "Porthos", "D'Artagnan" }, person.Pets);
             Assert.Equal(Hobbies.Swordfighting, person.Hobby);
+            Assert.Equal(Hobbies.Reading, person.SecondaryHobby);
+            Assert.Null(person.NullHobby);
             Assert.Equal(new[] { "Comte de la Fère", "Armand" }, person.Nicknames);
             Assert.Equal(new DateTimeOffset(1825, 8, 6, 18, 45, 21, TimeSpan.FromHours(-6)), person.BirthInstant);
             Assert.Equal(new TimeSpan(7665, 1, 30, 0), person.Age);
@@ -255,6 +258,8 @@ namespace Microsoft.JSInterop.Test
             public string Name { get; set; }
             public string[] Pets { get; set; }
             public Hobbies Hobby { get; set; }
+            public Hobbies? SecondaryHobby { get; set; }
+            public Hobbies? NullHobby { get; set; }
             public IList<string> Nicknames { get; set; }
             public DateTimeOffset BirthInstant { get; set; }
             public TimeSpan Age { get; set; }
