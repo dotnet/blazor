@@ -27,10 +27,12 @@ function enableNavigationInterception(assemblyName: string, functionName: string
     if (anchorTarget && anchorTarget.hasAttribute(hrefAttributeName) && event.button === 0) {
       const href = anchorTarget.getAttribute(hrefAttributeName)!;
       const absoluteHref = toAbsoluteUri(href);
-      const blank = anchorTarget.getAttribute('target') === '_blank';
+
+      // https://github.com/aspnet/Blazor/issues/1352#issuecomment-415444870
+      const isExternal = ['_blank', '_parent', '_self', '_top'].indexOf(anchorTarget.getAttribute('target') || '') > -1;
 
       // Don't stop ctrl/meta-click (etc) from opening links in new tabs/windows
-      if (isWithinBaseUriSpace(absoluteHref) && !eventHasSpecialKey(event) && !blank) {
+      if (isWithinBaseUriSpace(absoluteHref) && !eventHasSpecialKey(event) && !isExternal) {
         event.preventDefault();
         performInternalNavigation(absoluteHref);
       }
