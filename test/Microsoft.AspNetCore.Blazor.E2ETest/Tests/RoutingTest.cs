@@ -146,6 +146,19 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         }
 
         [Fact]
+        public void CanFollowLinkToTargetSelfOrParentAndTopClick()
+        {
+            SetUrlViaPushState("/");
+
+            var app = MountTestComponent<TestRouter>();
+            var initialUrl = Browser.Url;
+
+            app.FindElement(By.LinkText("Target (_self)")).Click();
+
+            WaitAssert.Equal(true, () => Browser.WindowHandles.Count == 1 && initialUrl == Browser.Url);
+        }
+
+        [Fact]
         public void CanFollowLinkToOtherPageDoesNotOpenNewWindow()
         {
             SetUrlViaPushState("/");
