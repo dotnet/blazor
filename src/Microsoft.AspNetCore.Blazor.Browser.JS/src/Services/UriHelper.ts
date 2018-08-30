@@ -26,6 +26,7 @@ function enableNavigationInterception(assemblyName: string, functionName: string
     const hrefAttributeName = 'href';
     if (anchorTarget && anchorTarget.hasAttribute(hrefAttributeName) && event.button === 0) {
       const href = anchorTarget.getAttribute(hrefAttributeName)!;
+      const absoluteHref = toAbsoluteUri(href);
       const targetAttributeValue = anchorTarget.getAttribute('target');
       const opensInSameFrame = !targetAttributeValue || targetAttributeValue === '_self';
 
