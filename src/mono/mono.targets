@@ -43,7 +43,7 @@
 
   <Target Name="BuildMonoEmcc">
     <PropertyGroup>
-      <CommonEmccArgs>-Oz --llvm-opts 2 --llvm-lto 1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0  --js-library library_mono.js driver.c libmonosgen-2.0.a -s NO_EXIT_RUNTIME=1 -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall', 'FS_createPath', 'FS_createDataFile', 'cwrap', 'setValue', 'getValue', 'UTF8ToString']"</CommonEmccArgs>
+      <CommonEmccArgs>-Oz --llvm-opts 2 --llvm-lto 1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN=1 -s &quot;BINARYEN_TRAP_MODE='clamp'&quot; -s TOTAL_MEMORY=134217728 -s ALIASING_FUNCTION_POINTERS=0  --js-library library_mono.js --js-library dotnet_support.js driver.c libmonosgen-2.0.a -s NO_EXIT_RUNTIME=1 -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall', 'FS_createPath', 'FS_createDataFile', 'cwrap', 'setValue', 'getValue', 'UTF8ToString']"</CommonEmccArgs>
     </PropertyGroup>
 
     <!--
