@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             {
                 SetUrlViaPushState("/");
 
-                var app = MountTestComponent<TestRouter>();
+                var app = MountTestComponent<TestRouter>(); 
 
                 app.FindElement(By.LinkText("Target (_blank)")).Click();
 
@@ -143,19 +143,6 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
                 // to the tab that has already been closed
                 Browser.SwitchTo().Window(Browser.WindowHandles.First());
             }
-        }
-
-        [Fact]
-        public void CanFollowLinkToTargetSelfOrParentAndTopClick()
-        {
-            SetUrlViaPushState("/");
-
-            var app = MountTestComponent<TestRouter>();
-            var initialUrl = Browser.Url;
-
-            app.FindElement(By.LinkText("Target (_self)")).Click();
-
-            WaitAssert.Equal(true, () => Browser.WindowHandles.Count == 1 && initialUrl == Browser.Url);
         }
 
         [Fact]
