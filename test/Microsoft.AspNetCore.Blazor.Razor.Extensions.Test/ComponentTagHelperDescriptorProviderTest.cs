@@ -3,11 +3,10 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Razor.Extensions
+namespace Microsoft.AspNetCore.Blazor.Razor
 {
     public class ComponentTagHelperDescriptorProviderTest : BaseTagHelperDescriptorProviderTest
     {
