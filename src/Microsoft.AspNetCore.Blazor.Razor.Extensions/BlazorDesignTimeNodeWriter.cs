@@ -412,7 +412,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // Of a list of tokens directly in the attribute.
                 var tokens = GetCSharpTokens(node);
 
-                if (node.BoundAttribute?.IsDelegateProperty() ?? false)
+                if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
+                    (node.BoundAttribute?.IsChildContentProperty() ?? false))
                 {
                     // We always surround the expression with the delegate constructor. This makes type
                     // inference inside lambdas, and method group conversion do the right thing.

@@ -387,7 +387,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 // See comments in BlazorDesignTimeNodeWriter for a description of the cases that are possible.
                 var tokens = GetCSharpTokens(node);
-                if (node.BoundAttribute?.IsDelegateProperty() ?? false)
+                if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
+                    (node.BoundAttribute?.IsChildContentProperty() ?? false))
                 {
                     context.CodeWriter.Write("new ");
                     context.CodeWriter.Write(node.BoundAttribute.TypeName);
