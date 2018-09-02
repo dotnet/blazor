@@ -398,34 +398,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 // Do nothing
             }
-            else if (node.Children.Count == 1 && node.Children[0] is TemplateIntermediateNode template)
-            {
-                // Templates are represented as lambdas assignable for RenderFragment<T> (for some T).
-                // We don't have a type to write down unless its bound to a stronly typed attribute.
-                // That's OK because the compiler gives an error if we can't type check it.
-                context.CodeWriter.Write(DesignTimeVariable);
-                context.CodeWriter.Write(" = ");
-
-                // If we have a parameter type, then add a type check.
-                if (NeedsTypeCheck(node))
-                {
-                    context.CodeWriter.Write(BlazorApi.RuntimeHelpers.TypeCheck);
-                    context.CodeWriter.Write("<");
-                    context.CodeWriter.Write(node.BoundAttribute.TypeName);
-                    context.CodeWriter.Write(">");
-                    context.CodeWriter.Write("(");
-                }
-
-                context.RenderNode(template);
-
-                if (NeedsTypeCheck(node))
-                {
-                    context.CodeWriter.Write(")");
-                }
-
-                context.CodeWriter.Write(";");
-                context.CodeWriter.WriteLine();
-            }
             else
             {
                 // There are a few different forms that could be used to contain all of the tokens, but we don't really care

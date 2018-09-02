@@ -383,29 +383,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 var content = string.Join(string.Empty, GetHtmlTokens(htmlNode).Select(t => t.Content));
                 context.CodeWriter.WriteStringLiteral(content);
             }
-            else if (node.Children.Count == 1 && node.Children[0] is TemplateIntermediateNode template)
-            {
-                // Templates are represented as lambdas assignable for RenderFragment<T> (for some T).
-                // We don't have a type to write down unless its bound to a stronly typed attribute.
-                // That's OK because the compiler gives an error if we can't type check it.
-
-                // If we have a parameter type, then add a type check.
-                if (node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped())
-                {
-                    context.CodeWriter.Write(BlazorApi.RuntimeHelpers.TypeCheck);
-                    context.CodeWriter.Write("<");
-                    context.CodeWriter.Write(node.BoundAttribute.TypeName);
-                    context.CodeWriter.Write(">");
-                    context.CodeWriter.Write("(");
-                }
-
-                context.RenderNode(template);
-
-                if (node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped())
-                {
-                    context.CodeWriter.Write(")");
-                }
-            }
             else
             {
                 // See comments in BlazorDesignTimeNodeWriter for a description of the cases that are possible.
