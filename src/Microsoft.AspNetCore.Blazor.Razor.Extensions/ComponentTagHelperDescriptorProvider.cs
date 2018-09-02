@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -84,7 +84,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             for (var i = 0; i < types.Count; i++)
             {
                 var type = types[i];
-                context.Results.Add(CreateDescriptor(type, parameterSymbol, blazorComponentSymbol));
+                var descriptor = CreateDescriptor(type, parameterSymbol, blazorComponentSymbol);
+                context.Results.Add(descriptor);
+
+                foreach (var childContent in descriptor.GetChildContentProperties())
+                {
+                }
             }
         }
 
@@ -142,6 +147,11 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     if (property.kind == PropertyKind.Enum)
                     {
                         pb.IsEnum = true;
+                    }
+
+                    if (property.kind == PropertyKind.ChildContent)
+                    {
+                        pb.Metadata.Add(BlazorMetadata.Component.ChildContentKey, bool.TrueString);
                     }
 
                     if (property.kind == PropertyKind.Delegate)
@@ -228,6 +238,19 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         kind = PropertyKind.Enum;
                     }
 
+                    if (kind == PropertyKind.Default && property.Type.ToDisplayString() == BlazorApi.RenderFragment.FullTypeName)
+                    {
+                        kind = PropertyKind.ChildContent;
+                    }
+
+                    if (kind == PropertyKind.Default &&
+                        property.Type is INamedTypeSymbol namedType &&
+                        namedType.IsGenericType &&
+                        namedType.ConstructUnboundGenericType().ToDisplayString() == BlazorApi.RenderFragmentOfT.FullTypeName)
+                    {
+                        kind = PropertyKind.ChildContent;
+                    }
+
                     if (kind == PropertyKind.Default && property.Type.TypeKind == TypeKind.Delegate)
                     {
                         kind = PropertyKind.Delegate;
@@ -248,6 +271,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Ignored,
             Default,
             Enum,
+            ChildContent,
             Delegate,
         }
 

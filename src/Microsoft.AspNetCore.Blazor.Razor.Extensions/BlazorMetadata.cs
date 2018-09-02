@@ -28,6 +28,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         public static class Component
         {
+            public static readonly string ChildContentKey = "Blazor.ChildContent";
+
             public static readonly string DelegateSignatureKey = "Blazor.DelegateSignature";
 
             public static readonly string WeaklyTypedKey = "Blazor.IsWeaklyTyped";
