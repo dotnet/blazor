@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.AspNetCore.Blazor.Razor;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using Microsoft.AspNetCore.Blazor.Test.Helpers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -154,29 +156,23 @@ namespace Test
                 frame => AssertFrame.Text(frame, "hi", 1));
         }
 
-        [Fact(Skip = "NYI")]
+        [Fact]
         public void Render_ChildContent_TemplateAndBody_ProducesDiagnostic()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(RenderChildContentComponent);
 
-            var component = CompileToComponent(@"
+            // Act
+            var generated = CompileToCSharp(@"
 @addTagHelper *, TestAssembly
 @{ RenderFragment<string> template = @<div>@context.ToLowerInvariant()</div>; }
 <RenderChildContent ChildContent=""@template.WithValue(""HI"")"">
 Some Content
 </RenderChildContent>");
 
-            // Act
-            var frames = GetRenderTree(component);
-
             // Assert
-            Assert.Collection(
-                frames,
-                frame => AssertFrame.Component(frame, "Test.RenderChildContent", 2, 2),
-                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 3),
-                frame => AssertFrame.Element(frame, "div", 2, 0),
-                frame => AssertFrame.Text(frame, "hi", 1));
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Same(BlazorDiagnosticFactory.ChildContentSetByAttributeAndBody.Id, diagnostic.Id);
         }
     }
 }

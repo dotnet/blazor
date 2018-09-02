@@ -149,7 +149,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 if (childContentAttribute != null)
                 {
                     // This component accepts child content explicitly.
-                    childContent.Attribute = childContentAttribute;
+                    childContent.BoundAttribute = childContentAttribute;
                 }
 
                 for (var i = 0; i < node.Children.Count; i++)

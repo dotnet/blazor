@@ -178,15 +178,26 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             return diagnostic;
         }
 
-        public static readonly RazorDiagnosticDescriptor Template_InvalidLocation =
+        public static readonly RazorDiagnosticDescriptor TemplateInvalidLocation =
             new RazorDiagnosticDescriptor(
             "BL9994",
             () => "Razor templates cannot be used in attributes.",
             RazorDiagnosticSeverity.Error);
 
-        public static RazorDiagnostic CreateTemplate_InvalidLocation(SourceSpan? source)
+        public static RazorDiagnostic Create_TemplateInvalidLocation(SourceSpan? source)
         {
-            return RazorDiagnostic.Create(Template_InvalidLocation, source ?? SourceSpan.Undefined);
+            return RazorDiagnostic.Create(TemplateInvalidLocation, source ?? SourceSpan.Undefined);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentSetByAttributeAndBody =
+            new RazorDiagnosticDescriptor(
+                "BL9995",
+                () => "The child content property '{0}' is set by both the attribute and the element contents.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentSetByAttributeAndBody(SourceSpan? source, string attribute)
+        {
+            return RazorDiagnostic.Create(ChildContentSetByAttributeAndBody, source ?? SourceSpan.Undefined, attribute);
         }
     }
 }

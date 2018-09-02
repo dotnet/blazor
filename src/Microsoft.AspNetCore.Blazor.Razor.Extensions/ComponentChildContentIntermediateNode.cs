@@ -11,9 +11,9 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 {
     internal class ComponentChildContentIntermediateNode : ExtensionIntermediateNode
     {
-        public BoundAttributeDescriptor Attribute { get; set; }
+        public string AttributeName => BoundAttribute?.Name ?? BlazorApi.RenderTreeBuilder.ChildContent;
 
-        public string AttributeName => Attribute?.Name ?? BlazorApi.RenderTreeBuilder.ChildContent;
+        public BoundAttributeDescriptor BoundAttribute { get; set; }
 
         public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
 
