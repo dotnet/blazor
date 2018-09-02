@@ -65,7 +65,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 if (node.Children[i] is IntermediateToken token && token.IsCSharp)
                 {
-                    _scopeStack.IncrementCurrentScopeChildCount(context);
                     context.AddSourceMappingFor(token);
                     context.CodeWriter.Write(token.Content);
                 }
@@ -100,7 +99,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             // Since we're not in the middle of writing an element, this must evaluate as some
             // text to display
-            _scopeStack.IncrementCurrentScopeChildCount(context);
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.AddContent)}")
                 .Write((_sourceSequence++).ToString())
@@ -161,8 +159,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(node));
             }
 
-            _scopeStack.IncrementCurrentScopeChildCount(context);
-
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.AddMarkupContent)}")
                 .Write((_sourceSequence++).ToString())
@@ -182,8 +178,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 throw new ArgumentNullException(nameof(node));
             }
-
-            _scopeStack.IncrementCurrentScopeChildCount(context);
 
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.OpenElement)}")
@@ -267,7 +261,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             // Text node
             var content = GetHtmlContent(node);
-            _scopeStack.IncrementCurrentScopeChildCount(context);
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.AddContent)}")
                 .Write((_sourceSequence++).ToString())
@@ -303,9 +296,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(node));
             }
 
-            // The start tag counts as a child from a markup point of view.
-            _scopeStack.IncrementCurrentScopeChildCount(context);
-
             // builder.OpenComponent<TComponent>(42);
             context.CodeWriter.Write(_scopeStack.BuilderVarName);
             context.CodeWriter.Write(".");
@@ -321,21 +311,16 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 context.RenderNode(attribute);
             }
-
-            _scopeStack.OpenComponentScope(node.TagName);
-            foreach (var child in node.Body)
+            
+            foreach (var childContent in node.ChildContents)
             {
-                context.RenderNode(child);
+                context.RenderNode(childContent);
             }
-            _scopeStack.CloseScope(context);
 
             foreach (var capture in node.Captures)
             {
                 context.RenderNode(capture);
             }
-
-            // The close tag counts as a child from a markup point of view.
-            _scopeStack.IncrementCurrentScopeChildCount(context);
 
             // builder.OpenComponent<TComponent>(42);
             context.CodeWriter.Write(_scopeStack.BuilderVarName);
@@ -443,6 +428,26 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 return node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped();
             }
+        }
+
+        public override void WriteComponentChildContent(CodeRenderingContext context, ComponentChildContentIntermediateNode node)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            _scopeStack.OpenComponentScope(context, node.AttributeName);
+            for (var i = 0; i < node.Children.Count; i++)
+            {
+                context.RenderNode(node.Children[i]);
+            }
+            _scopeStack.CloseScope(context);
         }
 
         public override void WriteTemplate(CodeRenderingContext context, TemplateIntermediateNode node)

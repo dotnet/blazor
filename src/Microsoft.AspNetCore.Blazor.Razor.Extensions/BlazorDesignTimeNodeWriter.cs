@@ -348,18 +348,23 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 context.RenderNode(attribute);
             }
 
-            // We need to be aware of the blazor scope-tracking concept in design-time code generation
-            // because each component creates a lambda scope for its child content.
-            //
-            // We're hacking it a bit here by just forcing every component to have an empty lambda
-            _scopeStack.OpenComponentScope(node.TagName);
-            _scopeStack.IncrementCurrentScopeChildCount(context);
-
-            foreach (var child in node.Body)
+            if (node.ChildContents.Any())
             {
-                context.RenderNode(child);
+                foreach (var childContent in node.ChildContents)
+                {
+                    context.RenderNode(childContent);
+                }
             }
-            _scopeStack.CloseScope(context);
+            else
+            {
+                // We eliminate 'empty' child content when building the tree so that usage like
+                // '<MyComponent>\r\n</MyComponent>' doesn't create a child content.
+                //
+                // Consider what would happen if the user's cursor was inside the element. At
+                // design -time we want to render an empty lambda to provide proper scoping
+                // for any code that the user types.
+                context.RenderNode(new ComponentChildContentIntermediateNode());
+            }
 
             foreach (var capture in node.Captures)
             {
@@ -473,6 +478,26 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // We generally expect all children to be CSharp, this is here just in case.
                 return attribute.FindDescendantNodes<IntermediateToken>().Where(t => t.IsCSharp).ToArray();
             }
+        }
+
+        public override void WriteComponentChildContent(CodeRenderingContext context, ComponentChildContentIntermediateNode node)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            _scopeStack.OpenComponentScope(context, node.AttributeName);
+            for (var i = 0; i < node.Children.Count; i++)
+            {
+                context.RenderNode(node.Children[i]);
+            }
+            _scopeStack.CloseScope(context);
         }
 
         public override void WriteTemplate(CodeRenderingContext context, TemplateIntermediateNode node)

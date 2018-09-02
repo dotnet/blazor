@@ -21,11 +21,12 @@ Document -
                 CSharpCode - (115:2,78 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (115:2,78 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ;\n
                 ComponentExtensionNode - (121:4,0 [49] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
-                    HtmlContent - (134:4,13 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                        IntermediateToken - (134:4,13 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
-                    CSharpExpression - (138:5,2 [15] x:\dir\subdir\Test\TestComponent.cshtml)
-                        IntermediateToken - (138:5,2 [15] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "hello, world!"
-                    HtmlContent - (154:5,18 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                        IntermediateToken - (154:5,18 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    ComponentChildContent -  - ChildContent
+                        HtmlContent - (134:4,13 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (134:4,13 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                        CSharpExpression - (138:5,2 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (138:5,2 [15] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "hello, world!"
+                        HtmlContent - (154:5,18 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (154:5,18 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (186:8,12 [76] x:\dir\subdir\Test\TestComponent.cshtml)
                 IntermediateToken - (186:8,12 [76] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class Person\n    {\n        public string Name { get; set; }\n    }\n

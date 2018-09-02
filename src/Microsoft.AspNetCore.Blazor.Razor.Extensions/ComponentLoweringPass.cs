@@ -1,7 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private ComponentExtensionNode RewriteAsComponent(TagHelperIntermediateNode node, TagHelperDescriptor tagHelper)
         {
-            var result = new ComponentExtensionNode()
+            var component = new ComponentExtensionNode()
             {
                 Component = tagHelper,
                 Source = node.Source,
@@ -67,13 +68,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             for (var i = 0; i < node.Diagnostics.Count; i++)
             {
-                result.Diagnostics.Add(node.Diagnostics[i]);
+                component.Diagnostics.Add(node.Diagnostics[i]);
             }
 
-            var visitor = new ComponentRewriteVisitor(result.Children);
+            var visitor = new ComponentRewriteVisitor(component);
             visitor.Visit(node);
 
-            return result;
+            return component;
         }
 
         private HtmlElementIntermediateNode RewriteAsElement(TagHelperIntermediateNode node)
@@ -97,11 +98,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private class ComponentRewriteVisitor : IntermediateNodeWalker
         {
+            private readonly ComponentExtensionNode _component;
             private readonly IntermediateNodeCollection _children;
 
-            public ComponentRewriteVisitor(IntermediateNodeCollection children)
+            public ComponentRewriteVisitor(ComponentExtensionNode component)
             {
-                _children = children;
+                _component = component;
+                _children = component.Children;
             }
 
             public override void VisitTagHelper(TagHelperIntermediateNode node)
@@ -115,9 +118,25 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             public override void VisitTagHelperBody(TagHelperBodyIntermediateNode node)
             {
-                for (var i = 0; i < node.Children.Count; i++)
+                // Wrap the component's children in a ChildContent node
+                if (node.Children.Count > 0)
                 {
-                    _children.Add(node.Children[i]);
+                    var childContent = new ComponentChildContentIntermediateNode();
+                    var childContentAttribute = _component.Component.BoundAttributes
+                        .Where(a => a.Name == BlazorApi.RenderTreeBuilder.ChildContent)
+                        .FirstOrDefault();
+                    if (childContentAttribute != null)
+                    {
+                        // This component accepts child content explicitly.
+                        childContent.Attribute = childContentAttribute;
+                    }
+
+                    _children.Add(childContent);
+
+                    for (var i = 0; i < node.Children.Count; i++)
+                    {
+                        childContent.Children.Add(node.Children[i]);
+                    }
                 }
             }
 

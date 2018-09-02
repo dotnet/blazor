@@ -26,9 +26,16 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             _stack.Push(new ScopeEntry(tagName, ScopeKind.Element));
         }
 
-        public void OpenComponentScope(string tagName)
+        public void OpenComponentScope(CodeRenderingContext context, string name)
         {
-            _stack.Push(new ScopeEntry(tagName, ScopeKind.Component));
+            var scope = new ScopeEntry(name, ScopeKind.Component);
+            _stack.Push(scope);
+
+            var blazorNodeWriter = (BlazorNodeWriter)context.NodeWriter;
+            blazorNodeWriter.BeginWriteAttribute(context.CodeWriter, BlazorApi.RenderTreeBuilder.ChildContent);
+            OffsetBuilderVarNumber(1);
+            context.CodeWriter.Write($"({BlazorApi.RenderFragment.FullTypeName})(");
+            scope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
         }
 
         public void OpenTemplateScope(CodeRenderingContext context, string variableName)
@@ -61,27 +68,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
         }
 
-        public void IncrementCurrentScopeChildCount(CodeRenderingContext context)
-        {
-            if (_stack.Count > 0)
-            {
-                var currentScope = _stack.Peek();
-
-                if (currentScope.Kind == ScopeKind.Component && currentScope.ChildCount == 0)
-                {
-                    // When we're about to insert the first child into a component,
-                    // it's time to open a new lambda
-                    var blazorNodeWriter = (BlazorNodeWriter)context.NodeWriter;
-                    blazorNodeWriter.BeginWriteAttribute(context.CodeWriter, BlazorApi.RenderTreeBuilder.ChildContent);
-                    OffsetBuilderVarNumber(1);
-                    context.CodeWriter.Write($"({BlazorApi.RenderFragment.FullTypeName})(");
-                    currentScope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
-                }
-
-                currentScope.ChildCount++;
-            }
-        }
-
         private void OffsetBuilderVarNumber(int delta)
         {
             _builderVarNumber += delta;
@@ -92,19 +78,19 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private class ScopeEntry
         {
-            public readonly string TagName;
+            public readonly string Name;
             public ScopeKind Kind;
             public int ChildCount;
             public IDisposable LambdaScope;
 
-            public ScopeEntry(string tagName, ScopeKind kind)
+            public ScopeEntry(string name, ScopeKind kind)
             {
-                TagName = tagName;
+                Name = name;
                 Kind = kind;
                 ChildCount = 0;
             }
 
-            public override string ToString() => $"<{TagName}> ({Kind})";
+            public override string ToString() => $"<{Name}> ({Kind})";
         }
 
         private enum ScopeKind
