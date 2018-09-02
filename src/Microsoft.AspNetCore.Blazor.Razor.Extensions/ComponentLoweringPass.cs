@@ -118,25 +118,43 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             public override void VisitTagHelperBody(TagHelperBodyIntermediateNode node)
             {
-                // Wrap the component's children in a ChildContent node
-                if (node.Children.Count > 0)
+                // Wrap the component's children in a ChildContent node if we have some significant
+                // content.
+                if (node.Children.Count == 0)
                 {
-                    var childContent = new ComponentChildContentIntermediateNode();
-                    var childContentAttribute = _component.Component.BoundAttributes
-                        .Where(a => a.Name == BlazorApi.RenderTreeBuilder.ChildContent)
-                        .FirstOrDefault();
-                    if (childContentAttribute != null)
-                    {
-                        // This component accepts child content explicitly.
-                        childContent.Attribute = childContentAttribute;
-                    }
+                    return;
+                }
 
-                    _children.Add(childContent);
+                // If we get a single HTML content node containing only whitespace,
+                // then this is probably a tag that looks like '<MyComponent>  </MyComponent>
+                //
+                // We don't want to create a child content for this case, because it can conflict
+                // with a child content that's set via an attribute. We don't want the formatting
+                // of insigificant whitespace to be annoying when setting attributes directly.
+                if (node.Children.Count == 1 &&
+                    node.Children[0] is HtmlContentIntermediateNode html &&
+                    html.Children.Count == 1 &&
+                    html.Children[0] is IntermediateToken token &&
+                    string.IsNullOrWhiteSpace(token.Content))
+                {
+                    return;
+                }
 
-                    for (var i = 0; i < node.Children.Count; i++)
-                    {
-                        childContent.Children.Add(node.Children[i]);
-                    }
+                var childContent = new ComponentChildContentIntermediateNode();
+                _children.Add(childContent);
+
+                var childContentAttribute = _component.Component.BoundAttributes
+                    .Where(a => a.Name == BlazorApi.RenderTreeBuilder.ChildContent)
+                    .FirstOrDefault();
+                if (childContentAttribute != null)
+                {
+                    // This component accepts child content explicitly.
+                    childContent.Attribute = childContentAttribute;
+                }
+
+                for (var i = 0; i < node.Children.Count; i++)
+                {
+                    childContent.Children.Add(node.Children[i]);
                 }
             }
 

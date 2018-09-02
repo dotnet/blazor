@@ -106,7 +106,7 @@ namespace Test
                 frame => AssertFrame.Text(frame, "hi", 1));
         }
 
-        [Fact(Skip = "NYI")]
+        [Fact]
         public void Render_ChildContent_Template_EmptyBody()
         {
             // Arrange
@@ -115,7 +115,31 @@ namespace Test
             var component = CompileToComponent(@"
 @addTagHelper *, TestAssembly
 @{ RenderFragment<string> template = @<div>@context.ToLowerInvariant()</div>; }
+<RenderChildContent ChildContent=""@template.WithValue(""HI"")""></RenderChildContent>");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Component(frame, "Test.RenderChildContent", 2, 2),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 3),
+                frame => AssertFrame.Element(frame, "div", 2, 0),
+                frame => AssertFrame.Text(frame, "hi", 1));
+        }
+
+        [Fact]
+        public void Render_ChildContent_Template_WhitespaceBody()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentComponent);
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+@{ RenderFragment<string> template = @<div>@context.ToLowerInvariant()</div>; }
 <RenderChildContent ChildContent=""@template.WithValue(""HI"")"">
+       
 </RenderChildContent>");
 
             // Act
