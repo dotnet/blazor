@@ -82,6 +82,18 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             return result;
         }
 
+        public static bool IsChildContentTagHelper(this TagHelperDescriptor tagHelper)
+        {
+            if (tagHelper == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelper));
+            }
+
+            return
+                tagHelper.Metadata.TryGetValue(BlazorMetadata.SpecialKindKey, out var value) &&
+                string.Equals(value, BlazorMetadata.ChildContent.TagHelperKind, StringComparison.Ordinal);
+        }
+
         public static bool IsComponentTagHelper(this TagHelperDescriptor tagHelper)
         {
             if (tagHelper == null)

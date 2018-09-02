@@ -596,6 +596,35 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void ChildComponent_WithExplicitChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent><ChildContent>hello</ChildContent></MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
 
         #region Directives

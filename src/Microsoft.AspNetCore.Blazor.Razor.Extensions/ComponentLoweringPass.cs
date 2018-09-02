@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
@@ -49,6 +50,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 if (count >= 1)
                 {
                     reference.Replace(RewriteAsComponent(node, node.TagHelpers.First(t => t.IsComponentTagHelper())));
+                }
+                else if (node.TagHelpers.Any(t => t.IsChildContentTagHelper()))
+                {
+                    // Ignore, this will be handled when we rewrite the parent.
                 }
                 else
                 {
@@ -131,30 +136,92 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // We don't want to create a child content for this case, because it can conflict
                 // with a child content that's set via an attribute. We don't want the formatting
                 // of insigificant whitespace to be annoying when setting attributes directly.
-                if (node.Children.Count == 1 &&
-                    node.Children[0] is HtmlContentIntermediateNode html &&
-                    html.Children.Count == 1 &&
-                    html.Children[0] is IntermediateToken token &&
-                    string.IsNullOrWhiteSpace(token.Content))
+                if (node.Children.Count == 1 && IsIgnorableWhitespace(node.Children[0]))
                 {
                     return;
                 }
 
-                var childContent = new ComponentChildContentIntermediateNode();
-                _children.Add(childContent);
-
-                var childContentAttribute = _component.Component.BoundAttributes
-                    .Where(a => a.Name == BlazorApi.RenderTreeBuilder.ChildContent)
-                    .FirstOrDefault();
-                if (childContentAttribute != null)
+                // From here we fork and behave differently based on whether the component's child content is
+                // implicit or explicit.
+                //
+                // Explict child content will look like: <MyComponent><ChildContent><div>...</div></ChildContent></MyComponent>
+                // compared with implicit: <MyComponent><div></div></MyComponent>
+                //
+                // Using implicit child content:
+                // 1. All content is grouped into a single child content lambda, and assiged to the property 'ChildContent'
+                //
+                // Using explicit child content:
+                // 1. All content must be contained within 'child content' elements that are direct children
+                // 2. Whitespace outside of 'child content' elements will be ignored (not an error)
+                // 3. Non-whitespace outside of 'child content' elements will cause an error
+                // 4. All 'child content' elements must match parameters on the component (exception for ChildContent,
+                //    which is always allowed.
+                // 5. Each 'child content' element will generate its own lambda, and be assigned to the property
+                //    that matches the element name.
+                if (!node.Children.OfType<TagHelperIntermediateNode>().Any(t => t.TagHelpers.Any(th => th.IsChildContentTagHelper())))
                 {
-                    // This component accepts child content explicitly.
-                    childContent.BoundAttribute = childContentAttribute;
+                    // This node has implicit child content. It may or may not have an attribute that matches.
+                    var attribute = _component.Component.BoundAttributes
+                        .Where(a => string.Equals(a.Name, BlazorApi.RenderTreeBuilder.ChildContent, StringComparison.Ordinal))
+                        .FirstOrDefault();
+                    _children.Add(RewriteChildContent(attribute, node.Children));
+                    return;
                 }
 
+                // OK this node has explicit child content, we can rewrite it by visiting each node
+                // in sequence, since we:
+                // a) need to rewrite each child content element
+                // b) any significant content outside of a child content is an error
                 for (var i = 0; i < node.Children.Count; i++)
                 {
-                    childContent.Children.Add(node.Children[i]);
+                    var child = node.Children[i];
+                    if (IsIgnorableWhitespace(child))
+                    {
+                        continue;
+                    }
+
+                    if (child is TagHelperIntermediateNode tagHelperNode &&
+                        tagHelperNode.TagHelpers.Any(th => th.IsChildContentTagHelper()))
+                    {
+                        // This is a child content element
+                        var attribute = _component.Component.BoundAttributes
+                            .Where(a => string.Equals(a.Name, BlazorApi.RenderTreeBuilder.ChildContent, StringComparison.Ordinal))
+                            .FirstOrDefault();
+                        _children.Add(RewriteChildContent(attribute, child.Children));
+                        continue;
+                    }
+
+                    // If we get here then this is significant content inside a component with explicit child content.
+                    child.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentMixedWithExplicitChildContent(child.Source));
+                    _children.Add(child);
+                }
+
+                bool IsIgnorableWhitespace(IntermediateNode n)
+                {
+                    if (n is HtmlContentIntermediateNode html &&
+                        html.Children.Count == 1 &&
+                        html.Children[0] is IntermediateToken token &&
+                        string.IsNullOrWhiteSpace(token.Content))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                ComponentChildContentIntermediateNode RewriteChildContent(BoundAttributeDescriptor attribute, IntermediateNodeCollection children)
+                {
+                    var childContent = new ComponentChildContentIntermediateNode()
+                    {
+                        BoundAttribute = attribute,
+                    };
+
+                    for (var i = 0; i < children.Count; i++)
+                    {
+                        childContent.Children.Add(children[i]);
+                    }
+
+                    return childContent;
                 }
             }
 

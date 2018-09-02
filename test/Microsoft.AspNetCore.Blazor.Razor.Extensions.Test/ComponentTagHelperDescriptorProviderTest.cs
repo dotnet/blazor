@@ -314,7 +314,7 @@ namespace Test
         }
 
         [Fact]
-        public void Execute_RenderFragmentProperty_CreatesDescriptor()
+        public void Execute_RenderFragmentProperty_CreatesDescriptors()
         {
             // Arrange
 
@@ -345,7 +345,7 @@ namespace Test
 
             // Assert
             var components = ExcludeBuiltInComponents(context);
-            var component = Assert.Single(components);
+            var component = Assert.Single(components, c => c.IsComponentTagHelper());
 
             Assert.Equal("TestAssembly", component.AssemblyName);
             Assert.Equal("Test.MyComponent", component.Name);
@@ -360,6 +360,13 @@ namespace Test
             Assert.False(attribute.IsStringProperty);
             Assert.False(attribute.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
             Assert.True(attribute.IsChildContentProperty());
+
+            var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
+
+            Assert.Equal("TestAssembly", childContent.AssemblyName);
+            Assert.Equal("Test.MyComponent.ChildContent2", childContent.Name);
+
+            Assert.Empty(childContent.BoundAttributes);
         }
 
         [Fact]
@@ -394,7 +401,7 @@ namespace Test
 
             // Assert
             var components = ExcludeBuiltInComponents(context);
-            var component = Assert.Single(components);
+            var component = Assert.Single(components, c => c.IsComponentTagHelper());
 
             Assert.Equal("TestAssembly", component.AssemblyName);
             Assert.Equal("Test.MyComponent", component.Name);
@@ -409,6 +416,13 @@ namespace Test
             Assert.False(attribute.IsStringProperty);
             Assert.False(attribute.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
             Assert.True(attribute.IsChildContentProperty());
+
+            var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
+
+            Assert.Equal("TestAssembly", childContent.AssemblyName);
+            Assert.Equal("Test.MyComponent.ChildContent2", childContent.Name);
+
+            Assert.Empty(childContent.BoundAttributes);
         }
 
         [Fact] // This component has lots of properties that don't become components.

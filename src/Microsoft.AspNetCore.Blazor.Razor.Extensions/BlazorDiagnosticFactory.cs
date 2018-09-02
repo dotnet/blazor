@@ -199,5 +199,17 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         {
             return RazorDiagnostic.Create(ChildContentSetByAttributeAndBody, source ?? SourceSpan.Undefined, attribute);
         }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentMixedWithExplicitChildContent =
+            new RazorDiagnosticDescriptor(
+                "BL9996",
+                () => "Unrecognized child content. When using explicit child content, all significant content must be inside a " +
+                "child content element such as '<ChildContent>'.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentMixedWithExplicitChildContent(SourceSpan? source)
+        {
+            return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined);
+        }
     }
 }

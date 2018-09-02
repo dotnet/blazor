@@ -34,7 +34,7 @@ namespace Test
         internal override bool UseTwoPhaseCompilation => true;
 
         [Fact]
-        public void Render_ChildContent_Body()
+        public void Render_BodyChildContent()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(RenderChildContentComponent);
@@ -57,7 +57,32 @@ namespace Test
         }
 
         [Fact]
-        public void Render_ChildContent_Body_Recursive()
+        public void Render_ExplicitChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentComponent);
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+<RenderChildContent>
+  <ChildContent>
+    <div></div>
+  </ChildContent>
+</RenderChildContent>");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Component(frame, "Test.RenderChildContent", 2, 0),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 1),
+                frame => AssertFrame.Markup(frame, "\n    <div></div>\n  ", 2));
+        }
+
+        [Fact]
+        public void Render_BodyChildContent_Recursive()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(RenderChildContentComponent);
@@ -86,7 +111,7 @@ namespace Test
         }
 
         [Fact]
-        public void Render_ChildContent_Template()
+        public void Render_AttributeChildContent()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(RenderChildContentComponent);
@@ -109,7 +134,7 @@ namespace Test
         }
 
         [Fact]
-        public void Render_ChildContent_Template_EmptyBody()
+        public void Render_AttributeChildContent_IgnoresEmptyBody()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(RenderChildContentComponent);
@@ -132,7 +157,7 @@ namespace Test
         }
 
         [Fact]
-        public void Render_ChildContent_Template_WhitespaceBody()
+        public void Render_AttributeChildContent_IgnoresWhitespaceBody()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(RenderChildContentComponent);
@@ -157,7 +182,7 @@ namespace Test
         }
 
         [Fact]
-        public void Render_ChildContent_TemplateAndBody_ProducesDiagnostic()
+        public void Render_ChildContent_AttributeAndBody_ProducesDiagnostic()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(RenderChildContentComponent);
@@ -173,6 +198,67 @@ Some Content
             // Assert
             var diagnostic = Assert.Single(generated.Diagnostics);
             Assert.Same(BlazorDiagnosticFactory.ChildContentSetByAttributeAndBody.Id, diagnostic.Id);
+        }
+
+        [Fact]
+        public void Render_ChildContent_AttributeAndExplicitChildContent_ProducesDiagnostic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentComponent);
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+@{ RenderFragment<string> template = @<div>@context.ToLowerInvariant()</div>; }
+<RenderChildContent ChildContent=""@template.WithValue(""HI"")"">
+<ChildContent>
+Some Content
+</ChildContent>
+</RenderChildContent>");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Same(BlazorDiagnosticFactory.ChildContentSetByAttributeAndBody.Id, diagnostic.Id);
+        }
+
+        [Fact]
+        public void Render_ChildContent_ExplicitChildContent_UnrecogizedContent_ProducesDiagnostic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentComponent);
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<RenderChildContent>
+<ChildContent>
+</ChildContent>
+@somethingElse
+</RenderChildContent>");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Same(BlazorDiagnosticFactory.ChildContentMixedWithExplicitChildContent.Id, diagnostic.Id);
+        }
+
+        [Fact]
+        public void Render_ChildContent_ExplicitChildContent_UnrecogizedElement_ProducesDiagnostic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentComponent);
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<RenderChildContent>
+<ChildContent>
+</ChildContent>
+<UnrecognizedChildContent></UnrecognizedChildContent>
+</RenderChildContent>");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Same(BlazorDiagnosticFactory.ChildContentMixedWithExplicitChildContent.Id, diagnostic.Id);
         }
     }
 }

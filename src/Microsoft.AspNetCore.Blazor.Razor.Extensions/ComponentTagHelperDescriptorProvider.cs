@@ -45,29 +45,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             // We need to see private members too
             compilation = WithMetadataImportOptionsAll(compilation);
 
-            var componentSymbol = compilation.GetTypeByMetadataName(BlazorApi.IComponent.MetadataName);
-            if (componentSymbol == null)
-            {
-                // No definition for IComponent, nothing to do.
-                return;
-            }
-
-            var parameterSymbol = compilation.GetTypeByMetadataName(BlazorApi.ParameterAttribute.FullTypeName);
-            if (parameterSymbol == null)
-            {
-                // No definition for [Parameter], nothing to do.
-                return;
-            }
-
-            var blazorComponentSymbol = compilation.GetTypeByMetadataName(BlazorApi.BlazorComponent.FullTypeName);
-            if (blazorComponentSymbol == null)
-            {
-                // No definition for BlazorComponent, nothing to do.
-                return;
-            }
+            var symbols = BlazorSymbols.Create(compilation);
 
             var types = new List<INamedTypeSymbol>();
-            var visitor = new ComponentTypeVisitor(componentSymbol, types);
+            var visitor = new ComponentTypeVisitor(symbols, types);
 
             // Visit the primary output of this compilation, as well as all references.
             visitor.Visit(compilation.Assembly);
@@ -84,11 +65,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             for (var i = 0; i < types.Count; i++)
             {
                 var type = types[i];
-                var descriptor = CreateDescriptor(type, parameterSymbol, blazorComponentSymbol);
+                var descriptor = CreateDescriptor(symbols, type);
                 context.Results.Add(descriptor);
 
                 foreach (var childContent in descriptor.GetChildContentProperties())
                 {
+                    // Synthesize a separate tag helper for each child content property that's declared.
+                    context.Results.Add(CreateChildContentDescriptor(symbols, descriptor, childContent));
                 }
             }
         }
@@ -100,18 +83,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             return compilation.WithOptions(newCompilationOptions);
         }
 
-        private TagHelperDescriptor CreateDescriptor(INamedTypeSymbol type, INamedTypeSymbol parameterSymbol, INamedTypeSymbol blazorComponentSymbol)
+        private TagHelperDescriptor CreateDescriptor(BlazorSymbols symbols, INamedTypeSymbol type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (parameterSymbol == null)
-            {
-                throw new ArgumentNullException(nameof(parameterSymbol));
-            }
-
             var typeName = type.ToDisplayString(FullNameTypeDisplayFormat);
             var assemblyName = type.ContainingAssembly.Identity.Name;
 
@@ -131,7 +104,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             // Components have very simple matching rules. The type name (short) matches the tag name.
             builder.TagMatchingRule(r => r.TagName = type.Name);
 
-            foreach (var property in GetProperties(type, parameterSymbol, blazorComponentSymbol))
+            foreach (var property in GetProperties(symbols, type))
             {
                 if (property.kind == PropertyKind.Ignored)
                 {
@@ -172,6 +145,39 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             return descriptor;
         }
 
+        private TagHelperDescriptor CreateChildContentDescriptor(BlazorSymbols symbols, TagHelperDescriptor component, BoundAttributeDescriptor attribute)
+        {
+            var typeName = component.GetTypeName() + "." + attribute.Name;
+            var assemblyName = component.AssemblyName;
+
+            var builder = TagHelperDescriptorBuilder.Create(BlazorMetadata.ChildContent.TagHelperKind, typeName, assemblyName);
+            builder.SetTypeName(typeName);
+
+            // This opts out this 'component' tag helper for any processing that's specific to the default
+            // Razor ITagHelper runtime.
+            builder.Metadata[TagHelperMetadata.Runtime.Name] = BlazorMetadata.ChildContent.RuntimeName;
+
+            // Opt out of processing as a component. We'll process this specially as part of the component's body.
+            builder.Metadata[BlazorMetadata.SpecialKindKey] = BlazorMetadata.ChildContent.TagHelperKind;
+
+            var xml = attribute.Documentation;
+            if (!string.IsNullOrEmpty(xml))
+            {
+                builder.Documentation = xml;
+            }
+
+            // Child content matches the property name, but only as a direct child of the component.
+            builder.TagMatchingRule(r =>
+            {
+                r.TagName = attribute.Name;
+                r.ParentTag = component.TagMatchingRules.First().TagName;
+            });
+
+            var descriptor = builder.Build();
+
+            return descriptor;
+        }
+
         // Does a walk up the inheritance chain to determine the set of parameters by using
         // a dictionary keyed on property name.
         //
@@ -180,12 +186,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         // - have the [Parameter] attribute
         // - have a setter, even if private
         // - are not indexers
-        private IEnumerable<(IPropertySymbol property, PropertyKind kind)> GetProperties(INamedTypeSymbol type, INamedTypeSymbol parameterSymbol, INamedTypeSymbol blazorComponentSymbol)
+        private IEnumerable<(IPropertySymbol property, PropertyKind kind)> GetProperties(BlazorSymbols symbols, INamedTypeSymbol type)
         {
             var properties = new Dictionary<string, (IPropertySymbol, PropertyKind)>(StringComparer.Ordinal);
             do
             {
-                if (type == blazorComponentSymbol)
+                if (type == symbols.BlazorComponent)
                 {
                     // The BlazorComponent base class doesn't have any [Parameter].
                     // Bail out now to avoid walking through its many members, plus the members
@@ -227,7 +233,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         kind = PropertyKind.Ignored;
                     }
 
-                    if (!property.GetAttributes().Any(a => a.AttributeClass == parameterSymbol))
+                    if (!property.GetAttributes().Any(a => a.AttributeClass == symbols.ParameterAttribute))
                     {
                         // Does not have [Parameter]
                         kind = PropertyKind.Ignored;
@@ -275,14 +281,54 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Delegate,
         }
 
+        private class BlazorSymbols
+        {
+            public static BlazorSymbols Create(Compilation compilation)
+            {
+                var symbols = new BlazorSymbols();
+                symbols.BlazorComponent = compilation.GetTypeByMetadataName(BlazorApi.BlazorComponent.FullTypeName);
+                if (symbols.BlazorComponent == null)
+                {
+                    // No definition for BlazorComponent, nothing to do.
+                    return null;
+                }
+
+                symbols.IComponent = compilation.GetTypeByMetadataName(BlazorApi.IComponent.MetadataName);
+                if (symbols.IComponent == null)
+                {
+                    // No definition for IComponent, nothing to do.
+                    return null;
+                }
+
+                symbols.ParameterAttribute = compilation.GetTypeByMetadataName(BlazorApi.ParameterAttribute.FullTypeName);
+                if (symbols.ParameterAttribute == null)
+                {
+                    // No definition for [Parameter], nothing to do.
+                    return null;
+                }
+
+                return symbols;
+            }
+
+            private BlazorSymbols()
+            {
+            }
+
+            public INamedTypeSymbol BlazorComponent { get; private set; }
+
+            public INamedTypeSymbol IComponent { get; private set; }
+
+            public INamedTypeSymbol ParameterAttribute { get; private set; }
+        }
+
         private class ComponentTypeVisitor : SymbolVisitor
         {
-            private INamedTypeSymbol _interface;
-            private List<INamedTypeSymbol> _results;
+            private readonly BlazorSymbols _symbols;
+            private readonly List<INamedTypeSymbol> _results;
 
-            public ComponentTypeVisitor(INamedTypeSymbol @interface, List<INamedTypeSymbol> results)
+            public ComponentTypeVisitor(BlazorSymbols symbols, List<INamedTypeSymbol> results)
             {
-                _interface = @interface;
+                _symbols = symbols;
                 _results = results;
             }
 
@@ -314,7 +360,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             internal bool IsComponent(INamedTypeSymbol symbol)
             {
-                if (_interface == null)
+                if (_symbols == null)
                 {
                     return false;
                 }
@@ -323,7 +369,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     symbol.DeclaredAccessibility == Accessibility.Public &&
                     !symbol.IsAbstract &&
                     !symbol.IsGenericType &&
-                    symbol.AllInterfaces.Contains(_interface);
+                    symbol.AllInterfaces.Contains(_symbols.IComponent);
             }
         }
     }
