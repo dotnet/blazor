@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     {
                         // This is a child content element
                         var attribute = _component.Component.BoundAttributes
-                            .Where(a => string.Equals(a.Name, BlazorApi.RenderTreeBuilder.ChildContent, StringComparison.Ordinal))
+                            .Where(a => string.Equals(a.Name, tagHelperNode.TagName, StringComparison.Ordinal))
                             .FirstOrDefault();
                         _children.Add(RewriteChildContent(attribute, child.Children));
                         continue;

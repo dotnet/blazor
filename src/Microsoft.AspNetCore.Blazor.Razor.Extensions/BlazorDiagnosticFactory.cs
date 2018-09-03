@@ -204,7 +204,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             new RazorDiagnosticDescriptor(
                 "BL9996",
                 () => "Unrecognized child content. When using explicit child content, all significant content must be inside a " +
-                "child content element such as '<ChildContent>'.",
+                "child content element such as '<ChildContent>'. Check that the spelling of all child elements matches the component's" +
+                "declared parameters.",
                 RazorDiagnosticSeverity.Error);
 
         public static RazorDiagnostic Create_ChildContentMixedWithExplicitChildContent(SourceSpan? source)

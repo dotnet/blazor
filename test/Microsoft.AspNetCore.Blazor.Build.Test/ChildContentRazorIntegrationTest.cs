@@ -31,6 +31,36 @@ namespace Test
 }
 ");
 
+        private readonly CSharpSyntaxTree RenderMultipleChildContent = Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Blazor.RenderTree;
+namespace Test
+{
+    public class RenderMultipleChildContent : BlazorComponent
+    {
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.AddContent(0, Header, Name);
+            builder.AddContent(1, ChildContent);
+            builder.AddContent(2, Footer);
+        }
+
+        [Parameter]
+        string Name { get; set; }
+
+        [Parameter]
+        RenderFragment<string> Header { get; set; }
+
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
+
+        [Parameter]
+        RenderFragment Footer { get; set; }
+    }
+}
+");
+
         internal override bool UseTwoPhaseCompilation => true;
 
         [Fact]
@@ -179,6 +209,39 @@ namespace Test
                 frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 3),
                 frame => AssertFrame.Element(frame, "div", 2, 0),
                 frame => AssertFrame.Text(frame, "hi", 1));
+        }
+
+        [Fact]
+        public void Render_MultipleChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderMultipleChildContent);
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+@{ RenderFragment<string> header = @<div>@context.ToLowerInvariant()</div>; }
+<RenderMultipleChildContent Name=""billg"" Header=@header>
+  <ChildContent>Some @(0) Content</ChildContent>
+  <Footer>Bye!</Footer>
+</RenderMultipleChildContent>");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Component(frame, "Test.RenderMultipleChildContent", 5, 2),
+                frame => AssertFrame.Attribute(frame, "Name", "billg", 3),
+                frame => AssertFrame.Attribute(frame, "Header", typeof(RenderFragment<string>), 4),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, typeof(RenderFragment), 5),
+                frame => AssertFrame.Attribute(frame, "Footer", typeof(RenderFragment), 9),
+                frame => AssertFrame.Element(frame, "div", 2, 0),
+                frame => AssertFrame.Text(frame, "billg", 1),
+                frame => AssertFrame.Text(frame, "Some ", 6),
+                frame => AssertFrame.Text(frame, "0", 7),
+                frame => AssertFrame.Text(frame, " Content", 8),
+                frame => AssertFrame.Text(frame, "Bye!", 10));
         }
 
         [Fact]

@@ -10,6 +10,11 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
     {
         internal override bool UseTwoPhaseCompilation => true;
 
+        public CodeGenerationTestBase()
+        {
+            GenerateBaselines = true;
+        }
+
         #region Basics
 
         [Fact]
@@ -618,6 +623,117 @@ namespace Test
             var generated = CompileToCSharp(@"
 @addTagHelper *, TestAssembly
 <MyComponent><ChildContent>hello</ChildContent></MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void MultipleExplictChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment Header { get; set; }
+
+        [Parameter]
+        RenderFragment Footer { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent>
+    <Header>Hi!</Header>
+    <Footer>@(""bye!"")</Footer>
+</MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void BodyAndAttributeChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment<string> Header { get; set; }
+
+        RenderFragment ChildContent { get; set; }
+
+        [Parameter]
+        RenderFragment Footer { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+@{ RenderFragment<string> header = @<div>@context.ToLowerInvariant()</div>; }
+<MyComponent Header=@header>
+    Some Content
+</MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void BodyAndExplicitChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment<string> Header { get; set; }
+
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
+
+        [Parameter]
+        RenderFragment Footer { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+@{ RenderFragment<string> header = @<div>@context.ToLowerInvariant()</div>; }
+<MyComponent Header=@header>
+  <ChildContent>Some Content</ChildContent>
+  <Footer>Bye!</Footer>
+</MyComponent>");
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

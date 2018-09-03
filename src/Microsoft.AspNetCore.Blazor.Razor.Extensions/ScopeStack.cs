@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             _stack.Push(scope);
 
             var blazorNodeWriter = (BlazorNodeWriter)context.NodeWriter;
-            blazorNodeWriter.BeginWriteAttribute(context.CodeWriter, BlazorApi.RenderTreeBuilder.ChildContent);
+            blazorNodeWriter.BeginWriteAttribute(context.CodeWriter, name);
             OffsetBuilderVarNumber(1);
             context.CodeWriter.Write($"({BlazorApi.RenderFragment.FullTypeName})(");
             scope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);

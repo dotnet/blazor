@@ -425,6 +425,79 @@ namespace Test
             Assert.Empty(childContent.BoundAttributes);
         }
 
+        [Fact]
+        public void Execute_MultipleRenderFragmentProperties_CreatesDescriptor()
+        {
+            // Arrange
+
+            var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment ChildContent { get; set; }
+
+        [Parameter]
+        RenderFragment<string> Header { get; set; }
+
+        [Parameter]
+        RenderFragment<string> Footer { get; set; }
+    }
+}
+
+"));
+
+            Assert.Empty(compilation.GetDiagnostics());
+
+            var context = TagHelperDescriptorProviderContext.Create();
+            context.SetCompilation(compilation);
+
+            var provider = new ComponentTagHelperDescriptorProvider();
+
+            // Act
+            provider.Execute(context);
+
+            // Assert
+            var components = ExcludeBuiltInComponents(context);
+            var component = Assert.Single(components, c => c.IsComponentTagHelper());
+
+            Assert.Equal("TestAssembly", component.AssemblyName);
+            Assert.Equal("Test.MyComponent", component.Name);
+
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("ChildContent", a.Name);
+                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment", a.TypeName);
+                    Assert.True(a.IsChildContentProperty());
+                },
+                a =>
+                {
+                    Assert.Equal("Footer", a.Name);
+                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.String>", a.TypeName);
+                    Assert.True(a.IsChildContentProperty());
+                },
+                a =>
+                {
+                    Assert.Equal("Header", a.Name);
+                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.String>", a.TypeName);
+                    Assert.True(a.IsChildContentProperty());
+                });
+
+
+            var childContents = components.Where(c => c.IsChildContentTagHelper()).OrderBy(c => c.Name);
+            Assert.Collection(
+                childContents,
+                c => Assert.Equal("Test.MyComponent.ChildContent", c.Name),
+                c => Assert.Equal("Test.MyComponent.Footer", c.Name),
+                c => Assert.Equal("Test.MyComponent.Header", c.Name));
+        }
+
         [Fact] // This component has lots of properties that don't become components.
         public void Execute_IgnoredProperties_CreatesDescriptor()
         {
