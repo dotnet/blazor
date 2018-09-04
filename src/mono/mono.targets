@@ -1,4 +1,6 @@
 <Project>
+  <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\ReferenceFromSource.props" />
+  
   <PropertyGroup>
     <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming\</MonoIncomingDir>
     <MonoDistDir>$(MSBuildThisFileDirectory)dist\</MonoDistDir>
@@ -10,6 +12,7 @@
     <AsmJsItemsToCopy Include="$(MonoUnoptimizedDir)asmjs\**" />
     <WasmItemsToCopy Include="$(MonoUnoptimizedDir)wasm\**" />
     <BclItemsToCopy Include="$(MonoIncomingDir)bcl\**" />
+    <BclWipeSpecFiles Include="$(MSBuildThisFileDirectory)bclwipe\**" />
   </ItemGroup>
 
   <Target Name="OptimizeMono" DependsOnTargets="OptimizeMonoWasm; OptimizeMonoAsmJs; OptimizeBcl" />
@@ -33,12 +36,12 @@
   </Target>
 
   <Target Name="OptimizeBcl"
-          Inputs="@(BclItemsToCopy)"
-          Outputs="@(BclItemsToCopy->'$(MonoOptimizedDir)bcl\%(RecursiveDir)%(FileName)%(Extension)')">
-    <!-- TODO: Implement IL stripping like in prototype -->
+          Inputs="@(BclItemsToCopy);@(BclWipeSpecFiles)"
+          Outputs="$(MonoOptimizedDir)**">
     <Message Importance="High" Text="Creating optimized BCL build" />
     <Copy SourceFiles="@(BclItemsToCopy)"
           DestinationFiles="@(BclItemsToCopy->'$(MonoOptimizedDir)bcl\%(RecursiveDir)%(FileName)%(Extension)')" />
+    <Exec Command="$(BlazorBuildToolsExe) ilwipe -a &quot;@(BclWipeSpecFiles->'$(MonoIncomingDir)bcl\%(RecursiveDir)%(FileName).dll')&quot; -o &quot;@(BclWipeSpecFiles->'$(MonoOptimizedDir)bcl\%(RecursiveDir)%(FileName).dll')&quot; -s &quot;%(BclWipeSpecFiles.Identity)&quot;"/>
   </Target>
 
   <Target Name="BuildMonoEmcc">

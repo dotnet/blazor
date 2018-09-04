@@ -1,0 +1,3 @@
+# HttpClientHandler brings in about 500KB and will never be used under WebAssembly anyway
+# (we have a separate browser-compatible handler)
+System.Net.Http.HttpClientHandler

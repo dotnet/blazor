@@ -53,13 +53,20 @@ namespace Microsoft.AspNetCore.Blazor.BuildTools.Core.ILWipe
             // We have to do this instead of module.ImportReference(type), because the latter
             // would try to reference it in System.Private.CoreLib because this tool itself
             // compiles to target netcoreapp rather than netstandard
-
-            if (!module.TryGetTypeReference(typeof(object).FullName, out var objectRef))
+            IMetadataScope mscorlibScope;
+            if (module.TryGetTypeReference(typeof(object).FullName, out var objectRef))
+            {
+                mscorlibScope = objectRef.Scope;
+            }
+            else if (module.Name == "mscorlib.dll")
+            {
+                mscorlibScope = module;
+            }
+            else
             {
                 throw new InvalidOperationException($"Could not resolve System.Object type within '{module.FileName}'.");
             }
-
-            var mscorlibScope = objectRef.Scope;
+            
             var typeRef = new TypeReference(type.Namespace, type.Name, module, mscorlibScope, type.IsValueType);
             return module.ImportReference(typeRef);
         }
