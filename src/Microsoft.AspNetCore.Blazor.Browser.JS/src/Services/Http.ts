@@ -3,18 +3,22 @@ import { MethodHandle, System_String, System_Array } from '../Platform/Platform'
 const httpClientAssembly = 'Microsoft.AspNetCore.Blazor.Browser';
 const httpClientNamespace = `${httpClientAssembly}.Http`;
 const httpClientTypeName = 'BrowserHttpMessageHandler';
+const httpContentTypeName = 'BrowserHttpContent';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
+const pendingResponses = new Map<number, Response>();
+let receiveResponseDataMethod: MethodHandle;
 let receiveResponseMethod: MethodHandle;
 let allocateArrayMethod: MethodHandle;
 
 // These are the functions we're making available for invocation from .NET
 export const internalFunctions = {
-  sendAsync
+  sendAsync,
+  getResponseData,
+  discardResponse
 }
 
 async function sendAsync(id: number, body: System_Array<any>, jsonFetchArgs: System_String) {
   let response: Response;
-  let responseData: ArrayBuffer;
 
   const fetchOptions: FetchOptions = JSON.parse(platform.toJavaScriptString(jsonFetchArgs));
   const requestInit: RequestInit = Object.assign(fetchOptions.requestInit, fetchOptions.requestInitOverrides);
@@ -25,16 +29,15 @@ async function sendAsync(id: number, body: System_Array<any>, jsonFetchArgs: Sys
 
   try {
     response = await fetch(fetchOptions.requestUri, requestInit);
-    responseData = await response.arrayBuffer();
   } catch (ex) {
     dispatchErrorResponse(id, ex.toString());
     return;
   }
 
-  dispatchSuccessResponse(id, response, responseData);
+  dispatchSuccessResponse(id, response);
 }
 
-function dispatchSuccessResponse(id: number, response: Response, responseData: ArrayBuffer) {
+function dispatchSuccessResponse(id: number, response: Response) {
   const responseDescriptor: ResponseDescriptor = {
     statusCode: response.status,
     statusText: response.statusText,
@@ -44,11 +47,62 @@ function dispatchSuccessResponse(id: number, response: Response, responseData: A
     responseDescriptor.headers.push([name, value]);
   });
 
+  pendingResponses.set(id, response);
+
+  dispatchResponse(
+    id,
+    platform.toDotNetString(JSON.stringify(responseDescriptor)),
+    /* errorMessage */ null
+  );
+}
+
+function dispatchErrorResponse(id: number, errorMessage: string) {
+  dispatchResponse(
+    id,
+    /* responseDescriptor */ null,
+    platform.toDotNetString(errorMessage)
+  );
+}
+
+function dispatchResponse(id: number, responseDescriptor: System_String | null, errorMessage: System_String | null) {
+  if (!receiveResponseMethod) {
+    receiveResponseMethod = platform.findMethod(
+      httpClientAssembly,
+      httpClientNamespace,
+      httpClientTypeName,
+      'ReceiveResponse'
+    );
+  }
+
+  platform.callMethod(receiveResponseMethod, null, [
+    platform.toDotNetString(id.toString()),
+    responseDescriptor,
+    errorMessage,
+  ]);
+}
+
+async function getResponseData(id: number) {
+  let responseData: ArrayBuffer;
+  const response = pendingResponses.get(id);
+  if (!response) {
+    dispatchResponseData(id, null, platform.toDotNetString('Found no response with id ' + id));
+    return;
+  }
+
+  pendingResponses.delete(id);
+
+  try {
+    responseData = await response.arrayBuffer();
+  } catch (ex) {
+    dispatchResponseData(id, null, ex.toString());
+    return;
+  }
+
   if (!allocateArrayMethod) {
     allocateArrayMethod = platform.findMethod(
       httpClientAssembly,
       httpClientNamespace,
-      httpClientTypeName,
+      httpContentTypeName,
       'AllocateArray'
     );
   }
@@ -62,39 +116,28 @@ function dispatchSuccessResponse(id: number, response: Response, responseData: A
   // copy the responseData to our managed byte[]
   array.set(new Uint8Array(responseData));
 
-  dispatchResponse(
-    id,
-    platform.toDotNetString(JSON.stringify(responseDescriptor)),
-    dotNetArray,
-    /* errorMessage */ null
-  );
+  dispatchResponseData(id, dotNetArray, null);
 }
 
-function dispatchErrorResponse(id: number, errorMessage: string) {
-  dispatchResponse(
-    id,
-    /* responseDescriptor */ null,
-    /* responseText */ null,
-    platform.toDotNetString(errorMessage)
-  );
-}
-
-function dispatchResponse(id: number, responseDescriptor: System_String | null, responseData: System_Array<any> | null, errorMessage: System_String | null) {
-  if (!receiveResponseMethod) {
-    receiveResponseMethod = platform.findMethod(
+function dispatchResponseData(id: number, responseData: System_Array<any> | null, errorMessage: System_String | null) {
+  if (!receiveResponseDataMethod) {
+    receiveResponseDataMethod = platform.findMethod(
       httpClientAssembly,
       httpClientNamespace,
-      httpClientTypeName,
-      'ReceiveResponse'
+      httpContentTypeName,
+      'ReceiveResponseData'
     );
   }
 
-  platform.callMethod(receiveResponseMethod, null, [
+  platform.callMethod(receiveResponseDataMethod, null, [
     platform.toDotNetString(id.toString()),
-    responseDescriptor,
     responseData,
     errorMessage,
   ]);
+}
+
+function discardResponse(id: number) {
+  pendingResponses.delete(id);
 }
 
 // Keep these in sync with the .NET equivalent in BrowserHttpMessageHandler.cs

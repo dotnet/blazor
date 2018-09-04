@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         public static FetchCredentialsOption DefaultCredentials { get; set; }
             = FetchCredentialsOption.SameOrigin;
 
-        static object _idLock = new object();
+        static readonly object _idLock = new object();
         static int _nextRequestId = 0;
         static IDictionary<int, TaskCompletionSource<HttpResponseMessage>> _pendingRequests
             = new Dictionary<int, TaskCompletionSource<HttpResponseMessage>>();
@@ -89,7 +89,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         private static void ReceiveResponse(
             string id,
             string responseDescriptorJson,
-            byte[] responseBodyData,
             string errorText)
         {
             TaskCompletionSource<HttpResponseMessage> tcs;
@@ -107,15 +106,10 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
             else
             {
                 var responseDescriptor = Json.Deserialize<ResponseDescriptor>(responseDescriptorJson);
-                var responseContent = responseBodyData == null ? null : new ByteArrayContent(responseBodyData);
+                var responseContent = new BrowserHttpContent(idVal);
                 var responseMessage = responseDescriptor.ToResponseMessage(responseContent);
                 tcs.SetResult(responseMessage);
             }
-        }
-
-        private static byte[] AllocateArray(string length)
-        {
-            return new byte[int.Parse(length)];
         }
 
         private static string GetDefaultCredentialsString()
