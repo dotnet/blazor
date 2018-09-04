@@ -1,4 +1,4 @@
-import '../../Microsoft.JSInterop/JavaScriptRuntime/src/Microsoft.JSInterop';
+import '../../../modules/jsinterop/src/Microsoft.JSInterop.JS/src/Microsoft.JSInterop';
 import './GlobalExports';
 import * as Environment from './Environment';
 import * as signalR from '@aspnet/signalr';
@@ -47,6 +47,10 @@ function boot() {
       );
     })
     .catch(unhandledError);
+
+  // Temporary undocumented API to help with https://github.com/aspnet/Blazor/issues/1339
+  // This will be replaced once we implement proper connection management (reconnects, etc.)
+  window['Blazor'].onServerConnectionClose = connection.onclose.bind(connection);
 }
 
 function unhandledError(err) {

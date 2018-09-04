@@ -22,7 +22,11 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 b =>
                 {
                     BlazorExtensionInitializer.Register(b);
-                    b.Features.Remove(b.Features.OfType<HtmlBlockPass>().Single());
+
+                    if (b.Features.OfType<HtmlBlockPass>().Any())
+                    {
+                        b.Features.Remove(b.Features.OfType<HtmlBlockPass>().Single());
+                    }
                 }).Engine;
 
             Pass.Engine = Engine;
@@ -32,7 +36,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private HtmlBlockPass Pass { get; }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_Basic()
         {
             // Arrange
@@ -60,18 +64,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
-        public void Execute_RewritesHtml_CSharpInAttributes()
+        [Fact]
+        public void Execute_RewritesHtml_WithComment()
         {
             // Arrange
-            var document = CreateDocument(@"
-<html>
-  <head cool=""beans"" csharp=""@yes"" mixed=""hi @there"">
-    <div>foo</div>
-  </head>
-</html>");
+            var document = CreateDocument(@"Start<!-- -->End");
 
-            var expected = NormalizeContent(@"<div>foo</div>");
+            var expected = NormalizeContent(@"StartEnd");
 
             var documentNode = Lower(document);
 
@@ -83,7 +82,82 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
+        public void Execute_RewritesHtml_MergesSiblings()
+        {
+            // Arrange
+            var document = CreateDocument(@"
+<html>
+  @(""Hi"")<div></div>
+  <div></div>
+  <div>@(""Hi"")</div>
+</html>");
+
+            var expected = NormalizeContent(@"
+<div></div>
+  <div></div>
+  ");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            var block = documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>().Single();
+            Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
+        public void Execute_RewritesHtml_MergesSiblings_LeftEdge()
+        {
+            // Arrange
+            var document = CreateDocument(@"
+<html><div></div>
+  <div></div>
+  <div>@(""Hi"")</div>
+</html>");
+
+            var expected = NormalizeContent(@"
+<div></div>
+  <div></div>
+  ");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            var block = documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>().Single();
+            Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
+        }
+
+
+        [Fact]
+        public void Execute_RewritesHtml_CSharpInAttributes()
+        {
+            // Arrange
+            var document = CreateDocument(@"
+<html>
+  <head cool=""beans"" csharp=""@yes"" mixed=""hi @there"">
+    <div>foo</div>
+  </head>
+</html>");
+
+            var expected = NormalizeContent("<div>foo</div>\n  ");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            var block = documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>().Single();
+            Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
         public void Execute_RewritesHtml_CSharpInBody()
         {
             // Arrange
@@ -96,7 +170,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
   </head>
 </html>");
 
-            var expected = NormalizeContent(@"<div>rewriteme</div>");
+            var expected = NormalizeContent("<div>rewriteme</div>\n    ");
 
             var documentNode = Lower(document);
 
@@ -108,7 +182,31 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
+        public void Execute_RewritesHtml_EncodesHtmlEntities()
+        {
+            // Arrange
+            var document = CreateDocument(@"
+<div>
+    &lt;span&gt;Hi&lt;/span&gt;
+</div>");
+
+            var expected = NormalizeContent(@"
+<div>
+    &lt;span&gt;Hi&lt;/span&gt;
+</div>");
+
+            var documentNode = Lower(document);
+
+            // Act
+            Pass.Execute(document, documentNode);
+
+            // Assert
+            var block = documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>().Single();
+            Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
         public void Execute_RewritesHtml_EmptyNonvoid()
         {
             // Arrange
@@ -126,7 +224,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_Void()
         {
             // Arrange
@@ -144,7 +242,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Equal(expected, block.Content, ignoreLineEndingDifferences: true);
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_CannotRewriteHtml_CSharpInCode()
         {
             // Arrange
@@ -167,7 +265,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Empty(documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>());
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_CannotRewriteHtml_Script()
         {
             // Arrange
@@ -191,7 +289,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         }
 
         // The unclosed tag will have errors, so we won't rewrite it or its parent.
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_CannotRewriteHtml_Errors()
         {
             // Arrange
@@ -209,7 +307,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             Assert.Empty(documentNode.FindDescendantNodes<HtmlBlockIntermediateNode>());
         }
 
-        [Fact(Skip = "Temporarily disable compiling markup frames in 0.5.1")]
+        [Fact]
         public void Execute_RewritesHtml_MismatchedClosingTag()
         {
             // Arrange
@@ -220,7 +318,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
   </span>
 </html>");
 
-            var expected = NormalizeContent(@"<div>rewriteme</div>");
+            var expected = NormalizeContent("<div>rewriteme</div>\n  ");
 
             var documentNode = Lower(document);
 

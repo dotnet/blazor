@@ -156,6 +156,53 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal("somevalue", styledElement.GetAttribute("customattribute"));
         }
 
+        // Verifies we can render HTML content as a single block
+        [Fact]
+        public void CanRenderChildContent_StaticHtmlBlock()
+        {
+            var appElement = MountTestComponent<HtmlBlockChildContent>();
+            Assert.Equal("<p>Some-Static-Text</p>",
+                appElement.FindElement(By.Id("foo")).GetAttribute("innerHTML"));
+        }
+
+        // Verifies we can rewite more complex HTML content into blocks
+        [Fact]
+        public void CanRenderChildContent_MixedHtmlBlock()
+        {
+            var appElement = MountTestComponent<HtmlMixedChildContent>();
+
+            var one = appElement.FindElement(By.Id("one"));
+            Assert.Equal("<p>Some-Static-Text</p>", one.GetAttribute("innerHTML"));
+
+            var two = appElement.FindElement(By.Id("two"));
+            Assert.Equal("<span>More-Static-Text</span>", two.GetAttribute("innerHTML"));
+
+            var three = appElement.FindElement(By.Id("three"));
+            Assert.Equal("Some-Dynamic-Text", three.GetAttribute("innerHTML"));
+
+            var four = appElement.FindElement(By.Id("four"));
+            Assert.Equal("But this is static", four.GetAttribute("innerHTML"));
+        }
+
+        // Verifies we can rewrite HTML blocks with encoded HTML
+        [Fact]
+        public void CanRenderChildContent_EncodedHtmlInBlock()
+        {
+            var appElement = MountTestComponent<HtmlEncodedChildContent>();
+
+            var one = appElement.FindElement(By.Id("one"));
+            Assert.Equal("<p>Some-Static-Text</p>", one.GetAttribute("innerHTML"));
+
+            var two = appElement.FindElement(By.Id("two"));
+            Assert.Equal("&lt;span&gt;More-Static-Text&lt;/span&gt;", two.GetAttribute("innerHTML"));
+
+            var three = appElement.FindElement(By.Id("three"));
+            Assert.Equal("Some-Dynamic-Text", three.GetAttribute("innerHTML"));
+
+            var four = appElement.FindElement(By.Id("four"));
+            Assert.Equal("But this is static", four.GetAttribute("innerHTML"));
+        }
+
         [Fact]
         public void CanTriggerEventsOnChildComponents()
         {
@@ -328,7 +375,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         public void LogicalElementInsertionWorksHierarchically()
         {
             var appElement = MountTestComponent<LogicalElementInsertionCases>();
-            Assert.Equal("First Second Third", appElement.Text);
+            WaitAssert.Equal("First Second Third", () => appElement.Text);
         }
 
         [Fact]
@@ -444,6 +491,20 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             Assert.Equal(
                 "changed",
                 appElement.FindElement(By.CssSelector("#dynamic-markup-block span em")).Text);
+        }
+
+        [Fact]
+        public void CanRenderRazorTemplates()
+        {
+            var appElement = MountTestComponent<RazorTemplates>();
+
+            // code block template (component parameter)
+            var element = appElement.FindElement(By.CssSelector("div#codeblocktemplate ol"));
+            Assert.Collection(
+                element.FindElements(By.TagName("li")),
+                e => Assert.Equal("#1 - a", e.Text),
+                e => Assert.Equal("#2 - b", e.Text),
+                e => Assert.Equal("#3 - c", e.Text));
         }
 
         static IAlert SwitchToAlert(IWebDriver driver)

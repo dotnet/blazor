@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AngleSharp.Html;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -43,8 +44,59 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // Forcibly remove a node to prevent infinite loops.
                 trees.RemoveAt(trees.Count - 1);
 
-                rewriteVisitor.Visit(reference.Node);
-                reference.Replace(new HtmlBlockIntermediateNode()
+                // We want to fold together siblings where possible. To do this, first we find
+                // the index of the node we're looking at now - then we need to walk backwards
+                // and identify a set of contiguous nodes we can merge.
+                var start = reference.Parent.Children.Count - 1;
+                for (; start >= 0; start--)
+                {
+                    if (ReferenceEquals(reference.Node, reference.Parent.Children[start]))
+                    {
+                        break;
+                    }
+                }
+
+                // This is the current node. Check if the left sibling is always a candidate
+                // for rewriting. Due to the order we processed the nodes, we know that the
+                // left sibling is next in the list to process if it's a candidate.
+                var end = start;
+                while (start - 1 >= 0)
+                {
+                    var candidate = reference.Parent.Children[start - 1];
+                    if (trees.Count == 0 || !ReferenceEquals(trees[trees.Count - 1].Node, candidate))
+                    {
+                        // This means the we're out of nodes, or the left sibling is not in the list.
+                        break;
+                    }
+
+                    // This means that the left sibling is valid to merge.
+                    start--;
+
+                    // Remove this since we're combining it.
+                    trees.RemoveAt(trees.Count - 1);
+                }
+
+                // As a degenerate case, don't bother rewriting an single HtmlContent node
+                // It doesn't add any value.
+                if (end - start == 0 && reference.Node is HtmlContentIntermediateNode)
+                {
+                    continue;
+                }
+
+                // Now we know the range of nodes to rewrite (end is inclusive)
+                var length = end + 1 - start;
+                while (length > 0)
+                {
+                    // Keep using start since we're removing nodes.
+                    var node = reference.Parent.Children[start];
+                    reference.Parent.Children.RemoveAt(start);
+
+                    rewriteVisitor.Visit(node);
+
+                    length--;
+                }
+
+                reference.Parent.Children.Insert(start, new HtmlBlockIntermediateNode()
                 {
                     Content = rewriteVisitor.Builder.ToString(),
                 });
@@ -137,14 +189,28 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             public override void VisitHtml(HtmlContentIntermediateNode node)
             {
+                // We need to restore the state after processing this node.
+                // We might have found a leaf-block of HTML, but that shouldn't
+                // affect our parent's state.
+                var originalState = _foundNonHtml;
+
+                _foundNonHtml = false;
+
                 if (node.HasDiagnostics)
                 {
                     // Treat node with errors as non-HTML
                     _foundNonHtml = true;
                 }
-
+                
                 // Visit Children
                 base.VisitDefault(node);
+
+                if (!_foundNonHtml)
+                {
+                    Trees.Add(new IntermediateNodeReference(Parent, node));
+                }
+
+                _foundNonHtml = originalState |= _foundNonHtml;
             }
 
             public override void VisitToken(IntermediateToken node)
@@ -166,11 +232,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             IntermediateNodeWalker,
             IExtensionIntermediateNodeVisitor<HtmlElementIntermediateNode>
         {
+            private readonly StringBuilder _encodingBuilder;
+
             private readonly List<IntermediateNodeReference> _trees;
 
             public RewriteVisitor(List<IntermediateNodeReference> trees)
             {
                 _trees = trees;
+
+                _encodingBuilder = new StringBuilder();
             }
 
             public StringBuilder Builder { get; } = new StringBuilder();
@@ -251,19 +321,28 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             public override void VisitHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
             {
-                // Visit Children
-                base.VisitDefault(node);
+                Builder.Append(Encode(node.Children));
             }
 
             public override void VisitHtml(HtmlContentIntermediateNode node)
             {
-                // Visit Children
-                base.VisitDefault(node);
+                Builder.Append(Encode(node.Children));
             }
 
-            public override void VisitToken(IntermediateToken node)
+            private string Encode(IntermediateNodeCollection nodes)
             {
-                Builder.Append(node.Content);
+                // We need to HTML encode text content. We would have decoded HTML entities
+                // earlier when we parsed the text into a tree, but since we're folding
+                // this node into a block of pre-encoded HTML we need to be sure to
+                // re-encode.
+                _encodingBuilder.Clear();
+
+                for (var i = 0; i < nodes.Count; i++)
+                {
+                    _encodingBuilder.Append(((IntermediateToken)nodes[i]).Content);
+                }
+
+                return HtmlMarkupFormatter.Instance.Text(_encodingBuilder.ToString());
             }
         }
     }

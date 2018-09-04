@@ -63,6 +63,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             builder.Features.Add(new ConfigureBlazorCodeGenerationOptions());
 
+            builder.AddTargetExtension(new BlazorTemplateTargetExtension());
+
             var isDeclarationOnlyCompile = builder.Configuration.ConfigurationName == DeclarationConfiguration.ConfigurationName;
 
             // Blazor-specific passes, in order.
@@ -79,9 +81,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             builder.Features.Add(new EventHandlerLoweringPass());
             builder.Features.Add(new RefLoweringPass());
             builder.Features.Add(new BindLoweringPass());
-
-            // Temporarily disabled for 0.5.1
-            // builder.Features.Add(new HtmlBlockPass());
+            builder.Features.Add(new TemplateDiagnosticPass());
+            builder.Features.Add(new HtmlBlockPass());
 
             builder.Features.Add(new ComponentTagHelperDescriptorProvider());
             builder.Features.Add(new BindTagHelperDescriptorProvider());
