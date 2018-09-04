@@ -18,6 +18,11 @@ namespace Microsoft.AspNetCore.Blazor.BuildTools.Core.ILWipe
                 linesToUse.Select(line => new SpecListEntry(line)));
         }
 
+        public bool IsEmpty
+        {
+            get => _itemSpecs.Count == 0;
+        }
+
         public bool Match(AssemblyItem item)
         {
             // If this needs to be faster, consider implementing some kind of matching tree.

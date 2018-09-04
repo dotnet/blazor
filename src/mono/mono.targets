@@ -6,13 +6,14 @@
     <MonoDistDir>$(MSBuildThisFileDirectory)dist\</MonoDistDir>
     <MonoUnoptimizedDir>$(MonoDistDir)unoptimized\</MonoUnoptimizedDir>
     <MonoOptimizedDir>$(MonoDistDir)optimized\</MonoOptimizedDir>
+    <BclWipeSpecDir>$(MSBuildThisFileDirectory)bclwipe\</BclWipeSpecDir>
   </PropertyGroup>
 
   <ItemGroup>
     <AsmJsItemsToCopy Include="$(MonoUnoptimizedDir)asmjs\**" />
     <WasmItemsToCopy Include="$(MonoUnoptimizedDir)wasm\**" />
     <BclItemsToCopy Include="$(MonoIncomingDir)bcl\**" />
-    <BclWipeSpecFiles Include="$(MSBuildThisFileDirectory)bclwipe\**" />
+    <BclWipeSpecFiles Include="$(BclWipeSpecDir)**" />
   </ItemGroup>
 
   <Target Name="OptimizeMono" DependsOnTargets="OptimizeMonoWasm; OptimizeMonoAsmJs; OptimizeBcl" />
@@ -41,7 +42,7 @@
     <Message Importance="High" Text="Creating optimized BCL build" />
     <Copy SourceFiles="@(BclItemsToCopy)"
           DestinationFiles="@(BclItemsToCopy->'$(MonoOptimizedDir)bcl\%(RecursiveDir)%(FileName)%(Extension)')" />
-    <Exec Command="$(BlazorBuildToolsExe) ilwipe -a &quot;@(BclWipeSpecFiles->'$(MonoIncomingDir)bcl\%(RecursiveDir)%(FileName).dll')&quot; -o &quot;@(BclWipeSpecFiles->'$(MonoOptimizedDir)bcl\%(RecursiveDir)%(FileName).dll')&quot; -s &quot;%(BclWipeSpecFiles.Identity)&quot;"/>
+    <Exec Command="$(BlazorBuildToolsExe) ilwipe -s &quot;$(BclWipeSpecDir.TrimEnd('\'))&quot; -i &quot;$(MonoIncomingDir)bcl&quot; -o &quot;$(MonoOptimizedDir)bcl&quot;" />
   </Target>
 
   <Target Name="BuildMonoEmcc">

@@ -10,36 +10,40 @@ namespace Microsoft.AspNetCore.Blazor.BuildTools.Core.ILWipe
 {
     static class WipeAssembly
     {
-        public static string Exec(string inputPath, string outputPath, string[] specLines, bool logVerbose)
+        public static void Exec(string inputPath, string outputPath, string specFilePath, bool logVerbose)
         {
             if (string.IsNullOrEmpty(outputPath))
             {
                 outputPath = Path.ChangeExtension(inputPath, ".wiped" + Path.GetExtension(inputPath));
             }
 
+            var specLines = File.ReadAllLines(specFilePath);
             var wipeSpecList = new SpecList(specLines);
             var moduleDefinition = ModuleDefinition.ReadModule(inputPath);
-            var createMethodWipedException = MethodWipedExceptionMethod.AddToAssembly(moduleDefinition);
 
-            var contents = AssemblyItem.ListContents(moduleDefinition).ToList();
-            foreach (var contentItem in contents)
+            if (!wipeSpecList.IsEmpty)
             {
-                var shouldWipe = wipeSpecList.Match(contentItem)
-                    && contentItem.Method != createMethodWipedException;
+                var createMethodWipedException = MethodWipedExceptionMethod.AddToAssembly(moduleDefinition);
 
-                if (logVerbose)
+                var contents = AssemblyItem.ListContents(moduleDefinition).ToList();
+                foreach (var contentItem in contents)
                 {
-                    Console.WriteLine($"{(shouldWipe ? "Wiping" : "Retaining")}: {contentItem}");
-                }
+                    var shouldWipe = wipeSpecList.Match(contentItem)
+                        && contentItem.Method != createMethodWipedException;
 
-                if (shouldWipe)
-                {
-                    contentItem.WipeFromAssembly(createMethodWipedException);
+                    if (logVerbose)
+                    {
+                        Console.WriteLine($"{(shouldWipe ? "Wiping" : "Retaining")}: {contentItem}");
+                    }
+
+                    if (shouldWipe)
+                    {
+                        contentItem.WipeFromAssembly(createMethodWipedException);
+                    }
                 }
             }
 
             moduleDefinition.Write(outputPath);
-            return outputPath;
         }
     }
 }

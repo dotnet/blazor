@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Blazor.BuildTools.Core.ILWipe;
 using Microsoft.Extensions.CommandLineUtils;
 
@@ -12,17 +13,17 @@ namespace Microsoft.AspNetCore.Blazor.BuildTools.Cli.Commands
     {
         public static void Command(CommandLineApplication command)
         {
-            command.Description = "Wipes code from the specified assembly.";
+            command.Description = "Wipes code from .NET assemblies.";
             command.HelpOption("-?|-h|--help");
 
-            var assemblyOption = command.Option(
-                "-a|--assembly",
-                "The assembly from which code should be wiped.",
+            var inputDirOption = command.Option(
+                "-i|--input",
+                "The directory containing assemblies from which code should be wiped.",
                 CommandOptionType.SingleValue);
 
             var specFileOption = command.Option(
                 "-s|--spec",
-                "The spec file describing which members to wipe from the assembly.",
+                "The directory containing spec files describing which members to wipe from the assemblies.",
                 CommandOptionType.SingleValue);
 
             var verboseOption = command.Option(
@@ -32,39 +33,54 @@ namespace Microsoft.AspNetCore.Blazor.BuildTools.Cli.Commands
 
             var listOption = command.Option(
                 "-l|--list",
-                "If set, just lists the assembly contents and does not write any other output to disk.",
+                "If set, just writes lists the assembly contents to disk.",
                 CommandOptionType.NoValue);
 
             var outputOption = command.Option(
                 "-o|--output",
-                "The location where the wiped assembly should be written.",
+                "The directory to which the wiped assembly files should be written.",
                 CommandOptionType.SingleValue);
 
             command.OnExecute(() =>
             {
-                var inputPath = GetRequiredOptionValue(assemblyOption);
+                var inputDir = GetRequiredOptionValue(inputDirOption);
+                var outputDir = GetRequiredOptionValue(outputOption);
+                var specDir = GetRequiredOptionValue(specFileOption);
 
-                if (listOption.HasValue())
+                var specFiles = Directory.EnumerateFiles(
+                    specDir, "*.txt",
+                    new EnumerationOptions { RecurseSubdirectories = true });
+
+                foreach (var specFilePath in specFiles)
                 {
-                    foreach (var item in AssemblyItem.ListContents(inputPath))
+                    var specFileRelativePath = Path.GetRelativePath(specDir, specFilePath);
+                    var assemblyRelativePath = Path.ChangeExtension(specFileRelativePath, ".dll");
+                    var inputAssemblyPath = Path.Combine(inputDir, assemblyRelativePath);
+                    var outputAssemblyPath = Path.Combine(outputDir, assemblyRelativePath);
+                    var inputAssemblySize = new FileInfo(inputAssemblyPath).Length;
+
+                    if (listOption.HasValue())
                     {
-                        Console.WriteLine($"{item} {item.CodeSize}");
+                        var outputList = AssemblyItem
+                            .ListContents(inputAssemblyPath)
+                            .Select(item => item.ToString());
+                        File.WriteAllLines(
+                            Path.ChangeExtension(outputAssemblyPath, ".txt"),
+                            outputList);
                     }
-                }
-                else
-                {
-                    var specLines = File.ReadAllLines(GetRequiredOptionValue(specFileOption));
+                    else
+                    {
+                        WipeAssembly.Exec(
+                            inputAssemblyPath,
+                            outputAssemblyPath,
+                            specFilePath,
+                            verboseOption.HasValue());
 
-                    var outputPath = WipeAssembly.Exec(
-                        inputPath,
-                        outputOption.Value(),
-                        specLines,
-                        verboseOption.HasValue());
-
-                    Console.WriteLine(
-                        $" Input: {inputPath} ({FormatFileSize(inputPath)})");
-                    Console.WriteLine(
-                        $"Output: {outputPath} ({FormatFileSize(outputPath)})");
+                        Console.WriteLine(
+                            $"{assemblyRelativePath.PadRight(40)} " +
+                            $"{FormatFileSize(inputAssemblySize)} ==> " +
+                            $"{FormatFileSize(outputAssemblyPath)}");
+                    }
                 }
 
                 return 0;
@@ -78,7 +94,7 @@ namespace Microsoft.AspNetCore.Blazor.BuildTools.Cli.Commands
 
         private static string FormatFileSize(long length)
         {
-            return string.Format("{0:0.##} MB", ((double)length) / (1024*1024));
+            return string.Format("{0:0.000} MB", ((double)length) / (1024*1024));
         }
 
         private static string GetRequiredOptionValue(CommandOption option)
