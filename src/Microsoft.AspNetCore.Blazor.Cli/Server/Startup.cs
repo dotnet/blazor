@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Server;
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Blazor.Cli.Server
             app.UseResponseCompression();
             EnableConfiguredPathbase(app, configuration);
 
-            var clientAssemblyPath = FindClientAssemblyPath(app);
+            var clientAssemblyPath = FindClientAssemblyPath(app, configuration);
             app.UseBlazor(new BlazorOptions { ClientAssemblyPath = clientAssemblyPath });
         }
 
@@ -65,11 +65,12 @@ namespace Microsoft.AspNetCore.Blazor.Cli.Server
             }
         }
 
-        private static string FindClientAssemblyPath(IApplicationBuilder app)
+        private static string FindClientAssemblyPath(IApplicationBuilder app, IConfiguration configuration)
         {
             var env = app.ApplicationServices.GetRequiredService<IHostingEnvironment>();
             var contentRoot = env.ContentRootPath;
-            var binDir = FindClientBinDir(contentRoot);
+            var buildConfiguration = configuration["Configuration"] ?? "Debug";
+            var binDir = FindClientBinDir(contentRoot, buildConfiguration);
             var appName = Path.GetFileName(contentRoot); // TODO: Allow for the possibility that the assembly name has been overridden
             var assemblyPath = Path.Combine(binDir, $"{appName}.dll");
             if (!File.Exists(assemblyPath))
@@ -80,29 +81,15 @@ namespace Microsoft.AspNetCore.Blazor.Cli.Server
             return assemblyPath;
         }
 
-        private static string FindClientBinDir(string clientAppSourceRoot)
+        private static string FindClientBinDir(string clientAppSourceRoot, string buildConfiguration)
         {
-            // As a temporary workaround for https://github.com/aspnet/Blazor/issues/261,
-            // disallow the scenario where there is both a Debug *and* a Release dir.
-            // Only allow there to be one, and that's the one we pick.
-            var debugDirPath = Path.Combine(clientAppSourceRoot, "bin", "Debug");
-            var releaseDirPath = Path.Combine(clientAppSourceRoot, "bin", "Release");
-            var debugDirExists = Directory.Exists(debugDirPath);
-            var releaseDirExists = Directory.Exists(releaseDirPath);
-            if (debugDirExists && releaseDirExists)
-            {
-                throw new InvalidOperationException($"Cannot identify unique bin directory for Blazor app. " +
-                    $"Found both '{debugDirPath}' and '{releaseDirPath}'. Ensure that only one is present on " +
-                    $"disk. This is a temporary limitation (see https://github.com/aspnet/Blazor/issues/261).");
-            }
-
-            if (!(debugDirExists || releaseDirExists))
+            var binDir = Path.Combine(clientAppSourceRoot, "bin", buildConfiguration);
+            var binDirExists = Directory.Exists(binDir);
+            if (!binDirExists)
             {
                 throw new InvalidOperationException($"Cannot find bin directory for Blazor app. " +
-                    $"Neither '{debugDirPath}' nor '{releaseDirPath}' exists on disk. Make sure the project has been built.");
+                    $"Folder '{binDir}' does not exists on disk. Make sure the project has been built.");
             }
-
-            var binDir = debugDirExists ? debugDirPath : releaseDirPath;
 
             var subdirectories = Directory.GetDirectories(binDir);
             if (subdirectories.Length != 1)
