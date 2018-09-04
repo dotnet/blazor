@@ -35,7 +35,7 @@
 
    You can also delete the `nunitlite.dll` from `bcl\`.
 
-1. Check whether the build flags need to be updated. In the `README.md`, the Mono team provides recommended `emcc` arguments. If the git diff shows they have changed since the last version, figure out whether it's applicable to update the `emcc` arguments we're specifying in our `mono.targets` file.
+1. Check whether the build flags need to be updated. In the `README.md`, the Mono team provides recommended `emcc` arguments. If the git diff shows they have changed since the last version, figure out whether it's applicable to update the `emcc` arguments we're specifying in our `mono.csproj` file.
 
 **Commit**
 
@@ -57,7 +57,7 @@ On Windows,
  * `emsdk activate`
  * Verify that `emcc --version` returns 1.38.11 or later
  * In the same command prompt, `cd` to `Blazor\src\mono`
- * `dotnet msbuild mono.targets /t:BuildMonoEmcc`
+ * `dotnet msbuild mono.csproj /t:BuildMonoEmcc`
 
 This will build both the wasm and asm.js binaries.
 
@@ -77,7 +77,7 @@ These are OK, but anything other warnings or errors may imply problems like:
 
  * Your Emscripten toolchain isn't set up correctly
  * You need a newer version of Emscripten, because Mono now depends on it
- * You need to change the `emcc` arguments in `mono.targets`, because something about the incoming binaries now requires it (see whether the Mono drop has changed the recommended args in `incoming\README.md` since the last version)
+ * You need to change the `emcc` arguments in `mono.csproj`, because something about the incoming binaries now requires it (see whether the Mono drop has changed the recommended args in `incoming\README.md` since the last version)
  * Mono has added some new required files that don't fit into the pattern you used when updating the `incoming` directory. Figure out what you need to change/add/remove, and update these instructions.
 
 Review the resulting Git diff. Check that the `.wasm` and `.js` files inside `src\mono\unoptimized` aren't radically bigger than before.
