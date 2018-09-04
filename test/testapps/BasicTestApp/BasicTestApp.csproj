@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 
     <!-- Local alternative to <RunArguments>blazor serve</RunArguments> -->
     <RunCommand>dotnet</RunCommand>
-    <RunArguments>run --project ../../../src/Microsoft.AspNetCore.Blazor.Cli serve --pathbase /subdir</RunArguments>
+    <RunArguments>run --project ../../../src/Microsoft.AspNetCore.Blazor.Cli serve --pathbase /subdir -- --configuration $(Configuration)</RunArguments>
   </PropertyGroup>
 
   <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->

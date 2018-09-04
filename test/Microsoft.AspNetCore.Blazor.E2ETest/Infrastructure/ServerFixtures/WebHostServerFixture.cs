@@ -11,6 +11,12 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures
     {
         private IWebHost _host;
 
+#if DEBUG
+        public string BuildConfiguration { get; set; } = "Debug";
+#else
+        public string BuildConfiguration { get; set; } = "Release";
+#endif
+
         protected override string StartAndGetRootUri()
         {
             _host = CreateWebHost();

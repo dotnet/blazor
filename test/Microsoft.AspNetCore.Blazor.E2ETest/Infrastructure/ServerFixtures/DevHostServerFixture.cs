@@ -22,7 +22,8 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures
             {
                 "--urls", "http://127.0.0.1:0",
                 "--contentroot", ContentRoot,
-                "--pathbase", PathBase
+                "--pathbase", PathBase,
+                "--configuration", BuildConfiguration,
             };
 
             if (!string.IsNullOrEmpty(Environment))

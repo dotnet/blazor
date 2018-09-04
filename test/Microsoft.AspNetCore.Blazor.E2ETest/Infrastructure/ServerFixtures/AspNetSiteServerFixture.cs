@@ -31,6 +31,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures
                 "--urls", "http://127.0.0.1:0",
                 "--contentroot", sampleSitePath,
                 "--environment", Environment.ToString(),
+                "--configuration", BuildConfiguration,
             });
         }
     }
