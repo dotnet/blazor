@@ -1,20 +1,31 @@
 import { platform } from '../Environment';
-import { MethodHandle, System_String, System_Array } from '../Platform/Platform';
+import { MethodHandle, System_String, System_Array, System_Object, Pointer } from '../Platform/Platform';
 const httpClientAssembly = 'Microsoft.AspNetCore.Blazor.Browser';
 const httpClientNamespace = `${httpClientAssembly}.Http`;
 const httpClientTypeName = 'BrowserHttpMessageHandler';
 const httpContentTypeName = 'BrowserHttpContent';
+const httpReadStreamTypeName = 'BrowserHttpReadStream';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
 const pendingResponses = new Map<number, Response>();
+const pendingStreams = new Map<number, ReadableStreamReader>();
+const pendingChunks = new Map<number, Uint8Array>();
 let receiveResponseDataMethod: MethodHandle;
 let receiveResponseMethod: MethodHandle;
+let streamChunkReadMethod: MethodHandle;
 let allocateArrayMethod: MethodHandle;
 
 // These are the functions we're making available for invocation from .NET
 export const internalFunctions = {
+  supportsStreaming,
   sendAsync,
   getResponseData,
-  discardResponse
+  cleanupFetchRequest,
+  readChunk,
+  retrieveChunk
+}
+
+function supportsStreaming(): boolean {
+  return 'body' in Response.prototype && typeof ReadableStream === "function";
 }
 
 async function sendAsync(id: number, body: System_Array<any>, jsonFetchArgs: System_String) {
@@ -136,9 +147,110 @@ function dispatchResponseData(id: number, responseData: System_Array<any> | null
   ]);
 }
 
-function discardResponse(id: number) {
+function cleanupFetchRequest(id: number) {
   pendingResponses.delete(id);
+  const reader = pendingStreams.get(id);
+  if (reader) {
+    pendingStreams.delete(id);
+    reader.cancel();
+  }
+  pendingChunks.delete(id);
 }
+
+async function readChunk(id: number) {
+  let reader = pendingStreams.get(id);
+  if (!reader) {
+    const response = pendingResponses.get(id);
+    if (!response) {
+      dispatchStreamChunkRead(id, null, 'Found no response with id ' + id);
+      return;
+    }
+
+    if (!response.body || !response.body.getReader) {
+      dispatchStreamChunkRead(id, null, 'Streaming responses is not supported');
+      return;
+    }
+    reader = response.body.getReader();
+    pendingStreams.set(id, reader);
+  }
+
+  try {
+    let read = await reader.read();
+
+    // if we're done, signal the end with a zero length read
+    if (read.done) {
+      cleanupFetchRequest(id);
+      dispatchStreamChunkRead(id, 0, null);
+      return;
+    }
+
+    let value: Uint8Array = read.value;
+    pendingChunks.set(id, value);
+    dispatchStreamChunkRead(id, value.byteLength, null);
+  } catch (ex) {
+    if (reader) {
+      reader.cancel();
+    }
+    dispatchStreamChunkRead(id, null, ex.toString());
+    return;
+  }
+}
+
+function retrieveChunk(id: number, arraySpan: System_Object) {
+  let chunk = pendingChunks.get(id);
+  if (!chunk) {
+    throw new Error('Found no response with id ' + id);
+  }
+
+  let ptr = platform.getObjectFieldsBaseAddress(arraySpan);
+  let buffer = arraySpanReader.buffer(ptr);
+  let offset = arraySpanReader.offset(ptr);
+  let count = arraySpanReader.count(ptr);
+  let array = platform.toUint8Array(buffer);
+
+  // slice our buffer according to offset and count
+  if (offset > 0 || count != array.byteLength) {
+    array = new Uint8Array(array.buffer, array.byteOffset + offset, count);
+  }
+
+  // if we've received more data than we're going to read for now
+  if (chunk.byteLength > count) {
+    // requeue the leftover
+    pendingChunks.set(id, new Uint8Array(chunk.buffer, chunk.byteOffset + count, chunk.byteLength - count));
+    // prepare a correctly sized chunk for copying
+    chunk = new Uint8Array(chunk.buffer, chunk.byteOffset, count);
+  }
+  else {
+    // we're reading the entire chunk, dequeue it
+    pendingChunks.delete(id);
+  }
+
+  array.set(chunk);
+}
+
+function dispatchStreamChunkRead(id: number, bytesRead: number | null, errorText: string | null) {
+  if (!streamChunkReadMethod) {
+    streamChunkReadMethod = platform.findMethod(
+      httpClientAssembly,
+      httpClientNamespace,
+      httpReadStreamTypeName,
+      'StreamChunkRead'
+    );
+  }
+
+  platform.callMethod(streamChunkReadMethod, null, [
+    platform.toDotNetString(id.toString()),
+    bytesRead !== null ? platform.toDotNetString(bytesRead.toString()) : null,
+    errorText !== null ? platform.toDotNetString(errorText) : null
+  ]);
+}
+
+// Keep in sync with memory layout in ArraySpan
+const arraySpanReader = {
+  buffer: (arraySpan: Pointer) => platform.readObjectField<System_Array<any>>(arraySpan, 0),
+  offset: (arraySpan: Pointer) => platform.readInt32Field(arraySpan, 4),
+  count: (arraySpan: Pointer) => platform.readInt32Field(arraySpan, 8),
+};
 
 // Keep these in sync with the .NET equivalent in BrowserHttpMessageHandler.cs
 interface FetchOptions {

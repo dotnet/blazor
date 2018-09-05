@@ -25,6 +25,16 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         public static FetchCredentialsOption DefaultCredentials { get; set; }
             = FetchCredentialsOption.SameOrigin;
 
+        /// <summary>
+        /// Gets whether the current Browser supports streaming responses
+        /// </summary>
+        public static bool StreamingSupported { get; }
+
+        /// <summary>
+        /// Gets or sets whether responses should be streamed if supported
+        /// </summary>
+        public static bool StreamingEnabled { get; set; }
+
         static readonly object _idLock = new object();
         static int _nextRequestId = 0;
         static IDictionary<int, TaskCompletionSource<HttpResponseMessage>> _pendingRequests
@@ -35,6 +45,14 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
         /// to control the arguments passed to the underlying JavaScript <code>fetch</code> API.
         /// </summary>
         public const string FetchArgs = "BrowserHttpMessageHandler.FetchArgs";
+
+        static BrowserHttpMessageHandler()
+        {
+            if (JSRuntime.Current is MonoWebAssemblyJSRuntime mono)
+            {
+                StreamingSupported = mono.InvokeUnmarshalled<bool>("Blazor._internal.http.supportsStreaming");
+            }
+        }
 
         /// <inheritdoc />
         protected override async Task<HttpResponseMessage> SendAsync(
@@ -106,7 +124,9 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
             else
             {
                 var responseDescriptor = Json.Deserialize<ResponseDescriptor>(responseDescriptorJson);
-                var responseContent = new BrowserHttpContent(idVal);
+                var responseContent = StreamingSupported && StreamingEnabled
+                    ? new StreamContent(new BrowserHttpReadStream(idVal))
+                    : (HttpContent)new BrowserHttpContent(idVal);
                 var responseMessage = responseDescriptor.ToResponseMessage(responseContent);
                 tcs.SetResult(responseMessage);
             }

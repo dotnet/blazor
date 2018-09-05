@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.JSInterop;
@@ -67,12 +67,12 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
             }
         }
 
-        private void DiscardResponse()
+        private void CleanupFetchRequest()
         {
             if (_data == null)
             {
                 ((MonoWebAssemblyJSRuntime)JSRuntime.Current).InvokeUnmarshalled<int, object>(
-                    "Blazor._internal.http.discardResponse",
+                    "Blazor._internal.http.cleanupFetchRequest",
                     _requestId);
             }
         }
@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
 
         protected override void Dispose(bool disposing)
         {
-            DiscardResponse();
+            CleanupFetchRequest();
             base.Dispose(disposing);
         }
 
