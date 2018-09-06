@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -140,13 +141,26 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             }
         }
 
-        private void IssueRequest(string requestMethod, string relativeUri, string requestBody = null)
+        [Fact]
+        public void CanBeCancelled()
+        {
+            var sw = Stopwatch.StartNew();
+            IssueRequest("GET", "/api/slow/sayhello?delay=30000", cancelAfter: 3_000);
+            sw.Stop();
+
+            Assert.True(sw.ElapsedMilliseconds < 10_000, "Did not cancel in time");
+            Assert.Equal("SeeOther", _responseStatus.Text);
+            Assert.StartsWith("A task was canceled", _responseBody.Text);
+        }
+
+        private void IssueRequest(string requestMethod, string relativeUri, string requestBody = null, int? cancelAfter = null)
         {
             var targetUri = new Uri(_apiServerFixture.RootUri, relativeUri);
             SetValue("request-uri", targetUri.AbsoluteUri);
             SetValue("request-body", requestBody ?? string.Empty);
             new SelectElement(Browser.FindElement(By.Id("request-method")))
                 .SelectByText(requestMethod);
+            SetValue("cancel-after", cancelAfter?.ToString() ?? string.Empty);
 
             _appElement.FindElement(By.Id("send-request")).Click();
 

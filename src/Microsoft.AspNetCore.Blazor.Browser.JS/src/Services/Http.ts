@@ -6,6 +6,7 @@ const httpClientTypeName = 'BrowserHttpMessageHandler';
 const httpContentTypeName = 'BrowserHttpContent';
 const httpReadStreamTypeName = 'BrowserHttpReadStream';
 const httpClientFullTypeName = `${httpClientNamespace}.${httpClientTypeName}`;
+const abortControllers = new Map<number, AbortController>();
 const pendingResponses = new Map<number, Response>();
 const pendingStreams = new Map<number, ReadableStreamReader>();
 const pendingChunks = new Map<number, Uint8Array>();
@@ -21,7 +22,8 @@ export const internalFunctions = {
   getResponseData,
   cleanupFetchRequest,
   readChunk,
-  retrieveChunk
+  retrieveChunk,
+  cancelRequest
 }
 
 function supportsStreaming(): boolean {
@@ -33,6 +35,10 @@ async function sendAsync(id: number, body: System_Array<any>, jsonFetchArgs: Sys
 
   const fetchOptions: FetchOptions = JSON.parse(platform.toJavaScriptString(jsonFetchArgs));
   const requestInit: RequestInit = Object.assign(fetchOptions.requestInit, fetchOptions.requestInitOverrides);
+
+  const controller = new AbortController();
+  requestInit.signal = controller.signal;
+  abortControllers.set(id, controller);
 
   if (body) {
     requestInit.body = platform.toUint8Array(body);
@@ -155,6 +161,7 @@ function cleanupFetchRequest(id: number) {
     reader.cancel();
   }
   pendingChunks.delete(id);
+  abortControllers.delete(id);
 }
 
 async function readChunk(id: number) {
@@ -243,6 +250,13 @@ function dispatchStreamChunkRead(id: number, bytesRead: number | null, errorText
     bytesRead !== null ? platform.toDotNetString(bytesRead.toString()) : null,
     errorText !== null ? platform.toDotNetString(errorText) : null
   ]);
+}
+
+function cancelRequest(id: number) {
+  const controller = abortControllers.get(id);
+  if (controller) {
+    controller.abort();
+  }
 }
 
 // Keep in sync with memory layout in ArraySpan

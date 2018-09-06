@@ -59,7 +59,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<HttpResponseMessage>();
-            cancellationToken.Register(() => tcs.TrySetCanceled());
 
             int id;
             lock (_idLock)
@@ -67,6 +66,12 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
                 id = _nextRequestId++;
                 _pendingRequests.Add(id, tcs);
             }
+
+            cancellationToken.Register(() =>
+            {
+                CancelRequest(id);
+                tcs.TrySetCanceled();
+            });
 
             var options = new FetchOptions();
             if (request.Properties.TryGetValue(FetchArgs, out var fetchArgs))
@@ -97,6 +102,13 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Http
             }
 
             return await tcs.Task;
+        }
+
+        private void CancelRequest(int id)
+        {
+            ((MonoWebAssemblyJSRuntime)JSRuntime.Current).InvokeUnmarshalled<int, object>(
+                "Blazor._internal.http.cancelRequest",
+                id);
         }
 
         private string[][] GetHeadersAsStringArray(HttpRequestMessage request)

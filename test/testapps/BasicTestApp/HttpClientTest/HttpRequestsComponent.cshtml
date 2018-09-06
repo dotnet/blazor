@@ -1,5 +1,6 @@
-﻿@using System.Net
+@using System.Net
 @using System.Net.Http
+@using System.Threading
 @using Microsoft.AspNetCore.Blazor.Browser.Http
 @inject HttpClient Http
 
@@ -18,6 +19,11 @@
         <option value="PUT">PUT</option>
         <option value="DELETE">DELETE</option>
     </select>
+</p>
+
+<p>
+    <div>Cancel after:</div>
+    <input id="cancel-after" bind="@cancelAfter" size="60"/>
 </p>
 
 <p>
@@ -63,6 +69,7 @@
 @functions {
     string uri = "http://api.icndb.com/jokes/random";
     string method = "GET";
+    string cancelAfter = "";
     string requestBody = "";
     List<RequestHeader> requestHeaders = new List<RequestHeader>();
     string requestReferrer = "";
@@ -111,7 +118,13 @@
                 };
             }
 
-            var response = await Http.SendAsync(requestMessage);
+            var cts = new CancellationTokenSource();
+            if (int.TryParse(cancelAfter, out int timeout))
+            {
+                cts.CancelAfter(timeout);
+            }
+
+            var response = await Http.SendAsync(requestMessage, cts.Token);
             responseStatusCode = response.StatusCode;
             responseBody = await response.Content.ReadAsStringAsync();
             var allHeaders = response.Headers.Concat(response.Content?.Headers
