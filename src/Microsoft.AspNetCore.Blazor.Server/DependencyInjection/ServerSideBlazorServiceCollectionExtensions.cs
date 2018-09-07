@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Blazor.Hosting;
+using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Blazor.Server.Circuits;
 using Microsoft.AspNetCore.Blazor.Services;
 using Microsoft.JSInterop;
@@ -88,7 +89,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // TStartup's Configure method".
                 services.Configure<DefaultCircuitFactoryOptions>(circuitFactoryOptions =>
                 {
-                    var endpoint = "/_blazor"; // TODO: Put into a const or get from options
+                    var endpoint = BlazorHub.DefaultPath; // TODO: allow configuring this
                     if (circuitFactoryOptions.StartupActions.ContainsKey(endpoint))
                     {
                         throw new InvalidOperationException(
