@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,8 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
 {
     internal class BlazorHub : Hub
     {
+        public static PathString DefaultPath => "/_blazor";
+
         private static readonly object CircuitKey = new object();
 
         private readonly CircuitFactory _circuitFactory;
