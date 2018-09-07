@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Blazor.Server;
-using Microsoft.AspNetCore.Blazor.Server.Circuits;
 using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Builder
@@ -27,6 +26,11 @@ namespace Microsoft.AspNetCore.Builder
             {
                 throw new ArgumentNullException(nameof(builder));
             }
+
+            // WARNING: Don't add extra setup logic here. It's important for
+            // UseServerSideBlazor just to be shorthand for UseSignalR+UseBlazor,
+            // so that people who want to call those two manually instead can
+            // also do so. That's needed for people using Azure SignalR.
 
             // TODO: Also allow configuring the endpoint path.
             return UseSignalR(builder, BlazorHub.DefaultPath)
@@ -53,14 +57,17 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(options));
             }
 
+            // WARNING: Don't add extra setup logic here. It's important for
+            // UseServerSideBlazor just to be shorthand for UseSignalR+UseBlazor,
+            // so that people who want to call those two manually instead can
+            // also do so. That's needed for people using Azure SignalR.
+
             // TODO: Also allow configuring the endpoint path.
             return UseSignalR(builder, BlazorHub.DefaultPath)
                 .UseBlazor(options);
         }
 
-        private static IApplicationBuilder UseSignalR(
-            IApplicationBuilder builder,
-            PathString path)
+        private static IApplicationBuilder UseSignalR(IApplicationBuilder builder, PathString path)
         {
             return builder.UseSignalR(route => route.MapHub<BlazorHub>(BlazorHub.DefaultPath));
         }
