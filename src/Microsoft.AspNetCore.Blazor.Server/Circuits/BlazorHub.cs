@@ -11,35 +11,49 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Circuits
 {
-    internal class BlazorHub : Hub
+    /// <summary>
+    /// A SignalR hub that accepts connections to a Server-Side Blazor app.
+    /// </summary>
+    public class BlazorHub : Hub
     {
-        public static PathString DefaultPath => "/_blazor";
-
         private static readonly object CircuitKey = new object();
-
         private readonly CircuitFactory _circuitFactory;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Constructs an instance of <see cref="BlazorHub"/>.
+        /// </summary>
+        /// <param name="logger">The <see cref="ILogger{BlazorHub}"/>.</param>
+        /// <param name="services">The service provider.</param>
         public BlazorHub(
             ILogger<BlazorHub> logger,
-            CircuitFactory circuitFactory)
+            IServiceProvider services)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _circuitFactory = circuitFactory ?? throw new ArgumentNullException(nameof(circuitFactory));
+            _circuitFactory = services.GetRequiredService<CircuitFactory>();
         }
 
-        public CircuitHost CircuitHost
+        /// <summary>
+        /// Gets the default endpoint path for incoming connections.
+        /// </summary>
+        public static PathString DefaultPath => "/_blazor";
+
+        private CircuitHost CircuitHost
         {
             get => (CircuitHost)Context.Items[CircuitKey];
             set => Context.Items[CircuitKey] = value;
         }
 
+        /// <inheritdoc />
         public override Task OnDisconnectedAsync(Exception exception)
         {
             CircuitHost.Dispose();
             return base.OnDisconnectedAsync(exception);
         }
 
+        /// <summary>
+        /// Invoked by framework code. Not intended for use by applications.
+        /// </summary>
         public async Task StartCircuit(string uriAbsolute, string baseUriAbsolute)
         {
             var circuitHost = _circuitFactory.CreateCircuitHost(Context.GetHttpContext(), Clients.Caller);
@@ -53,7 +67,10 @@ namespace Microsoft.AspNetCore.Blazor.Server.Circuits
             await circuitHost.InitializeAsync();
             CircuitHost = circuitHost;
         }
-        
+
+        /// <summary>
+        /// Invoked by framework code. Not intended for use by applications.
+        /// </summary>
         public void BeginInvokeDotNetFromJS(string callId, string assemblyName, string methodIdentifier, long dotNetObjectId, string argsJson)
         {
             EnsureCircuitHost().BeginInvokeDotNetFromJS(callId, assemblyName, methodIdentifier, dotNetObjectId, argsJson);
