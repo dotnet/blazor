@@ -22,18 +22,18 @@ Document -
                     IntermediateToken -  - CSharp - base.BuildRenderTree(builder);
                 HtmlContent - (29:0,29 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (29:0,29 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
-                CSharpCode - (33:1,2 [33] x:\dir\subdir\Test\TestComponent.cshtml)
-                    IntermediateToken - (33:1,2 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderFragment<string> header = 
-                Template - (67:1,36 [37] x:\dir\subdir\Test\TestComponent.cshtml)
-                    HtmlElement - (67:1,36 [38] x:\dir\subdir\Test\TestComponent.cshtml) - div
-                        CSharpExpression - (73:1,42 [26] x:\dir\subdir\Test\TestComponent.cshtml)
-                            IntermediateToken - (73:1,42 [26] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.ToLowerInvariant()
-                CSharpCode - (105:1,74 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    IntermediateToken - (105:1,74 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ; 
-                ComponentExtensionNode - (110:2,0 [62] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
+                CSharpCode - (33:1,2 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (33:1,2 [46] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderFragment<string> header = (context) => 
+                Template - (80:1,49 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+                    HtmlElement - (80:1,49 [38] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                        CSharpExpression - (86:1,55 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (86:1,55 [26] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.ToLowerInvariant()
+                CSharpCode - (118:1,87 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (118:1,87 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ; 
+                ComponentExtensionNode - (123:2,0 [62] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
                     ComponentChildContent -  - ChildContent
-                        HtmlContent - (138:2,28 [20] x:\dir\subdir\Test\TestComponent.cshtml)
-                            IntermediateToken - (138:2,28 [20] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    Some Content\n
-                    ComponentAttributeExtensionNode - (130:2,20 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header
-                        CSharpExpression - (131:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                            IntermediateToken - (131:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - header
+                        HtmlContent - (151:2,28 [20] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (151:2,28 [20] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    Some Content\n
+                    ComponentAttributeExtensionNode - (143:2,20 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header
+                        CSharpExpression - (144:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (144:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - header

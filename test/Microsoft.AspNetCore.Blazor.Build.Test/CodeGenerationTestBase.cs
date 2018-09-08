@@ -691,7 +691,7 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @addTagHelper *, TestAssembly
-@{ RenderFragment<string> header = @<div>@context.ToLowerInvariant()</div>; }
+@{ RenderFragment<string> header = (context) => @<div>@context.ToLowerInvariant()</div>; }
 <MyComponent Header=@header>
     Some Content
 </MyComponent>");
@@ -729,7 +729,7 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @addTagHelper *, TestAssembly
-@{ RenderFragment<string> header = @<div>@context.ToLowerInvariant()</div>; }
+@{ RenderFragment<string> header = (context) => @<div>@context.ToLowerInvariant()</div>; }
 <MyComponent Header=@header>
   <ChildContent>Some Content</ChildContent>
   <Footer>Bye!</Footer>
@@ -1200,7 +1200,7 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @{
-    RenderFragment<Person> p = @<div>@context.Name</div>;
+    RenderFragment<Person> p = (person) => @<div>@person.Name</div>;
 }
 @functions {
     class Person
@@ -1222,7 +1222,7 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@(RenderPerson(@<div>@context.Name</div>))
+@(RenderPerson((person) => @<div>@person.Name</div>))
 @functions {
     class Person
     {
@@ -1237,15 +1237,33 @@ namespace Test
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
             CompileToAssembly(generated);
         }
-
+        
         [Fact]
-        public void RazorTemplate_InImplicitExpression()
+        public void RazorTemplate_NonGeneric_InImplicitExpression()
         {
             // Arrange
 
             // Act
             var generated = CompileToCSharp(@"
-@RenderPerson(@<div>@context.Name</div>)
+@RenderPerson(@<div>HI</div>)
+@functions {
+    object RenderPerson(RenderFragment p) => null;
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void RazorTemplate_Generic_InImplicitExpression()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+@RenderPerson((person) => @<div>@person.Name</div>)
 @functions {
     class Person
     {
@@ -1281,7 +1299,7 @@ namespace Test
             var generated = CompileToCSharp(@"
 @addTagHelper ""*, TestAssembly""
 @{
-    RenderFragment<Person> p = @<div><MyComponent Name=""@context.Name""/></div>;
+    RenderFragment<Person> p = (person) => @<div><MyComponent Name=""@person.Name""/></div>;
 }
 @functions {
     class Person
@@ -1317,7 +1335,7 @@ namespace Test
             var generated = CompileToCSharp(@"
 @addTagHelper ""*, TestAssembly""
 @{
-    RenderFragment<Person> p = @<div><MyComponent Name=""@context.Name""/></div>;
+    RenderFragment<Person> p = (person) => @<div><MyComponent Name=""@person.Name""/></div>;
 }
 <MyComponent>
 @(""hello, world!"")
@@ -1337,7 +1355,37 @@ namespace Test
         }
 
         [Fact]
-        public void RazorTemplate_AsComponentParameter()
+        public void RazorTemplate_NonGeneric_AsComponentParameter()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter] RenderFragment Template { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper ""*, TestAssembly""
+@{ RenderFragment template = @<div>Joey</div>; }
+<MyComponent Person=""@template""/>
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void RazorTemplate_Generic_AsComponentParameter()
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
@@ -1361,7 +1409,7 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @addTagHelper ""*, TestAssembly""
-@{ RenderFragment<Person> template = @<div>@context.Name</div>; }
+@{ RenderFragment<Person> template = (person) => @<div>@person.Name</div>; }
 <MyComponent PersonTemplate=""@template""/>
 ");
 
@@ -1397,7 +1445,7 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 @addTagHelper ""*, TestAssembly""
-@{ RenderFragment<Test.Context> template = @<li>#@context.Index - @context.Item.ToLower()</li>; }
+@{ RenderFragment<Test.Context> template = (context) => @<li>#@context.Index - @context.Item.ToLower()</li>; }
 <MyComponent Template=""@template""/>
 ");
 

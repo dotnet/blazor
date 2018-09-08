@@ -31,6 +31,28 @@ namespace Test
 }
 ");
 
+        private readonly CSharpSyntaxTree RenderChildContentStringComponent = Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Blazor.RenderTree;
+namespace Test
+{
+    public class RenderChildContentString : BlazorComponent
+    {
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.AddContent(0, ChildContent, Value);
+        }
+
+        [Parameter]
+        RenderFragment<string> ChildContent { get; set; }
+
+        [Parameter]
+        string Value { get; set; }
+    }
+}
+");
+
         private readonly CSharpSyntaxTree RenderMultipleChildContent = Parse(@"
 using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -148,8 +170,55 @@ namespace Test
 
             var component = CompileToComponent(@"
 @addTagHelper *, TestAssembly
-@{ RenderFragment<string> template = @<div>@context.ToLowerInvariant()</div>; }
-<RenderChildContent ChildContent=""@template.WithValue(""HI"")"" />");
+@{ RenderFragment<string> template = (context) => @<div>@context.ToLowerInvariant()</div>; }
+<RenderChildContent ChildContent=""@template(""HI"")"" />");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Component(frame, "Test.RenderChildContent", 2, 2),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 3),
+                frame => AssertFrame.Element(frame, "div", 2, 0),
+                frame => AssertFrame.Text(frame, "hi", 1));
+        }
+
+        [Fact]
+        public void Render_AttributeChildContent_RenderFragmentOfString()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentStringComponent);
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+@{ RenderFragment<string> template = (context) => @<div>@context.ToLowerInvariant()</div>; }
+<RenderChildContentString ChildContent=""@template"" Value=""HI"" />");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Component(frame, "Test.RenderChildContentString", 3, 2),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 3),
+                frame => AssertFrame.Attribute(frame, "Value", "HI", 4),
+                frame => AssertFrame.Element(frame, "div", 2, 0),
+                frame => AssertFrame.Text(frame, "hi", 1));
+        }
+
+        [Fact]
+        public void Render_AttributeChildContent_NoArgTemplate()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentComponent);
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+@{ RenderFragment template = @<div>@(""HI"".ToLowerInvariant())</div>; }
+<RenderChildContent ChildContent=""@template"" />");
 
             // Act
             var frames = GetRenderTree(component);
@@ -171,8 +240,8 @@ namespace Test
 
             var component = CompileToComponent(@"
 @addTagHelper *, TestAssembly
-@{ RenderFragment<string> template = @<div>@context.ToLowerInvariant()</div>; }
-<RenderChildContent ChildContent=""@template.WithValue(""HI"")""></RenderChildContent>");
+@{ RenderFragment<string> template = (context) => @<div>@context.ToLowerInvariant()</div>; }
+<RenderChildContent ChildContent=""@template(""HI"")""></RenderChildContent>");
 
             // Act
             var frames = GetRenderTree(component);
@@ -194,8 +263,8 @@ namespace Test
 
             var component = CompileToComponent(@"
 @addTagHelper *, TestAssembly
-@{ RenderFragment<string> template = @<div>@context.ToLowerInvariant()</div>; }
-<RenderChildContent ChildContent=""@template.WithValue(""HI"")"">
+@{ RenderFragment<string> template = (context) => @<div>@context.ToLowerInvariant()</div>; }
+<RenderChildContent ChildContent=""@template(""HI"")"">
        
 </RenderChildContent>");
 
@@ -219,7 +288,7 @@ namespace Test
 
             var component = CompileToComponent(@"
 @addTagHelper *, TestAssembly
-@{ RenderFragment<string> header = @<div>@context.ToLowerInvariant()</div>; }
+@{ RenderFragment<string> header = context => @<div>@context.ToLowerInvariant()</div>; }
 <RenderMultipleChildContent Name=""billg"" Header=@header>
   <ChildContent>Some @(0) Content</ChildContent>
   <Footer>Bye!</Footer>

@@ -462,11 +462,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(node));
             }
 
-            // Since the user doesn't write this name themselves, we have to use something hardcoded
-            // and predicatable.
-            const string VariableName = "context";
-
-            _scopeStack.OpenTemplateScope(context, VariableName);
+            _scopeStack.OpenTemplateScope(context);
             context.RenderChildren(node);
             _scopeStack.CloseScope(context);
         }

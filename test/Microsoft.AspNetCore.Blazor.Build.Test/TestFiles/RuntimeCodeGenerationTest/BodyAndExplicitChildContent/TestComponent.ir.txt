@@ -10,23 +10,23 @@ Document -
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - 
                     IntermediateToken -  - CSharp - base.BuildRenderTree(builder);
-                CSharpCode - (33:1,2 [33] x:\dir\subdir\Test\TestComponent.cshtml)
-                    IntermediateToken - (33:1,2 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderFragment<string> header = 
-                Template - (67:1,36 [37] x:\dir\subdir\Test\TestComponent.cshtml)
-                    HtmlElement - (67:1,36 [38] x:\dir\subdir\Test\TestComponent.cshtml) - div
-                        CSharpExpression - (73:1,42 [26] x:\dir\subdir\Test\TestComponent.cshtml)
-                            IntermediateToken - (73:1,42 [26] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.ToLowerInvariant()
-                CSharpCode - (105:1,74 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    IntermediateToken - (105:1,74 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ; 
-                ComponentExtensionNode - (110:2,0 [114] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
+                CSharpCode - (33:1,2 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (33:1,2 [46] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderFragment<string> header = (context) => 
+                Template - (80:1,49 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+                    HtmlElement - (80:1,49 [38] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                        CSharpExpression - (86:1,55 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (86:1,55 [26] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.ToLowerInvariant()
+                CSharpCode - (118:1,87 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (118:1,87 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ; 
+                ComponentExtensionNode - (123:2,0 [114] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
                     ComponentChildContent -  - ChildContent
                         TagHelperBody - 
-                            HtmlContent - (156:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml)
-                                IntermediateToken - (156:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Some Content
+                            HtmlContent - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+                                IntermediateToken - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Some Content
                     ComponentChildContent -  - Footer
                         TagHelperBody - 
-                            HtmlContent - (195:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                                IntermediateToken - (195:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Bye!
-                    ComponentAttributeExtensionNode - (130:2,20 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header
-                        CSharpExpression - (131:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                            IntermediateToken - (131:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - header
+                            HtmlContent - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                                IntermediateToken - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Bye!
+                    ComponentAttributeExtensionNode - (143:2,20 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header
+                        CSharpExpression - (144:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (144:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - header

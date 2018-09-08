@@ -16,17 +16,17 @@ namespace Test
         {
             base.BuildRenderTree(builder);
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-   RenderFragment<string> header = 
+   RenderFragment<string> header = (context) => 
 
 #line default
 #line hidden
-            (builder2, context) => {
+            (builder2) => {
                 builder2.OpenElement(0, "div");
                 builder2.AddContent(1, context.ToLowerInvariant());
                 builder2.CloseElement();
             }
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                          ; 
+                                                                                       ; 
 
 #line default
 #line hidden

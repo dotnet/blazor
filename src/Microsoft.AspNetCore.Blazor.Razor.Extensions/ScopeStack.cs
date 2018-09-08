@@ -38,14 +38,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             scope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
         }
 
-        public void OpenTemplateScope(CodeRenderingContext context, string variableName)
+        public void OpenTemplateScope(CodeRenderingContext context)
         {
             var currentScope = new ScopeEntry("__template", ScopeKind.Template);
             _stack.Push(currentScope);
 
             // Templates always get a lambda scope, because they are defined as a lambda.
             OffsetBuilderVarNumber(1);
-            currentScope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName, variableName);
+            currentScope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
 
         }
 
