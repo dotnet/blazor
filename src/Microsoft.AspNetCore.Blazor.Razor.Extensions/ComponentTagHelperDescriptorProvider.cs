@@ -244,7 +244,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         kind = PropertyKind.Enum;
                     }
 
-                    if (kind == PropertyKind.Default && property.Type.ToDisplayString() == BlazorApi.RenderFragment.FullTypeName)
+                    if (kind == PropertyKind.Default && property.Type == symbols.RenderFragment)
                     {
                         kind = PropertyKind.ChildContent;
                     }
@@ -252,7 +252,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     if (kind == PropertyKind.Default &&
                         property.Type is INamedTypeSymbol namedType &&
                         namedType.IsGenericType &&
-                        namedType.ConstructUnboundGenericType().ToDisplayString() == BlazorApi.RenderFragmentOfT.FullTypeName)
+                        namedType.ConstructedFrom == symbols.RenderFragmentOfT)
                     {
                         kind = PropertyKind.ChildContent;
                     }
@@ -286,7 +286,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             public static BlazorSymbols Create(Compilation compilation)
             {
                 var symbols = new BlazorSymbols();
-                symbols.BlazorComponent = compilation.GetTypeByMetadataName(BlazorApi.BlazorComponent.FullTypeName);
+                symbols.BlazorComponent = compilation.GetTypeByMetadataName(BlazorApi.BlazorComponent.MetadataName);
                 if (symbols.BlazorComponent == null)
                 {
                     // No definition for BlazorComponent, nothing to do.
@@ -300,11 +300,23 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     return null;
                 }
 
-                symbols.ParameterAttribute = compilation.GetTypeByMetadataName(BlazorApi.ParameterAttribute.FullTypeName);
+                symbols.ParameterAttribute = compilation.GetTypeByMetadataName(BlazorApi.ParameterAttribute.MetadataName);
                 if (symbols.ParameterAttribute == null)
                 {
                     // No definition for [Parameter], nothing to do.
                     return null;
+                }
+
+                symbols.RenderFragment = compilation.GetTypeByMetadataName(BlazorApi.RenderFragment.MetadataName);
+                if (symbols.RenderFragment == null)
+                {
+                    // No definition for RenderFragment, nothing to do.
+                }
+
+                symbols.RenderFragmentOfT = compilation.GetTypeByMetadataName(BlazorApi.RenderFragmentOfT.MetadataName);
+                if (symbols.RenderFragmentOfT == null)
+                {
+                    // No definition for RenderFragment, nothing to do.
                 }
 
                 return symbols;
@@ -319,6 +331,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             public INamedTypeSymbol IComponent { get; private set; }
 
             public INamedTypeSymbol ParameterAttribute { get; private set; }
+
+            public INamedTypeSymbol RenderFragment { get; private set; }
+
+            public INamedTypeSymbol RenderFragmentOfT { get; private set; }
         }
 
         private class ComponentTypeVisitor : SymbolVisitor
