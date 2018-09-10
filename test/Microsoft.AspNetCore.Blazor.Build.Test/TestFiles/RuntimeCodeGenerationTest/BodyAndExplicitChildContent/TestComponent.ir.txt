@@ -20,13 +20,11 @@ Document -
                     IntermediateToken - (118:1,87 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ; 
                 ComponentExtensionNode - (123:2,0 [114] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
                     ComponentChildContent -  - ChildContent
-                        TagHelperBody - 
-                            HtmlContent - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml)
-                                IntermediateToken - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Some Content
+                        HtmlContent - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Some Content
                     ComponentChildContent -  - Footer
-                        TagHelperBody - 
-                            HtmlContent - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                                IntermediateToken - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Bye!
+                        HtmlContent - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Bye!
                     ComponentAttributeExtensionNode - (143:2,20 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header
                         CSharpExpression - (144:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (144:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - header

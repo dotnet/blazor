@@ -496,7 +496,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 context,
                 node.AttributeName,
                 node.TypeName,
-                node.ParameterName);
+                node.IsParameterized ? node.ParameterName : null);
             for (var i = 0; i < node.Children.Count; i++)
             {
                 context.RenderNode(node.Children[i]);

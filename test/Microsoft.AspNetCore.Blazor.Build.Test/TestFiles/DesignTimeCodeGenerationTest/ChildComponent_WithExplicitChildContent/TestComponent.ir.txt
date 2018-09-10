@@ -24,6 +24,5 @@ Document -
                     IntermediateToken - (29:0,29 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 ComponentExtensionNode - (31:1,0 [61] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
                     ComponentChildContent -  - ChildContent
-                        TagHelperBody - 
-                            HtmlContent - (58:1,27 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-                                IntermediateToken - (58:1,27 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - hello
+                        HtmlContent - (58:1,27 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (58:1,27 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - hello

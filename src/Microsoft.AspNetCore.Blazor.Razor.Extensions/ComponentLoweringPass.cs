@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
@@ -208,21 +209,79 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
                     return false;
                 }
+            }
 
-                ComponentChildContentIntermediateNode RewriteChildContent(BoundAttributeDescriptor attribute, IntermediateNodeCollection children)
+            private ComponentChildContentIntermediateNode RewriteChildContent(BoundAttributeDescriptor attribute, IntermediateNodeCollection children)
+            {
+                var childContent = new ComponentChildContentIntermediateNode()
                 {
-                    var childContent = new ComponentChildContentIntermediateNode()
-                    {
-                        BoundAttribute = attribute,
-                    };
+                    BoundAttribute = attribute,
+                };
 
-                    for (var i = 0; i < children.Count; i++)
+                // There are two cases here:
+                // 1. Implicit child content - the children will be non-taghelper nodes, just accept them
+                // 2. Explicit child content - the children will be various tag helper nodes, that need special processing.
+                for (var i = 0; i < children.Count; i++)
+                {
+                    var child = children[i];
+                    if (child is TagHelperBodyIntermediateNode body)
                     {
-                        childContent.Children.Add(children[i]);
+                        // The body is all of the content we want to render, the rest of the childen will
+                        // be the attributes.
+                        for (var j = 0; j < body.Children.Count; j++)
+                        {
+                            childContent.Children.Add(body.Children[j]);
+                        }
                     }
+                    else if (child is TagHelperPropertyIntermediateNode property)
+                    {
+                        if (property.BoundAttribute.Kind == BlazorMetadata.ChildContent.TagHelperKind)
+                        {
+                            // Check for each child content with a parameter name, that the parameter name is specified
+                            // with literal text. For instance, the following is not allowed and should generate a diagnostic.
+                            //
+                            // <MyComponent><ChildContent Context="@Foo()">...</ChildContent></MyComponent>
+                            if (TryGetAttributeStringContent(property, out var parameterName))
+                            {
+                                childContent.ParameterName = parameterName;
+                                continue;
+                            }
 
-                    return childContent;
+                            // The parameter name is invalid.
+                            childContent.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentHasInvalidParameter(property.Source, property.AttributeName, attribute.Name));
+                            continue;
+                        }
+
+                        // This is an unrecognized attribute, this is possible if you try to do something like put 'ref' on a child content.
+                        childContent.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentHasInvalidAttribute(property.Source, property.AttributeName, attribute.Name));
+                    }
+                    else if (child is TagHelperHtmlAttributeIntermediateNode a)
+                    {
+                        // This is an HTML attribute on a child content.
+                        childContent.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentHasInvalidAttribute(a.Source, a.AttributeName, attribute.Name));
+                    }
+                    else
+                    {
+                        // This is some other kind of node (likely an implicit child content)
+                        childContent.Children.Add(child);
+                    }
                 }
+
+                return childContent;
+            }
+
+            private bool TryGetAttributeStringContent(TagHelperPropertyIntermediateNode property, out string content)
+            {
+                // The success path looks like - a single HTML Attribute Value node with tokens
+                if (property.Children.Count == 1 &&
+                    property.Children[0] is HtmlContentIntermediateNode html)
+                {
+                    content = string.Join(string.Empty, html.Children.OfType<IntermediateToken>().Select(n => n.Content));
+                    return true;
+                }
+
+                content = null;
+                return false;
             }
 
             public override void VisitTagHelperHtmlAttribute(TagHelperHtmlAttributeIntermediateNode node)

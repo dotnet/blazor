@@ -423,5 +423,43 @@ Some Content
             var diagnostic = Assert.Single(generated.Diagnostics);
             Assert.Same(BlazorDiagnosticFactory.ChildContentMixedWithExplicitChildContent.Id, diagnostic.Id);
         }
+
+        [Fact]
+        public void Render_ChildContent_ExplicitChildContent_UnrecogizedAttribute_ProducesDiagnostic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentComponent);
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<RenderChildContent>
+<ChildContent attr>
+</ChildContent>
+</RenderChildContent>");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Same(BlazorDiagnosticFactory.ChildContentHasInvalidAttribute.Id, diagnostic.Id);
+        }
+
+        [Fact]
+        public void Render_ChildContent_ExplicitChildContent_InvalidParameterName_ProducesDiagnostic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentStringComponent);
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<RenderChildContentString>
+<ChildContent Context=""@(""HI"")"">
+</ChildContent>
+</RenderChildContentString>");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Same(BlazorDiagnosticFactory.ChildContentHasInvalidParameter.Id, diagnostic.Id);
+        }
     }
 }

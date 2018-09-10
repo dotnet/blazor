@@ -173,6 +173,18 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 r.ParentTag = component.TagMatchingRules.First().TagName;
             });
 
+            if (attribute.IsParameterizedChildContentProperty())
+            {
+                // For child content attributes with a parameter, synthesize an attribute that allows you to name
+                // the parameter.
+                builder.BindAttribute(b =>
+                {
+                    b.Name = "Context";
+                    b.TypeName = typeof(string).FullName;
+                    b.Documentation = string.Format(Resources.ChildContentParameterName_Documentation, attribute.Name);
+                });
+            }
+
             var descriptor = builder.Build();
 
             return descriptor;

@@ -424,7 +424,11 @@ namespace Test
             Assert.Equal("TestAssembly", childContent.AssemblyName);
             Assert.Equal("Test.MyComponent.ChildContent2", childContent.Name);
 
-            Assert.Empty(childContent.BoundAttributes);
+            // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
+            var contextAttribute = Assert.Single(childContent.BoundAttributes);
+            Assert.Equal("Context", contextAttribute.Name);
+            Assert.Equal("System.String", contextAttribute.TypeName);
+            Assert.Equal("Specifies the parameter name for the 'ChildContent2' lambda expression.", contextAttribute.Documentation);
         }
 
         [Fact]

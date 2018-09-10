@@ -212,5 +212,27 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         {
             return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined);
         }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidAttribute =
+            new RazorDiagnosticDescriptor(
+                "BL9997",
+                () => "Unrecognized attribute '{0}' on child content element '{1}'.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentHasInvalidAttribute(SourceSpan? source, string attribute, string element)
+        {
+            return RazorDiagnostic.Create(ChildContentHasInvalidAttribute, source ?? SourceSpan.Undefined, attribute, element);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidParameter =
+            new RazorDiagnosticDescriptor(
+                "BL9998",
+                () => "Invalid parameter name. The parameter name attribute '{0}' on child content element '{1}' can only include literal text.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentHasInvalidParameter(SourceSpan? source, string attribute, string element)
+        {
+            return RazorDiagnostic.Create(ChildContentHasInvalidParameter, source ?? SourceSpan.Undefined, attribute, element);
+        }
     }
 }

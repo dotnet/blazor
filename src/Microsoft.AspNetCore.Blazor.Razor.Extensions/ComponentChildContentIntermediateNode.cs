@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         public bool IsParameterized => BoundAttribute?.IsParameterizedChildContentProperty() ?? false;
 
-        public string ParameterName => IsParameterized ? "context" : null;
+        public string ParameterName { get; set; } = "context";
 
         public string TypeName => BoundAttribute?.TypeName == null ? BlazorApi.RenderFragment.FullTypeName : BoundAttribute.TypeName;
 

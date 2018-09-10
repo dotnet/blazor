@@ -22,7 +22,18 @@ Document -
                     IntermediateToken -  - CSharp - base.BuildRenderTree(builder);
                 HtmlContent - (29:0,29 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (29:0,29 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
-                ComponentExtensionNode - (31:1,0 [64] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
+                ComponentExtensionNode - (31:1,0 [164] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
                     ComponentChildContent -  - ChildContent
-                        CSharpExpression - (59:1,28 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-                            IntermediateToken - (59:1,28 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context
+                        HtmlContent - (90:2,31 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (90:2,31 [15] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    Some text
+                        HtmlElement - (105:3,13 [55] x:\dir\subdir\Test\TestComponent.cshtml) - some-child
+                            HtmlAttribute -  -  - 
+                                HtmlAttributeValue -  - 
+                                    IntermediateToken -  - Html - 1
+                            CSharpExpression - (124:3,32 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+                                IntermediateToken - (124:3,32 [23] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - item.ToLowerInvariant()
+                        HtmlContent - (160:3,68 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (160:3,68 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n  
+                    ComponentAttributeExtensionNode - (52:1,21 [3] x:\dir\subdir\Test\TestComponent.cshtml) - MyAttr - MyAttr
+                        HtmlContent - (52:1,21 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (52:1,21 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - abc

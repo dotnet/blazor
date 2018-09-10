@@ -10,11 +10,6 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
     {
         internal override bool UseTwoPhaseCompilation => true;
 
-        public CodeGenerationTestBase()
-        {
-            GenerateBaselines = true;
-        }
-
         #region Basics
 
         [Fact]
@@ -597,6 +592,43 @@ namespace Test
             var generated = CompileToCSharp(@"
 @addTagHelper *, TestAssembly
 <MyComponent MyAttr=""abc"">Some text<some-child a='1'>@context.ToLowerInvariant()</some-child></MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+
+        [Fact]
+        public void ChildComponent_WithGenericChildContent_SetsParameterName()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        string MyAttr { get; set; }
+
+        [Parameter]
+        RenderFragment<string> ChildContent { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent MyAttr=""abc"">
+  <ChildContent Context=""item"">
+    Some text<some-child a='1'>@item.ToLowerInvariant()</some-child>
+  </ChildContent>
+</MyComponent>");
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
