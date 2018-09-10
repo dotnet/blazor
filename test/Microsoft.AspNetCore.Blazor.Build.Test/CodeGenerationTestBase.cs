@@ -573,6 +573,38 @@ namespace Test
         }
 
         [Fact]
+        public void ChildComponent_WithGenericChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        string MyAttr { get; set; }
+
+        [Parameter]
+        RenderFragment<string> ChildContent { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent MyAttr=""abc"">Some text<some-child a='1'>@context.ToLowerInvariant()</some-child></MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void ChildComponent_WithElementOnlyChildContent()
         {
             // Arrange
@@ -623,6 +655,35 @@ namespace Test
             var generated = CompileToCSharp(@"
 @addTagHelper *, TestAssembly
 <MyComponent><ChildContent>hello</ChildContent></MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void ChildComponent_WithExplicitGenericChildContent()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment<string> ChildContent { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent><ChildContent>@context</ChildContent></MyComponent>");
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

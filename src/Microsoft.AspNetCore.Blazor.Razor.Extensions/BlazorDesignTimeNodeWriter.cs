@@ -492,7 +492,11 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(node));
             }
 
-            _scopeStack.OpenComponentScope(context, node.AttributeName);
+            _scopeStack.OpenComponentScope(
+                context,
+                node.AttributeName,
+                node.TypeName,
+                node.ParameterName);
             for (var i = 0; i < node.Children.Count; i++)
             {
                 context.RenderNode(node.Children[i]);

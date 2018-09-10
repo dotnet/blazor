@@ -9,7 +9,7 @@
         @for (var i  = 0; i < Items.Count; i++)
         {
             var item = Items[i];
-            <tr><td>@item.Col1</td><td>@item.Col2</td><td>@item.Col3</td></tr>
+            @ItemTemplate(item)
         }
 
     </tbody>
@@ -22,6 +22,9 @@
 @functions {
     [Parameter]
     RenderFragment Header { get; set; }
+
+    [Parameter]
+    RenderFragment<Item> ItemTemplate { get; set; }
 
     [Parameter]
     RenderFragment Footer { get; set; }

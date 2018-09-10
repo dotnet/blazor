@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             _stack.Push(new ScopeEntry(tagName, ScopeKind.Element));
         }
 
-        public void OpenComponentScope(CodeRenderingContext context, string name)
+        public void OpenComponentScope(CodeRenderingContext context, string name, string type, string parameterName)
         {
             var scope = new ScopeEntry(name, ScopeKind.Component);
             _stack.Push(scope);
@@ -34,7 +34,20 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             var blazorNodeWriter = (BlazorNodeWriter)context.NodeWriter;
             blazorNodeWriter.BeginWriteAttribute(context.CodeWriter, name);
             OffsetBuilderVarNumber(1);
-            context.CodeWriter.Write($"({BlazorApi.RenderFragment.FullTypeName})(");
+
+            // Writes code that looks like:
+            //
+            // builder.AddAttribute(0, "{name}", ({type})((__builder) => { ... }));
+            // OR
+            // builder.AddAttribute(0, "{name}", ({type})((context) => (__builder) => { ... }));
+
+            context.CodeWriter.Write($"({type})(");
+
+            if (parameterName != null)
+            {
+                context.CodeWriter.Write($"({parameterName}) => ");
+            }
+
             scope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
         }
 

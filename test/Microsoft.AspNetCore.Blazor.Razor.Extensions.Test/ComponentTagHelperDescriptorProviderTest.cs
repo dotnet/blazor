@@ -360,6 +360,7 @@ namespace Test
             Assert.False(attribute.IsStringProperty);
             Assert.False(attribute.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
             Assert.True(attribute.IsChildContentProperty());
+            Assert.False(attribute.IsParameterizedChildContentProperty());
 
             var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
 
@@ -416,6 +417,7 @@ namespace Test
             Assert.False(attribute.IsStringProperty);
             Assert.False(attribute.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
             Assert.True(attribute.IsChildContentProperty());
+            Assert.True(attribute.IsParameterizedChildContentProperty());
 
             var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
 

@@ -64,7 +64,7 @@ namespace Test
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
             builder.AddContent(0, Header, Name);
-            builder.AddContent(1, ChildContent);
+            builder.AddContent(1, ChildContent, Value);
             builder.AddContent(2, Footer);
         }
 
@@ -75,10 +75,13 @@ namespace Test
         RenderFragment<string> Header { get; set; }
 
         [Parameter]
-        RenderFragment ChildContent { get; set; }
+        RenderFragment<string> ChildContent { get; set; }
 
         [Parameter]
         RenderFragment Footer { get; set; }
+
+        [Parameter]
+        string Value { get; set; }
     }
 }
 ");
@@ -106,6 +109,33 @@ namespace Test
                 frame => AssertFrame.Component(frame, "Test.RenderChildContent", 2, 0),
                 frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 1),
                 frame => AssertFrame.Markup(frame, "\n  <div></div>\n", 2));
+        }
+
+        [Fact]
+        public void Render_BodyChildContent_Generic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentStringComponent);
+
+            var component = CompileToComponent(@"
+@addTagHelper *, TestAssembly
+<RenderChildContentString Value=""HI"">
+  <div>@context.ToLowerInvariant()</div>
+</RenderChildContentString>");
+
+            // Act
+            var frames = GetRenderTree(component);
+
+            // Assert
+            Assert.Collection(
+                frames,
+                frame => AssertFrame.Component(frame, "Test.RenderChildContentString", 3, 0),
+                frame => AssertFrame.Attribute(frame, "Value", "HI", 1),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, 2),
+                frame => AssertFrame.Whitespace(frame, 3),
+                frame => AssertFrame.Element(frame, "div", 2, 4),
+                frame => AssertFrame.Text(frame, "hi", 5),
+                frame => AssertFrame.Whitespace(frame, 6));
         }
 
         [Fact]
@@ -289,8 +319,8 @@ namespace Test
             var component = CompileToComponent(@"
 @addTagHelper *, TestAssembly
 @{ RenderFragment<string> header = context => @<div>@context.ToLowerInvariant()</div>; }
-<RenderMultipleChildContent Name=""billg"" Header=@header>
-  <ChildContent>Some @(0) Content</ChildContent>
+<RenderMultipleChildContent Name=""billg"" Header=@header Value=""HI"">
+  <ChildContent>Some @context.ToLowerInvariant() Content</ChildContent>
   <Footer>Bye!</Footer>
 </RenderMultipleChildContent>");
 
@@ -300,17 +330,18 @@ namespace Test
             // Assert
             Assert.Collection(
                 frames,
-                frame => AssertFrame.Component(frame, "Test.RenderMultipleChildContent", 5, 2),
+                frame => AssertFrame.Component(frame, "Test.RenderMultipleChildContent", 6, 2),
                 frame => AssertFrame.Attribute(frame, "Name", "billg", 3),
                 frame => AssertFrame.Attribute(frame, "Header", typeof(RenderFragment<string>), 4),
-                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, typeof(RenderFragment), 5),
-                frame => AssertFrame.Attribute(frame, "Footer", typeof(RenderFragment), 9),
+                frame => AssertFrame.Attribute(frame, "Value", "HI", 5),
+                frame => AssertFrame.Attribute(frame, RenderTreeBuilder.ChildContent, typeof(RenderFragment<string>), 6),
+                frame => AssertFrame.Attribute(frame, "Footer", typeof(RenderFragment), 10),
                 frame => AssertFrame.Element(frame, "div", 2, 0),
                 frame => AssertFrame.Text(frame, "billg", 1),
-                frame => AssertFrame.Text(frame, "Some ", 6),
-                frame => AssertFrame.Text(frame, "0", 7),
-                frame => AssertFrame.Text(frame, " Content", 8),
-                frame => AssertFrame.Text(frame, "Bye!", 10));
+                frame => AssertFrame.Text(frame, "Some ", 7),
+                frame => AssertFrame.Text(frame, "hi", 8),
+                frame => AssertFrame.Text(frame, " Content", 9),
+                frame => AssertFrame.Text(frame, "Bye!", 11));
         }
 
         [Fact]
