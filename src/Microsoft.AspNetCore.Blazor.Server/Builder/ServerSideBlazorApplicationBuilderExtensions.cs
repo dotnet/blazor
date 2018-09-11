@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Builder
             // also do so. That's needed for people using Azure SignalR.
 
             // TODO: Also allow configuring the endpoint path.
-            return UseSignalR(builder, BlazorHub.DefaultPath)
+            return UseSignalRWithBlazorHub(builder, BlazorHub.DefaultPath)
                 .UseBlazor<TStartup>();
         }
 
@@ -63,11 +63,12 @@ namespace Microsoft.AspNetCore.Builder
             // also do so. That's needed for people using Azure SignalR.
 
             // TODO: Also allow configuring the endpoint path.
-            return UseSignalR(builder, BlazorHub.DefaultPath)
+            return UseSignalRWithBlazorHub(builder, BlazorHub.DefaultPath)
                 .UseBlazor(options);
         }
 
-        private static IApplicationBuilder UseSignalR(IApplicationBuilder builder, PathString path)
+        private static IApplicationBuilder UseSignalRWithBlazorHub(
+            IApplicationBuilder builder, PathString path)
         {
             return builder.UseSignalR(route => route.MapHub<BlazorHub>(BlazorHub.DefaultPath));
         }
