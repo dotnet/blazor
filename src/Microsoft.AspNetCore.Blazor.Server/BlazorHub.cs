@@ -15,17 +15,16 @@ namespace Microsoft.AspNetCore.Blazor.Server
     /// <summary>
     /// A SignalR hub that accepts connections to a Server-Side Blazor app.
     /// </summary>
-    public class BlazorHub : Hub
+    public sealed class BlazorHub : Hub
     {
         private static readonly object CircuitKey = new object();
         private readonly CircuitFactory _circuitFactory;
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Constructs an instance of <see cref="BlazorHub"/>.
+        /// Intended for framework use only. Applications should not instantiate
+        /// this class directly.
         /// </summary>
-        /// <param name="logger">The <see cref="ILogger{BlazorHub}"/>.</param>
-        /// <param name="services">The service provider.</param>
         public BlazorHub(
             ILogger<BlazorHub> logger,
             IServiceProvider services)
@@ -45,7 +44,9 @@ namespace Microsoft.AspNetCore.Blazor.Server
             set => Context.Items[CircuitKey] = value;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Intended for framework use only. Applications should not call this method directly.
+        /// </summary>
         public override Task OnDisconnectedAsync(Exception exception)
         {
             CircuitHost.Dispose();
@@ -53,7 +54,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
         }
 
         /// <summary>
-        /// Invoked by framework code. Not intended for use by applications.
+        /// Intended for framework use only. Applications should not call this method directly.
         /// </summary>
         public async Task StartCircuit(string uriAbsolute, string baseUriAbsolute)
         {
@@ -70,7 +71,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
         }
 
         /// <summary>
-        /// Invoked by framework code. Not intended for use by applications.
+        /// Intended for framework use only. Applications should not call this method directly.
         /// </summary>
         public void BeginInvokeDotNetFromJS(string callId, string assemblyName, string methodIdentifier, long dotNetObjectId, string argsJson)
         {
