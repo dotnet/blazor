@@ -116,10 +116,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             public override void VisitTagHelper(TagHelperIntermediateNode node)
             {
                 // Visit children, we're replacing this node.
-                for (var i = 0; i < node.Children.Count; i++)
-                {
-                    Visit(node.Children[i]);
-                }
+                base.VisitDefault(node);
             }
 
             public override void VisitTagHelperBody(TagHelperBodyIntermediateNode node)
@@ -191,9 +188,9 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         _children.Add(RewriteChildContent(attribute, child.Children));
                         continue;
                     }
-
+                    
                     // If we get here then this is significant content inside a component with explicit child content.
-                    child.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentMixedWithExplicitChildContent(child.Source));
+                    child.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentMixedWithExplicitChildContent(child.Source, _component.Component));
                     _children.Add(child);
                 }
 

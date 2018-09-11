@@ -402,6 +402,10 @@ Some Content
             // Assert
             var diagnostic = Assert.Single(generated.Diagnostics);
             Assert.Same(BlazorDiagnosticFactory.ChildContentMixedWithExplicitChildContent.Id, diagnostic.Id);
+            Assert.Equal(
+                "Unrecognized child content inside component 'Test.RenderChildContent'.The component 'Test.RenderChildContent' accepts " +
+                "child content through the following top - level items: 'ChildContent'.",
+                diagnostic.GetMessage());
         }
 
         [Fact]

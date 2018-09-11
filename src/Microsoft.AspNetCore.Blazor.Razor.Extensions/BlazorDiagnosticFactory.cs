@@ -203,14 +203,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         public static readonly RazorDiagnosticDescriptor ChildContentMixedWithExplicitChildContent =
             new RazorDiagnosticDescriptor(
                 "BL9996",
-                () => "Unrecognized child content. When using explicit child content, all significant content must be inside a " +
-                "child content element such as '<ChildContent>'. Check that the spelling of all child elements matches the component's" +
-                "declared parameters.",
+                () => "Unrecognized child content inside component '{0}'. The component '{0}' accepts child content through the " +
+                "following top-level items: {1}.",
                 RazorDiagnosticSeverity.Error);
 
-        public static RazorDiagnostic Create_ChildContentMixedWithExplicitChildContent(SourceSpan? source)
+        public static RazorDiagnostic Create_ChildContentMixedWithExplicitChildContent(SourceSpan? source, TagHelperDescriptor component)
         {
-            return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined);
+            var supportedElements = string.Join(", ", component.GetChildContentProperties().Select(p => $"'{p.Name}'"));
+            return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined, component.Name, supportedElements);
         }
 
         public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidAttribute =
