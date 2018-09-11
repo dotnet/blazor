@@ -11,9 +11,9 @@ Document -
                 CSharpCode - 
                     IntermediateToken -  - CSharp - base.BuildRenderTree(builder);
                 ComponentExtensionNode - (31:1,0 [87] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
-                    ComponentChildContent -  - Header
+                    ComponentChildContent - (50:2,4 [20] x:\dir\subdir\Test\TestComponent.cshtml) - Header
                         HtmlContent - (58:2,12 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (58:2,12 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hi!
-                    ComponentChildContent -  - Footer
+                    ComponentChildContent - (76:3,4 [26] x:\dir\subdir\Test\TestComponent.cshtml) - Footer
                         CSharpExpression - (86:3,14 [6] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (86:3,14 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "bye!"

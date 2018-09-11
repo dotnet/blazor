@@ -19,10 +19,10 @@ Document -
                 CSharpCode - (118:1,87 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (118:1,87 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ; 
                 ComponentExtensionNode - (123:2,0 [114] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent - Test.MyComponent
-                    ComponentChildContent -  - ChildContent
+                    ComponentChildContent - (155:3,2 [41] x:\dir\subdir\Test\TestComponent.cshtml) - ChildContent
                         HtmlContent - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (169:3,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Some Content
-                    ComponentChildContent -  - Footer
+                    ComponentChildContent - (200:4,2 [21] x:\dir\subdir\Test\TestComponent.cshtml) - Footer
                         HtmlContent - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (208:4,10 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Bye!
                     ComponentAttributeExtensionNode - (143:2,20 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header

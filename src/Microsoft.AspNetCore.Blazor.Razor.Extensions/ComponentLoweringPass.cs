@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     var attribute = _component.Component.BoundAttributes
                         .Where(a => string.Equals(a.Name, BlazorApi.RenderTreeBuilder.ChildContent, StringComparison.Ordinal))
                         .FirstOrDefault();
-                    _children.Add(RewriteChildContent(attribute, node.Children));
+                    _children.Add(RewriteChildContent(attribute, node.Source, node.Children));
                     return;
                 }
 
@@ -185,12 +185,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         var attribute = _component.Component.BoundAttributes
                             .Where(a => string.Equals(a.Name, tagHelperNode.TagName, StringComparison.Ordinal))
                             .FirstOrDefault();
-                        _children.Add(RewriteChildContent(attribute, child.Children));
+                        _children.Add(RewriteChildContent(attribute, child.Source, child.Children));
                         continue;
                     }
                     
                     // If we get here then this is significant content inside a component with explicit child content.
-                    child.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentMixedWithExplicitChildContent(child.Source, _component.Component));
+                    child.Diagnostics.Add(BlazorDiagnosticFactory.Create_ChildContentMixedWithExplicitChildContent(child.Source, _component));
                     _children.Add(child);
                 }
 
@@ -208,11 +208,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 }
             }
 
-            private ComponentChildContentIntermediateNode RewriteChildContent(BoundAttributeDescriptor attribute, IntermediateNodeCollection children)
+            private ComponentChildContentIntermediateNode RewriteChildContent(BoundAttributeDescriptor attribute, SourceSpan? source, IntermediateNodeCollection children)
             {
                 var childContent = new ComponentChildContentIntermediateNode()
                 {
                     BoundAttribute = attribute,
+                    Source = source,
                 };
 
                 // There are two cases here:

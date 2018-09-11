@@ -403,8 +403,8 @@ Some Content
             var diagnostic = Assert.Single(generated.Diagnostics);
             Assert.Same(BlazorDiagnosticFactory.ChildContentMixedWithExplicitChildContent.Id, diagnostic.Id);
             Assert.Equal(
-                "Unrecognized child content inside component 'Test.RenderChildContent'.The component 'Test.RenderChildContent' accepts " +
-                "child content through the following top - level items: 'ChildContent'.",
+                "Unrecognized child content inside component 'RenderChildContent'. The component 'RenderChildContent' accepts " +
+                "child content through the following top-level items: 'ChildContent'.",
                 diagnostic.GetMessage());
         }
 
@@ -464,6 +464,33 @@ Some Content
             // Assert
             var diagnostic = Assert.Single(generated.Diagnostics);
             Assert.Same(BlazorDiagnosticFactory.ChildContentHasInvalidParameter.Id, diagnostic.Id);
+        }
+
+        [Fact]
+        public void Render_ChildContent_ExplicitChildContent_RepeatedParameterName_GeneratesDiagnostic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(RenderChildContentStringComponent);
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<RenderChildContentString>
+<ChildContent>
+<RenderChildContentString>
+<ChildContent Context=""context"">
+</ChildContent>
+</RenderChildContentString>
+</ChildContent>
+</RenderChildContentString>");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Same(BlazorDiagnosticFactory.ChildContentRepeatedParameterName.Id, diagnostic.Id);
+            Assert.Equal(
+                "The child content element 'ChildContent' of component 'RenderChildContentString' uses the same parameter name ('context') as enclosing child content " +
+                "element 'ChildContent' of component 'RenderChildContentString'. Specify the parameter name like: '<ChildContent Context=\"another_name\"> to resolve the ambiguity",
+                diagnostic.GetMessage());
         }
     }
 }

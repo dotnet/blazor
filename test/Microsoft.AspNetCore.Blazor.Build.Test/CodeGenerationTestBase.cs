@@ -10,6 +10,11 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
     {
         internal override bool UseTwoPhaseCompilation => true;
 
+        public CodeGenerationTestBase()
+        {
+            GenerateBaselines = true;
+        }
+
         #region Basics
 
         [Fact]

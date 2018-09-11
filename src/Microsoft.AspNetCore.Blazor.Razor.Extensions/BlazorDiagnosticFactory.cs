@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -207,10 +208,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 "following top-level items: {1}.",
                 RazorDiagnosticSeverity.Error);
 
-        public static RazorDiagnostic Create_ChildContentMixedWithExplicitChildContent(SourceSpan? source, TagHelperDescriptor component)
+        public static RazorDiagnostic Create_ChildContentMixedWithExplicitChildContent(SourceSpan? source, ComponentExtensionNode component)
         {
-            var supportedElements = string.Join(", ", component.GetChildContentProperties().Select(p => $"'{p.Name}'"));
-            return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined, component.Name, supportedElements);
+            var supportedElements = string.Join(", ", component.Component.GetChildContentProperties().Select(p => $"'{p.Name}'"));
+            return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined, component.TagName, supportedElements);
         }
 
         public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidAttribute =
@@ -233,6 +234,34 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         public static RazorDiagnostic Create_ChildContentHasInvalidParameter(SourceSpan? source, string attribute, string element)
         {
             return RazorDiagnostic.Create(ChildContentHasInvalidParameter, source ?? SourceSpan.Undefined, attribute, element);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentRepeatedParameterName =
+            new RazorDiagnosticDescriptor(
+                "BL9999",
+                () => "The child content element '{0}' of component '{1}' uses the same parameter name ('{2}') as enclosing child content " +
+                "element '{3}' of component '{4}'. Specify the parameter name like: '<{0} Context=\"another_name\"> to resolve the ambiguity",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentRepeatedParameterName(
+            SourceSpan? source,
+            ComponentChildContentIntermediateNode childContent1,
+            ComponentExtensionNode component1,
+            ComponentChildContentIntermediateNode childContent2,
+            ComponentExtensionNode component2)
+        {
+            Debug.Assert(childContent1.ParameterName == childContent2.ParameterName);
+            Debug.Assert(childContent1.IsParameterized);
+            Debug.Assert(childContent2.IsParameterized);
+
+            return RazorDiagnostic.Create(
+                ChildContentRepeatedParameterName,
+                source ?? SourceSpan.Undefined,
+                childContent1.AttributeName,
+                component1.TagName,
+                childContent1.ParameterName,
+                childContent2.AttributeName,
+                component2.TagName);
         }
     }
 }
