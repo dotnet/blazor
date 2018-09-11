@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Blazor.Hosting;
 using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Blazor.Server.Circuits;
 using Microsoft.AspNetCore.Blazor.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.JSInterop;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -112,12 +113,19 @@ namespace Microsoft.Extensions.DependencyInjection
             // Here we add a bunch of services that don't vary in any way based on the
             // user's configuration. So even if the user has multiple independent server-side
             // Blazor entrypoints, this lot is the same and repeated registrations are a no-op.
-            services.AddSingleton<CircuitFactory, DefaultCircuitFactory>();
-            services.AddScoped<ICircuitAccessor, DefaultCircuitAccessor>();
-            services.AddScoped<Circuit>(s => s.GetRequiredService<ICircuitAccessor>().Circuit);
-            services.AddScoped<IJSRuntimeAccessor, DefaultJSRuntimeAccessor>();
-            services.AddScoped<IJSRuntime>(s => s.GetRequiredService<IJSRuntimeAccessor>().JSRuntime);
-            services.AddScoped<IUriHelper, RemoteUriHelper>();
+            services.TryAddSingleton<CircuitFactory, DefaultCircuitFactory>();
+            services.TryAddScoped<ICircuitAccessor, DefaultCircuitAccessor>();
+            services.TryAddScoped<Circuit>(s => s.GetRequiredService<ICircuitAccessor>().Circuit);
+            services.TryAddScoped<IJSRuntimeAccessor, DefaultJSRuntimeAccessor>();
+            services.TryAddScoped<IJSRuntime>(s => s.GetRequiredService<IJSRuntimeAccessor>().JSRuntime);
+            services.TryAddScoped<IUriHelper, RemoteUriHelper>();
+
+            // We've discussed with the SignalR team and believe it's OK to have repeated
+            // calls to AddSignalR (making the nonfirst ones no-ops). If we want to change
+            // this in the future, we could change AddServerSideBlazor to be an extension
+            // method on ISignalRServerBuilder so the developer always has to chain it onto
+            // their own AddSignalR call. For now we're keeping it like this because it's
+            // simpler for developers in common cases.
             services.AddSignalR().AddMessagePackProtocol(options =>
             {
                 options.FormatterResolvers.Insert(0, new RenderBatchFormatterResolver());
