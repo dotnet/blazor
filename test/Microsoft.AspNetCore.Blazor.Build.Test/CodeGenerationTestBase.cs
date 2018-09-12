@@ -12,7 +12,6 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
 
         public CodeGenerationTestBase()
         {
-            GenerateBaselines = true;
         }
 
         #region Basics
@@ -74,6 +73,36 @@ namespace Test
     BoolProperty=""true""
     StringProperty=""My string""
     ObjectProperty=""new SomeType()""/>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void ComponentWithTypeParameters()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using Microsoft.AspNetCore.Blazor;
+@typeparam TItem1
+@typeparam TItem2
+
+<h1>Item1</h1>
+@foreach (var item2 in Items2)
+{
+    <p>
+    @ChildContent(item2);
+    </p>
+}
+@functions {
+    [Parameter] TItem1 Item1 { get; set; }
+    [Parameter] List<TItem2> Items2 { get; set; }
+    [Parameter] RenderFragment<TItem2> ChildContent { get; set; }
+}");
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

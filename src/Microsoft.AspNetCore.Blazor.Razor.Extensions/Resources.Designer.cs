@@ -221,5 +221,32 @@ namespace Microsoft.AspNetCore.Blazor.Razor {
                 return ResourceManager.GetString("RefTagHelper_Documentation", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declares a generic type parameter for the generated component class..
+        /// </summary>
+        internal static string TypeParamDirective_Description {
+            get {
+                return ResourceManager.GetString("TypeParamDirective_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the type parameter..
+        /// </summary>
+        internal static string TypeParamDirective_Token_Description {
+            get {
+                return ResourceManager.GetString("TypeParamDirective_Token_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type parameter.
+        /// </summary>
+        internal static string TypeParamDirective_Token_Name {
+            get {
+                return ResourceManager.GetString("TypeParamDirective_Token_Name", resourceCulture);
+            }
+        }
     }
 }

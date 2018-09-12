@@ -54,6 +54,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             InjectDirective.Register(builder);
             LayoutDirective.Register(builder);
             PageDirective.Register(builder);
+            TypeParamDirective.Register(builder);
 
             builder.Features.Remove(builder.Features.OfType<IImportProjectFeature>().Single());
             builder.Features.Add(new BlazorImportProjectFeature());
