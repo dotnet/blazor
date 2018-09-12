@@ -48,6 +48,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             public readonly static string TagHelperKind = "Blazor.Component";
 
             public readonly static string GenericTypedKey = "Blazor.GenericTyped";
+
+            public readonly static string TypeParameterKey = "Blazor.TypeParameter";
         }
 
         public static class EventHandler

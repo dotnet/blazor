@@ -171,13 +171,24 @@ namespace Test
             var rule = Assert.Single(component.TagMatchingRules);
             Assert.Equal("MyComponent", rule.TagName);
 
-            // Our use of bound attributes is what tests will focus on. As you might expect right now, this test
-            // is going to cover a lot of trivial stuff that will be true for all components/component-properties.
-            var attribute = Assert.Single(component.BoundAttributes);
-            Assert.Equal("MyProperty", attribute.Name);
-            Assert.Equal("MyProperty", attribute.GetPropertyName());
-            Assert.Equal("string Test.MyComponent<T>.MyProperty", attribute.DisplayName);
-            Assert.Equal("System.String", attribute.TypeName);
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("MyProperty", a.Name);
+                    Assert.Equal("MyProperty", a.GetPropertyName());
+                    Assert.Equal("string Test.MyComponent<T>.MyProperty", a.DisplayName);
+                    Assert.Equal("System.String", a.TypeName);
+
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.Equal("T", a.GetPropertyName());
+                    Assert.Equal("T", a.DisplayName);
+                    Assert.Equal("System.Type", a.TypeName);
+                    Assert.True(a.IsTypeParameterProperty());
+                });
         }
 
         [Fact]
@@ -355,15 +366,25 @@ namespace Test
             Assert.Equal("TestAssembly", component.AssemblyName);
             Assert.Equal("Test.MyComponent<T>", component.Name);
 
-            var attribute = Assert.Single(component.BoundAttributes);
-            Assert.Equal("MyProperty", attribute.Name);
-            Assert.Equal("T", attribute.TypeName);
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("MyProperty", a.Name);
+                    Assert.Equal("MyProperty", a.GetPropertyName());
+                    Assert.Equal("T Test.MyComponent<T>.MyProperty", a.DisplayName);
+                    Assert.Equal("T", a.TypeName);
+                    Assert.True(a.IsGenericTypedProperty());
 
-            Assert.False(attribute.HasIndexer);
-            Assert.False(attribute.IsBooleanProperty);
-            Assert.False(attribute.IsEnum);
-            Assert.False(attribute.IsStringProperty);
-            Assert.True(attribute.IsGenericTypedProperty());
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.Equal("T", a.GetPropertyName());
+                    Assert.Equal("T", a.DisplayName);
+                    Assert.Equal("System.Type", a.TypeName);
+                    Assert.True(a.IsTypeParameterProperty());
+                });
         }
 
         [Fact]
@@ -427,6 +448,21 @@ namespace Test
                     Assert.Equal("MyProperty3", a.Name);
                     Assert.Equal("V", a.TypeName);
                     Assert.True(a.IsGenericTypedProperty());
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.True(a.IsTypeParameterProperty());
+                },
+                a =>
+                {
+                    Assert.Equal("U", a.Name);
+                    Assert.True(a.IsTypeParameterProperty());
+                },
+                a =>
+                {
+                    Assert.Equal("V", a.Name);
+                    Assert.True(a.IsTypeParameterProperty());
                 });
         }
 
@@ -517,17 +553,29 @@ namespace Test
             Assert.Equal("TestAssembly", component.AssemblyName);
             Assert.Equal("Test.MyComponent<T>", component.Name);
 
-            var attribute = Assert.Single(component.BoundAttributes);
-            Assert.Equal("OnClick", attribute.Name);
-            Assert.Equal("System.Action<T>", attribute.TypeName);
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("OnClick", a.Name);
+                    Assert.Equal("System.Action<T>", a.TypeName);
+                    Assert.False(a.HasIndexer);
+                    Assert.False(a.IsBooleanProperty);
+                    Assert.False(a.IsEnum);
+                    Assert.False(a.IsStringProperty);
+                    Assert.True(a.IsDelegateProperty());
+                    Assert.False(a.IsChildContentProperty());
+                    Assert.True(a.IsGenericTypedProperty());
 
-            Assert.False(attribute.HasIndexer);
-            Assert.False(attribute.IsBooleanProperty);
-            Assert.False(attribute.IsEnum);
-            Assert.False(attribute.IsStringProperty);
-            Assert.True(attribute.IsDelegateProperty());
-            Assert.False(attribute.IsChildContentProperty());
-            Assert.True(attribute.IsGenericTypedProperty());
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.Equal("T", a.GetPropertyName());
+                    Assert.Equal("T", a.DisplayName);
+                    Assert.Equal("System.Type", a.TypeName);
+                    Assert.True(a.IsTypeParameterProperty());
+                });
         }
 
         [Fact]
@@ -686,18 +734,31 @@ namespace Test
             Assert.Equal("TestAssembly", component.AssemblyName);
             Assert.Equal("Test.MyComponent<T>", component.Name);
 
-            var attribute = Assert.Single(component.BoundAttributes);
-            Assert.Equal("ChildContent2", attribute.Name);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<T>", attribute.TypeName);
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("ChildContent2", a.Name);
+                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<T>", a.TypeName);
 
-            Assert.False(attribute.HasIndexer);
-            Assert.False(attribute.IsBooleanProperty);
-            Assert.False(attribute.IsEnum);
-            Assert.False(attribute.IsStringProperty);
-            Assert.False(attribute.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-            Assert.True(attribute.IsChildContentProperty());
-            Assert.True(attribute.IsParameterizedChildContentProperty());
-            Assert.True(attribute.IsGenericTypedProperty());
+                    Assert.False(a.HasIndexer);
+                    Assert.False(a.IsBooleanProperty);
+                    Assert.False(a.IsEnum);
+                    Assert.False(a.IsStringProperty);
+                    Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
+                    Assert.True(a.IsChildContentProperty());
+                    Assert.True(a.IsParameterizedChildContentProperty());
+                    Assert.True(a.IsGenericTypedProperty());
+
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.Equal("T", a.GetPropertyName());
+                    Assert.Equal("T", a.DisplayName);
+                    Assert.Equal("System.Type", a.TypeName);
+                    Assert.True(a.IsTypeParameterProperty());
+                });
 
             var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
 
@@ -749,19 +810,32 @@ namespace Test
             Assert.Equal("TestAssembly", component.AssemblyName);
             Assert.Equal("Test.MyComponent<T>", component.Name);
 
-            var attribute = Assert.Single(component.BoundAttributes);
-            Assert.Equal("ChildContent2", attribute.Name);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.Collections.Generic.List<T>>", attribute.TypeName);
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("ChildContent2", a.Name);
+                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.Collections.Generic.List<T>>", a.TypeName);
 
-            Assert.False(attribute.HasIndexer);
-            Assert.False(attribute.IsBooleanProperty);
-            Assert.False(attribute.IsEnum);
-            Assert.False(attribute.IsStringProperty);
-            Assert.False(attribute.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-            Assert.True(attribute.IsChildContentProperty());
-            Assert.True(attribute.IsParameterizedChildContentProperty());
-            Assert.True(attribute.IsGenericTypedProperty());
+                    Assert.False(a.HasIndexer);
+                    Assert.False(a.IsBooleanProperty);
+                    Assert.False(a.IsEnum);
+                    Assert.False(a.IsStringProperty);
+                    Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
+                    Assert.True(a.IsChildContentProperty());
+                    Assert.True(a.IsParameterizedChildContentProperty());
+                    Assert.True(a.IsGenericTypedProperty());
 
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.Equal("T", a.GetPropertyName());
+                    Assert.Equal("T", a.DisplayName);
+                    Assert.Equal("System.Type", a.TypeName);
+                    Assert.True(a.IsTypeParameterProperty());
+                });
+            
             var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
 
             Assert.Equal("TestAssembly", childContent.AssemblyName);
@@ -816,18 +890,31 @@ namespace Test
             Assert.Equal("TestAssembly", component.AssemblyName);
             Assert.Equal("Test.MyComponent<T>", component.Name);
 
-            var attribute = Assert.Single(component.BoundAttributes);
-            Assert.Equal("ChildContent2", attribute.Name);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<Test.MyComponent<T>.Context>", attribute.TypeName);
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("ChildContent2", a.Name);
+                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<Test.MyComponent<T>.Context>", a.TypeName);
 
-            Assert.False(attribute.HasIndexer);
-            Assert.False(attribute.IsBooleanProperty);
-            Assert.False(attribute.IsEnum);
-            Assert.False(attribute.IsStringProperty);
-            Assert.False(attribute.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
-            Assert.True(attribute.IsChildContentProperty());
-            Assert.True(attribute.IsParameterizedChildContentProperty());
-            Assert.True(attribute.IsGenericTypedProperty());
+                    Assert.False(a.HasIndexer);
+                    Assert.False(a.IsBooleanProperty);
+                    Assert.False(a.IsEnum);
+                    Assert.False(a.IsStringProperty);
+                    Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
+                    Assert.True(a.IsChildContentProperty());
+                    Assert.True(a.IsParameterizedChildContentProperty());
+                    Assert.True(a.IsGenericTypedProperty());
+
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.Equal("T", a.GetPropertyName());
+                    Assert.Equal("T", a.DisplayName);
+                    Assert.Equal("System.Type", a.TypeName);
+                    Assert.True(a.IsTypeParameterProperty());
+                });
 
             var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
 

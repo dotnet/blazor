@@ -99,6 +99,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             if (type.IsGenericType)
             {
                 builder.Metadata[BlazorMetadata.Component.GenericTypedKey] = bool.TrueString;
+
+                for (var i = 0; i < type.TypeArguments.Length; i++)
+                {
+                    var typeParameter = type.TypeArguments[i] as ITypeParameterSymbol;
+                    if (typeParameter != null)
+                    {
+                        CreateTypeParameterProperty(builder, typeParameter);
+                    }
+                }
             }
 
             var xml = type.GetDocumentationCommentXml();
@@ -199,6 +208,21 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
                 return false;
             }
+        }
+
+        private void CreateTypeParameterProperty(TagHelperDescriptorBuilder builder, ITypeSymbol typeParameter)
+        {
+            builder.BindAttribute(pb =>
+            {
+                pb.DisplayName = typeParameter.Name;
+                pb.Name = typeParameter.Name;
+                pb.TypeName = typeof(Type).FullName;
+                pb.SetPropertyName(typeParameter.Name);
+
+                pb.Metadata[BlazorMetadata.Component.TypeParameterKey] = bool.TrueString;
+
+                pb.Documentation = string.Format(Resources.ComponentTypeParameter_Documentation, typeParameter.Name, builder.Name);
+            });
         }
 
         private TagHelperDescriptor CreateChildContentDescriptor(BlazorSymbols symbols, TagHelperDescriptor component, BoundAttributeDescriptor attribute)

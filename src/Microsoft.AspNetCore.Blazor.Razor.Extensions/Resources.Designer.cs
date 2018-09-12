@@ -115,6 +115,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Specifies the type of the type parameter {0} for the {1} component..
+        /// </summary>
+        internal static string ComponentTypeParameter_Documentation {
+            get {
+                return ResourceManager.GetString("ComponentTypeParameter_Documentation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sets the &apos;{0}&apos; attribute to the provided string or delegate value. A delegate value should be of type &apos;{1}&apos;..
         /// </summary>
         internal static string EventHandlerTagHelper_Documentation {
