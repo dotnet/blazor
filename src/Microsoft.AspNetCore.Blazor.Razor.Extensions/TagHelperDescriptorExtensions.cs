@@ -35,6 +35,19 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 string.Equals(bool.TrueString, fallback);
         }
 
+        public static bool IsGenericTypedComponent(this TagHelperDescriptor tagHelper)
+        {
+            if (tagHelper == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelper));
+            }
+
+            return
+                IsComponentTagHelper(tagHelper) &&
+                tagHelper.Metadata.TryGetValue(BlazorMetadata.Component.GenericTypedKey, out var value) &&
+                string.Equals(bool.TrueString, value);
+        }
+
         public static bool IsInputElementBindTagHelper(this TagHelperDescriptor tagHelper)
         {
             if (tagHelper == null)
