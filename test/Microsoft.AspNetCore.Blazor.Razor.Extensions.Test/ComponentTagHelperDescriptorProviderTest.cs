@@ -773,6 +773,82 @@ namespace Test
         }
 
         [Fact]
+        public void Execute_RenderFragmentClosedGenericListProperty_CreatesDescriptor()
+        {
+            // Arrange
+
+            var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Blazor;
+using Microsoft.AspNetCore.Blazor.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : BlazorComponent
+    {
+        [Parameter]
+        RenderFragment<List<string>> ChildContent2 { get; set; }
+    }
+}
+
+"));
+
+            Assert.Empty(compilation.GetDiagnostics());
+
+            var context = TagHelperDescriptorProviderContext.Create();
+            context.SetCompilation(compilation);
+
+            var provider = new ComponentTagHelperDescriptorProvider();
+
+            // Act
+            provider.Execute(context);
+
+            // Assert
+            var components = ExcludeBuiltInComponents(context);
+            var component = Assert.Single(components, c => c.IsComponentTagHelper());
+
+            Assert.Equal("TestAssembly", component.AssemblyName);
+            Assert.Equal("Test.MyComponent<T>", component.Name);
+
+            Assert.Collection(
+                component.BoundAttributes.OrderBy(a => a.Name),
+                a =>
+                {
+                    Assert.Equal("ChildContent2", a.Name);
+                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.Collections.Generic.List<System.String>>", a.TypeName);
+
+                    Assert.False(a.HasIndexer);
+                    Assert.False(a.IsBooleanProperty);
+                    Assert.False(a.IsEnum);
+                    Assert.False(a.IsStringProperty);
+                    Assert.False(a.IsDelegateProperty()); // We treat RenderFragment as separate from generalized delegates
+                    Assert.True(a.IsChildContentProperty());
+                    Assert.True(a.IsParameterizedChildContentProperty());
+                    Assert.False(a.IsGenericTypedProperty());
+
+                },
+                a =>
+                {
+                    Assert.Equal("T", a.Name);
+                    Assert.Equal("T", a.GetPropertyName());
+                    Assert.Equal("T", a.DisplayName);
+                    Assert.Equal("System.Type", a.TypeName);
+                    Assert.True(a.IsTypeParameterProperty());
+                });
+
+            var childContent = Assert.Single(components, c => c.IsChildContentTagHelper());
+
+            Assert.Equal("TestAssembly", childContent.AssemblyName);
+            Assert.Equal("Test.MyComponent<T>.ChildContent2", childContent.Name);
+
+            // A RenderFragment<T> tag helper has a parameter to allow you to set the lambda parameter name.
+            var contextAttribute = Assert.Single(childContent.BoundAttributes);
+            Assert.Equal("Context", contextAttribute.Name);
+            Assert.Equal("System.String", contextAttribute.TypeName);
+            Assert.Equal("Specifies the parameter name for the 'ChildContent2' lambda expression.", contextAttribute.Documentation);
+        }
+
+        [Fact]
         public void Execute_RenderFragmentGenericListProperty_CreatesDescriptor()
         {
             // Arrange

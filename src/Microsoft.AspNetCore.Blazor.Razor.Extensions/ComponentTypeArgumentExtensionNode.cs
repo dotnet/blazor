@@ -2,26 +2,43 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
 {
-    internal class ComponentChildContentIntermediateNode : ExtensionIntermediateNode
+    internal class ComponentTypeArgumentExtensionNode : ExtensionIntermediateNode
     {
-        public string AttributeName => BoundAttribute?.Name ?? BlazorApi.RenderTreeBuilder.ChildContent;
+        public ComponentTypeArgumentExtensionNode(TagHelperPropertyIntermediateNode propertyNode)
+        {
+            if (propertyNode == null)
+            {
+                throw new ArgumentNullException(nameof(propertyNode));
+            }
 
-        public BoundAttributeDescriptor BoundAttribute { get; set; }
+            BoundAttribute = propertyNode.BoundAttribute;
+            Source = propertyNode.Source;
+            TagHelper = propertyNode.TagHelper;
+
+            for (var i = 0; i < propertyNode.Children.Count; i++)
+            {
+                Children.Add(propertyNode.Children[i]);
+            }
+
+            for (var i = 0; i < propertyNode.Diagnostics.Count; i++)
+            {
+                Diagnostics.Add(propertyNode.Diagnostics[i]);
+            }
+        }
 
         public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
 
-        public bool IsParameterized => BoundAttribute?.IsParameterizedChildContentProperty() ?? false;
+        public BoundAttributeDescriptor BoundAttribute { get; set; }
 
-        public string ParameterName { get; set; } = "context";
+        public string TypeParameterName => BoundAttribute.Name;
 
-        public string TypeName { get; set; }
+        public TagHelperDescriptor TagHelper { get; set; }
 
         public override void Accept(IntermediateNodeVisitor visitor)
         {
@@ -30,7 +47,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(visitor));
             }
 
-            AcceptExtensionNode<ComponentChildContentIntermediateNode>(this, visitor);
+            AcceptExtensionNode<ComponentTypeArgumentExtensionNode>(this, visitor);
         }
 
         public override void WriteNode(CodeTarget target, CodeRenderingContext context)
@@ -46,7 +63,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
 
             var writer = (BlazorNodeWriter)context.NodeWriter;
-            writer.WriteComponentChildContent(context, this);
+            writer.WriteComponentTypeArgument(context, this);
         }
     }
 }

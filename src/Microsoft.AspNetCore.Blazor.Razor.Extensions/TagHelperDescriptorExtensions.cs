@@ -173,5 +173,27 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the set of component attributes that represent generic type parameters of the component type.
+        /// </summary>
+        /// <param name="tagHelper">The <see cref="TagHelperDescriptor"/>.</param>
+        /// <returns>The type parameter attributes</returns>
+        public static IEnumerable<BoundAttributeDescriptor> GetTypeParameters(this TagHelperDescriptor tagHelper)
+        {
+            if (tagHelper == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelper));
+            }
+
+            for (var i = 0; i < tagHelper.BoundAttributes.Count; i++)
+            {
+                var attribute = tagHelper.BoundAttributes[i];
+                if (attribute.IsTypeParameterProperty())
+                {
+                    yield return attribute;
+                }
+            }
+        }
     }
 }
