@@ -14,7 +14,7 @@ namespace StandaloneApp
 
         public void Configure(IBlazorApplicationBuilder app)
         {
-            app.AddComponent<App>("app");
+            app.AddComponent<App>(nameof(app));
         }
     }
 }
