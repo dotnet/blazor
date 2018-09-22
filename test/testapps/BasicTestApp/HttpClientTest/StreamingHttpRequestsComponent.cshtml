@@ -1,0 +1,89 @@
+@using System.Net
+@using System.Net.Http
+@inject HttpClient Http
+
+<h1>Streaming HTTP request tester</h1>
+
+<p>
+    <div>URI:</div>
+    <input id="request-uri" bind="@uri" size="60"/>
+</p>
+
+<button id="send-request" onclick="@DoRequest">Request</button>
+
+@if (responseStatusCode.HasValue)
+{
+    <h2>Response</h2>
+    <p><div>Status:</div><span id="response-status">@responseStatusCode</span></p>
+    <p><div>StatusText:</div><span id="response-status-text">@responseStatusText</span></p>
+    <pre>@responseText</pre>
+}
+
+<span id="test-outcome">@testOutcome</span>
+
+@functions {
+    string uri = "";
+    HttpStatusCode? responseStatusCode;
+    string responseStatusText;
+    string testOutcome;
+    string responseText;
+
+    async Task DoRequest()
+    {
+        responseStatusCode = null;
+        responseStatusText = null;
+        responseText = null;
+        testOutcome = null;
+
+        try
+        {
+            int acceptableReadings = 0;
+            int unacceptableReadings = 0;
+            Microsoft.AspNetCore.Blazor.Browser.Http.BrowserHttpMessageHandler.StreamingEnabled = true;
+            using (var response = await Http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead))
+            {
+                responseStatusCode = response.StatusCode;
+                responseStatusText = response.ReasonPhrase;
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var reader = new System.IO.StreamReader(stream))
+                {
+                    string line;
+                    while ((line = await reader.ReadLineAsync()) != null)
+                    {
+                        responseText = line;
+                        StateHasChanged();
+
+                        var dateTime = DateTime.ParseExact(line, "o", System.Globalization.CultureInfo.InvariantCulture);
+                        var diff = DateTime.UtcNow - dateTime;
+                        if (diff.TotalMilliseconds > 50)
+                        {
+                            if (unacceptableReadings++ > 3)
+                            {
+                                testOutcome = "NOK";
+                                break;
+                            }
+                        }
+                        else if (acceptableReadings++ > 3)
+                        {
+                            testOutcome = "OK";
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (ex is AggregateException)
+            {
+                ex = ex.InnerException;
+            }
+            responseStatusCode = HttpStatusCode.SeeOther;
+            testOutcome = ex.Message + Environment.NewLine + ex.StackTrace;
+        }
+        finally
+        {
+            Microsoft.AspNetCore.Blazor.Browser.Http.BrowserHttpMessageHandler.StreamingEnabled = false;
+        }
+    }
+}
