@@ -234,7 +234,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     }
                     else if (child is TagHelperPropertyIntermediateNode property)
                     {
-                        if (property.BoundAttribute.Kind == BlazorMetadata.ChildContent.TagHelperKind)
+                        if (property.BoundAttribute.IsChildContentParameterNameProperty())
                         {
                             // Check for each child content with a parameter name, that the parameter name is specified
                             // with literal text. For instance, the following is not allowed and should generate a diagnostic.

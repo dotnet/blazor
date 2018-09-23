@@ -115,6 +115,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Specifies the parameter name for all child content lambda expressions..
+        /// </summary>
+        internal static string ChildContentParameterName_TopLevelDocumentation {
+            get {
+                return ResourceManager.GetString("ChildContentParameterName_TopLevelDocumentation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specifies the type of the type parameter {0} for the {1} component..
         /// </summary>
         internal static string ComponentTypeParameter_Documentation {
