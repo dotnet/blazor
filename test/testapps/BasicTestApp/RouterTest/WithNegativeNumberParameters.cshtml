@@ -1,0 +1,16 @@
+@page "/WithNegativeNumberParameters/{testInt:int}/{testLong:long}/{testDouble:double}/{testFloat:float}/{testDec:decimal}"
+<div id="test-info">Test parameters: @testInt @testLong @testDouble @testFloat @testDec</div>
+
+@functions
+{
+    [Parameter]
+    int testInt { get; set; }
+    [Parameter]
+    long testLong { get; set; }
+    [Parameter]
+    double testDouble { get; set; }
+    [Parameter]
+    float testFloat { get; set; }
+    [Parameter]
+    decimal testDec { get; set; }
+}
