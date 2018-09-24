@@ -62,6 +62,23 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
         }
 
         [Fact]
+        public void CanArriveAtPageWithNegativeNumberParameters()
+        {
+            var testInt = int.MinValue;
+            var testLong = long.MinValue;
+            var testDec = -2m;
+            var testDouble = -1d;
+            var testFloat = -2f;
+
+            SetUrlViaPushState($"/WithNegativeNumberParameters/{testInt}/{testLong}/{testDouble}/{testFloat}/{testDec}");
+
+            var app = MountTestComponent<TestRouter>();
+            var expected = $"Test parameters: {testInt} {testLong} {testDouble} {testFloat} {testDec}";
+
+            Assert.Equal(expected, app.FindElement(By.Id("test-info")).Text);
+        }
+
+        [Fact]
         public void CanArriveAtNonDefaultPage()
         {
             SetUrlViaPushState("/Other");
