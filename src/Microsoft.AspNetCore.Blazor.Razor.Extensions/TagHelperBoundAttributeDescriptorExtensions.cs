@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         /// <summary>
         /// Gets a value that indicates whether the property is used to specify the name of the parameter
-        /// for a p arameterized child content property.
+        /// for a parameterized child content property.
         /// </summary>
         /// <param name="attribute">The <see cref="BoundAttributeDescriptor"/>.</param>
         /// <returns>

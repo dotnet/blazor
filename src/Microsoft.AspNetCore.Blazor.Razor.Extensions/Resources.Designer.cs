@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specifies the parameter name for the &apos;{0}&apos; lambda expression..
+        ///   Looks up a localized string similar to Specifies the parameter name for the &apos;{0}&apos; child content expression..
         /// </summary>
         internal static string ChildContentParameterName_Documentation {
             get {
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specifies the parameter name for all child content lambda expressions..
+        ///   Looks up a localized string similar to Specifies the parameter name for all child content expressions..
         /// </summary>
         internal static string ChildContentParameterName_TopLevelDocumentation {
             get {

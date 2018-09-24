@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
 
             if (builder.BoundAttributes.Any(a => a.IsParameterizedChildContentProperty()) &&
-                !builder.BoundAttributes.Any(a => string.Equals(a.Name, "Context")))
+                !builder.BoundAttributes.Any(a => string.Equals(a.Name, BlazorMetadata.ChildContent.ParameterAttributeName, StringComparison.OrdinalIgnoreCase)))
             {
                 // If we have any parameterized child content parameters, synthesize a 'Context' parameter to be
                 // able to set the variable name (for all child content). If the developer defined a 'Context' parameter
@@ -277,7 +277,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         {
             builder.BindAttribute(b =>
             {
-                b.Name = "Context";
+                b.Name = BlazorMetadata.ChildContent.ParameterAttributeName;
                 b.TypeName = typeof(string).FullName;
                 b.Metadata.Add(BlazorMetadata.Component.ChildContentParameterNameKey, bool.TrueString);
 
