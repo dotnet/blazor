@@ -5,7 +5,8 @@
   <PropertyGroup>
     <BuildDir>$(ArtifactsDir)$(Configuration)\packages\</BuildDir>
     <SkipArtifactVerification>true</SkipArtifactVerification>
-    <GenerateSignRequest>false</GenerateSignRequest>
+    <SignToolDataFile>$(MSBuildThisFileDirectory)SignToolData.json</SignToolDataFile>
+    <SignToolDataWorkingDir>$(ArtifactsDir)\$(Configuration)\</SignToolDataWorkingDir>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -40,8 +41,8 @@
     <DotNetCoreRuntime Include="$(MicrosoftNETCoreApp21PackageVersion)" />
   </ItemGroup>
 
-  <ItemGroup> 
-   <AspNetCoreRuntime Include="$(AspNetCoreRuntimeVersion)" /> 
- </ItemGroup> 
- 
+  <ItemGroup>
+   <AspNetCoreRuntime Include="$(AspNetCoreRuntimeVersion)" />
+ </ItemGroup>
+
 </Project>
