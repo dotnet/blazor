@@ -5,6 +5,7 @@
   <PropertyGroup>
     <BuildDir>$(ArtifactsDir)$(Configuration)\packages\</BuildDir>
     <SkipArtifactVerification>true</SkipArtifactVerification>
+    <EnableBenchmarkValidation>false</EnableBenchmarkValidation>
     <SignToolDataFile>$(MSBuildThisFileDirectory)SignToolData.json</SignToolDataFile>
     <SignToolDataWorkingDir>$(ArtifactsDir)\$(Configuration)\</SignToolDataWorkingDir>
   </PropertyGroup>
