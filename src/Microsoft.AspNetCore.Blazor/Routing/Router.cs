@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void SetParameters(ParameterCollection parameters)
         {
             parameters.AssignToProperties(this);
-            IEnumerable<Type> types = ComponentResolver.ResolveComponents(AppAssembly);
+            var types = ComponentResolver.ResolveComponents(AppAssembly);
             Routes = RouteTable.Create(types);
             Refresh();
         }
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         private string StringUntilAny(string str, char[] chars)
         {
-            int firstIndex = str.IndexOfAny(chars);
+            var firstIndex = str.IndexOfAny(chars);
             return firstIndex < 0
                 ? str
                 : str.Substring(0, firstIndex);
@@ -78,35 +78,28 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         private void Refresh(bool useFallback = false)
         {
-            try
+            var locationPath = useFallback ? FallbackRoute : UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+            locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
+            var context = new RouteContext(locationPath);
+            Routes.Route(context);
+            if (context.Handler == null)
             {
-                string locationPath = useFallback ? FallbackRoute : UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-                locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
-                RouteContext context = new RouteContext(locationPath);
-                Routes.Route(context);
-                if (context.Handler == null)
+                if (!useFallback && FallbackRoute != null)
                 {
-                    if (!useFallback && FallbackRoute != null)
-                    {
-                        Refresh(useFallback: true);
-                        return;
-                    }
-                    else
-                        throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with {(useFallback ? "the fallback route" : "a route for")} '/{locationPath}'.");
+                    Refresh(useFallback: true);
+                    return;
                 }
-
-                if (!typeof(IComponent).IsAssignableFrom(context.Handler))
-                {
-                    throw new InvalidOperationException($"The type {context.Handler.FullName} " +
-                        $"does not implement {typeof(IComponent).FullName}.");
-                }
-
-                _renderHandle.Render(builder => Render(builder, context.Handler, context.Parameters));
+                else
+                    throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with {(useFallback ? "the fallback route" : "a route for")} '/{locationPath}'.");
             }
-            catch (Exception ex)
+
+            if (!typeof(IComponent).IsAssignableFrom(context.Handler))
             {
-                System.Diagnostics.Debug.WriteLine($"There was an exception in this for some reason: {ex.ToString()}");
+                throw new InvalidOperationException($"The type {context.Handler.FullName} " +
+                    $"does not implement {typeof(IComponent).FullName}.");
             }
+
+            _renderHandle.Render(builder => Render(builder, context.Handler, context.Parameters));
         }
 
         private void OnLocationChanged(object sender, string newAbsoluteUri)
