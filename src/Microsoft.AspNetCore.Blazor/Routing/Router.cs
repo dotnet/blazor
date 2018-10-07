@@ -1,13 +1,13 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Layouts;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using Microsoft.AspNetCore.Blazor.Services;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Routing
 {
@@ -57,7 +57,10 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         }
 
         /// <inheritdoc />
-        public void Dispose() => UriHelper.OnLocationChanged -= OnLocationChanged;
+        public void Dispose()
+        {
+            UriHelper.OnLocationChanged -= OnLocationChanged;
+        }
 
         private string StringUntilAny(string str, char[] chars)
         {
