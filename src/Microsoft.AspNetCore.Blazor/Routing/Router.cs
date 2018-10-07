@@ -1,13 +1,13 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Layouts;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using Microsoft.AspNetCore.Blazor.Services;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Routing
 {
@@ -31,6 +31,11 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// </summary>
         [Parameter] private Assembly AppAssembly { get; set; }
 
+        /// <summary>
+        /// Gets or sets the route that should be used when no components with are found with the requested route.
+        /// </summary>
+        [Parameter] private string FallbackRoute { get; set; }
+
         private RouteTable Routes { get; set; }
 
         /// <inheritdoc />
@@ -46,20 +51,17 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void SetParameters(ParameterCollection parameters)
         {
             parameters.AssignToProperties(this);
-            var types = ComponentResolver.ResolveComponents(AppAssembly);
+            IEnumerable<Type> types = ComponentResolver.ResolveComponents(AppAssembly);
             Routes = RouteTable.Create(types);
             Refresh();
         }
 
         /// <inheritdoc />
-        public void Dispose()
-        {
-            UriHelper.OnLocationChanged -= OnLocationChanged;
-        }
+        public void Dispose() => UriHelper.OnLocationChanged -= OnLocationChanged;
 
         private string StringUntilAny(string str, char[] chars)
         {
-            var firstIndex = str.IndexOfAny(chars);
+            int firstIndex = str.IndexOfAny(chars);
             return firstIndex < 0
                 ? str
                 : str.Substring(0, firstIndex);
@@ -74,24 +76,37 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             builder.CloseComponent();
         }
 
-        private void Refresh()
+        private void Refresh(bool useFallback = false)
         {
-            var locationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-            locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
-            var context = new RouteContext(locationPath);
-            Routes.Route(context);
-            if (context.Handler == null)
+            try
             {
-                throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '/{locationPath}'.");
-            }
+                string locationPath = useFallback ? FallbackRoute : UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+                locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
+                RouteContext context = new RouteContext(locationPath);
+                Routes.Route(context);
+                if (context.Handler == null)
+                {
+                    if (!useFallback && FallbackRoute != null)
+                    {
+                        Refresh(useFallback: true);
+                        return;
+                    }
+                    else
+                        throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with {(useFallback ? "the fallback route" : "a route for")} '/{locationPath}'.");
+                }
 
-            if (!typeof(IComponent).IsAssignableFrom(context.Handler))
+                if (!typeof(IComponent).IsAssignableFrom(context.Handler))
+                {
+                    throw new InvalidOperationException($"The type {context.Handler.FullName} " +
+                        $"does not implement {typeof(IComponent).FullName}.");
+                }
+
+                _renderHandle.Render(builder => Render(builder, context.Handler, context.Parameters));
+            }
+            catch (Exception ex)
             {
-                throw new InvalidOperationException($"The type {context.Handler.FullName} " +
-                    $"does not implement {typeof(IComponent).FullName}.");
+                System.Diagnostics.Debug.WriteLine($"There was an exception in this for some reason: {ex.ToString()}");
             }
-
-            _renderHandle.Render(builder => Render(builder, context.Handler, context.Parameters));
         }
 
         private void OnLocationChanged(object sender, string newAbsoluteUri)
