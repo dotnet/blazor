@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         [Parameter] private Assembly AppAssembly { get; set; }
 
         /// <summary>
-        /// Gets or sets the route that should be used when no components with are found with the requested route.
+        /// Gets or sets the route that should be used when no components are found with the requested route.
         /// </summary>
         [Parameter] private string FallbackRoute { get; set; }
 
@@ -91,6 +91,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                     throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with {(useFallback ? "the fallback route" : "a route for")} '/{locationPath}'.");
 
                 Refresh(useFallback: true);
+                return;
             }
 
             if (!typeof(IComponent).IsAssignableFrom(context.Handler))
