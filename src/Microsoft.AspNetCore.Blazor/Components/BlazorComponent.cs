@@ -32,6 +32,16 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
         private readonly RenderFragment _renderFragment;
         private RenderHandle _renderHandle;
+
+        /// <summary>
+        /// Exposes the RenderHandle to any sub-classes
+        /// </summary>
+        /// <value>RenderHandle</value>
+        protected RenderHandle RenderHandle {
+            get => _renderHandle;
+            set => _renderHandle = value;
+        }
+
         private bool _hasCalledInit;
         private bool _hasNeverRendered = true;
         private bool _hasPendingQueuedRender;
