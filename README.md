@@ -28,7 +28,7 @@ To see Blazor in action, check out [Steve Sanderson's demo at NDC Minnesota](htt
 
 ## Getting Started
 
-To get started with Blazor and build your first Blazor web app check out our [getting started guide](https://go.microsoft.com/fwlink/?linkid=870449).
+To get started with Blazor and build your first Blazor web app check out our [getting started guide](https://blazor.net/docs/get-started.html).
 
 ## Building the Repo
 
