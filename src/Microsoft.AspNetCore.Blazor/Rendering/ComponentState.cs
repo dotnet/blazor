@@ -96,5 +96,11 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
         public void NotifyRenderCompleted()
             => (_component as IHandleAfterRender)?.OnAfterRender();
+
+        public void SetDirectParameters(ParameterCollection parameters)
+        {
+            // TODO: Attach tree parameters also
+            Component.SetParameters(parameters);
+        }
     }
 }

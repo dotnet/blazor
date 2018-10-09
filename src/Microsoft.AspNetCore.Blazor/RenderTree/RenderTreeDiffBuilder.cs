@@ -286,8 +286,7 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
             var newParameters = new ParameterCollection(newTree, newComponentIndex);
             if (!newParameters.DefinitelyEquals(oldParameters))
             {
-                // TODO: Pass via ComponentState
-                componentState.Component.SetParameters(newParameters);
+                componentState.SetDirectParameters(newParameters);
             }
         }
 
@@ -640,13 +639,11 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
             var parentComponentId = diffContext.ComponentId;
             diffContext.Renderer.InstantiateChildComponentOnFrame(ref frame, parentComponentId);
-            var childComponentInstance = frame.Component;
+            var childComponentState = frame.ComponentState;
 
             // Set initial parameters
-            // TODO: Pass all calls to "SetParameters" via the ComponentState
-            // so there can be just one place that attaches tree parameters
             var initialParameters = new ParameterCollection(frames, frameIndex);
-            childComponentInstance.SetParameters(initialParameters);
+            childComponentState.SetDirectParameters(initialParameters);
         }
 
         private static void InitializeNewAttributeFrame(ref DiffContext diffContext, ref RenderTreeFrame newFrame)
