@@ -144,15 +144,6 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             }
         }
 
-        /// <summary>
-        /// This only needs to exist until there's some other unit-testable functionality
-        /// that makes use of walking the ancestor hierarchy.
-        /// </summary>
-        /// <param name="componentId">The component ID.</param>
-        /// <returns>The parent component's ID, or null if the component was at the root.</returns>
-        internal int? TemporaryGetParentComponentIdForTest(int componentId)
-            => GetRequiredComponentState(componentId).TemporaryParentComponentIdForTests;
-
         private ComponentState GetRequiredComponentState(int componentId)
             => _componentStateById.TryGetValue(componentId, out var componentState)
                 ? componentState

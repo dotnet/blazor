@@ -84,39 +84,6 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void CanWalkTheAncestorHierarchy()
-        {
-            // TODO: Instead of testing this directly, once there's some other functionaly
-            // that relies on the ancestor hierarchy (e.g., deep params), test that instead
-            // and remove the otherwise unnecessary TemporaryGetParentComponentIdForTest API.
-
-            // Arrange
-            var renderer = new TestRenderer();
-            var rootComponent = new TestComponent(builder =>
-            {
-                builder.AddContent(0, "Hello");
-                builder.OpenComponent<AncestryComponent>(0);
-                builder.AddAttribute(1, nameof(AncestryComponent.NumDescendants), 2);
-                builder.CloseComponent();
-            });
-
-            // Act
-            var componentId = renderer.AssignRootComponentId(rootComponent);
-            rootComponent.TriggerRender();
-
-            // Assert
-            var batch = renderer.Batches.Single();
-            var componentIds = batch.ReferenceFrames
-                .Where(frame => frame.FrameType == RenderTreeFrameType.Component)
-                .Select(f => f.ComponentId);
-            Assert.Equal(new[] { 1, 2, 3 }, componentIds);
-            Assert.Equal(2, renderer.TemporaryGetParentComponentIdForTest(3));
-            Assert.Equal(1, renderer.TemporaryGetParentComponentIdForTest(2));
-            Assert.Equal(0, renderer.TemporaryGetParentComponentIdForTest(1));
-            Assert.Null(renderer.TemporaryGetParentComponentIdForTest(0));
-        }
-
-        [Fact]
         public void CanReRenderTopLevelComponents()
         {
             // Arrange

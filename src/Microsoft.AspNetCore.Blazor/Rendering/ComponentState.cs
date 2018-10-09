@@ -95,10 +95,5 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
         public void NotifyRenderCompleted()
             => (_component as IHandleAfterRender)?.OnAfterRender();
-
-        // TODO: Remove this once we can remove TemporaryGetParentComponentIdForTest
-        // from Renderer.cs and corresponding unit test.
-        public int? TemporaryParentComponentIdForTests
-            => _parentComponentState?._componentId;
     }
 }
