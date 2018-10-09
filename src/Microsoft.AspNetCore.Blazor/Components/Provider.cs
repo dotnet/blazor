@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
     /// <summary>
     /// A component that provides one or more parameter values to all descendant components.
     /// </summary>
-    public class Provider : IComponent
+    public class Provider<T> : ProviderBase, IComponent
     {
         private RenderHandle _renderHandle;
 
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// The value to be provided.
         /// </summary>
-        [Parameter] private object Value { get; set; }
+        [Parameter] private T Value { get; set; }
 
         /// <summary>
         /// Optionally gives a name to the provided value. Descendant components
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             // and makes it simpler impose rules about the params being required or not.
 
             var hasSuppliedValue = false;
-            Value = null;
+            Value = default;
             ChildContent = null;
             Name = null;
 
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             {
                 if (parameter.Name.Equals(nameof(Value), StringComparison.OrdinalIgnoreCase))
                 {
-                    Value = parameter.Value;
+                    Value = (T)parameter.Value;
                     hasSuppliedValue = true;
                 }
                 else if (parameter.Name.Equals(nameof(ChildContent), StringComparison.OrdinalIgnoreCase))
@@ -66,12 +66,12 @@ namespace Microsoft.AspNetCore.Blazor.Components
                     Name = (string)parameter.Value;
                     if (string.IsNullOrEmpty(Name))
                     {
-                        throw new ArgumentException($"The parameter '{nameof(Name)}' for component '{nameof(Provider)}' does not allow null or empty values.");
+                        throw new ArgumentException($"The parameter '{nameof(Name)}' for component '{nameof(Provider<T>)}' does not allow null or empty values.");
                     }
                 }
                 else
                 {
-                    throw new ArgumentException($"The component '{nameof(Provider)}' does not accept a parameter with the name '{parameter.Name}'.");
+                    throw new ArgumentException($"The component '{nameof(Provider<T>)}' does not accept a parameter with the name '{parameter.Name}'.");
                 }
             }
 
@@ -83,6 +83,17 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
 
             _renderHandle.Render(Render);
+        }
+
+        internal override bool CanSupplyValue(Type requestedType, string requestedName)
+        {
+            if (!requestedType.IsAssignableFrom(typeof(T)))
+            {
+                return false;
+            }
+
+            return (requestedName == null && Name == null) // Match on type alone
+                || string.Equals(requestedName, Name, StringComparison.Ordinal); // Also match on name
         }
 
         private void Render(RenderTreeBuilder builder)

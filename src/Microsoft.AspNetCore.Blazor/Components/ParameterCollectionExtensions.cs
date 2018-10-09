@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Reflection;
@@ -66,6 +66,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
         }
 
+        internal static IEnumerable<PropertyInfo> GetBindableProperties(Type targetType)
+            => MemberAssignment.GetPropertiesIncludingInherited(targetType, _bindablePropertyFlags)
+                .Where(property => property.IsDefined(typeof(ParameterAttribute)));
+
         private static IDictionary<string, WriteParameterAction> CreateParameterWriters(Type targetType)
         {
             var result = new Dictionary<string, WriteParameterAction>(StringComparer.OrdinalIgnoreCase);
@@ -90,10 +94,6 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
             return result;
         }
-
-        private static IEnumerable<PropertyInfo> GetBindableProperties(Type targetType)
-            => MemberAssignment.GetPropertiesIncludingInherited(targetType, _bindablePropertyFlags)
-                .Where(property => property.IsDefined(typeof(ParameterAttribute)));
 
         private static void ThrowForUnknownIncomingParameterName(Type targetType, string parameterName)
         {
