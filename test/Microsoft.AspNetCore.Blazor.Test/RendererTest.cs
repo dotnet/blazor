@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
@@ -1071,6 +1070,94 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(1, childComponents[2].OnAfterRenderCallCount); // Disposed
         }
 
+        [Fact]
+        public void PassesTreeParametersToNestedComponents()
+        {
+            // Arrange
+            var renderer = new TestRenderer();
+            var component = new TestComponent(builder =>
+            {
+                builder.OpenComponent<Provider<string>>(0);
+                builder.AddAttribute(1, "Value", "Hello");
+                builder.AddAttribute(2, RenderTreeBuilder.ChildContent, new RenderFragment(childBuilder =>
+                {
+                    childBuilder.OpenComponent<TreeParameterConsumerComponent<string>>(0);
+                    childBuilder.AddAttribute(1, "RegularParameter", "Goodbye");
+                    childBuilder.CloseComponent();
+                }));
+                builder.CloseComponent();
+            });
+
+            // Act/Assert
+            var componentId = renderer.AssignRootComponentId(component);
+            component.TriggerRender();
+            var batch = renderer.Batches.Single();
+            var componentFrame = batch.ReferenceFrames.Single(
+                frame => frame.FrameType == RenderTreeFrameType.Component
+                         && frame.Component is TreeParameterConsumerComponent<string>);
+            var nestedComponentId = componentFrame.ComponentId;
+            var nestedComponentDiff = batch.DiffsByComponentId[nestedComponentId].Single();
+            
+            // The nested component was rendered with the correct parameters
+            Assert.Collection(nestedComponentDiff.Edits,
+                edit =>
+                {
+                    Assert.Equal(RenderTreeEditType.PrependFrame, edit.Type);
+                    AssertFrame.Text(
+                        batch.ReferenceFrames[edit.ReferenceFrameIndex],
+                        "TreeParameter=Hello; RegularParameter=Goodbye");
+                });
+        }
+
+        [Fact]
+        public void RetainsTreeParametersWhenUpdatingDirectParameters()
+        {
+            // Arrange
+            var renderer = new TestRenderer();
+            var regularParameterValue = "Initial value";
+            var component = new TestComponent(builder =>
+            {
+                builder.OpenComponent<Provider<string>>(0);
+                builder.AddAttribute(1, "Value", "Hello");
+                builder.AddAttribute(2, RenderTreeBuilder.ChildContent, new RenderFragment(childBuilder =>
+                {
+                    childBuilder.OpenComponent<TreeParameterConsumerComponent<string>>(0);
+                    childBuilder.AddAttribute(1, "RegularParameter", regularParameterValue);
+                    childBuilder.CloseComponent();
+                }));
+                builder.CloseComponent();
+            });
+
+            // Act 1: Render in initial state
+            var componentId = renderer.AssignRootComponentId(component);
+            component.TriggerRender();
+
+            // Capture the nested component so we can verify the update later
+            var firstBatch = renderer.Batches.Single();
+            var componentFrame = firstBatch.ReferenceFrames.Single(
+                frame => frame.FrameType == RenderTreeFrameType.Component
+                         && frame.Component is TreeParameterConsumerComponent<string>);
+            var nestedComponentId = componentFrame.ComponentId;
+
+            // Act 2: Render again with updated regular parameter
+            regularParameterValue = "Changed value";
+            component.TriggerRender();
+
+            // Assert
+            Assert.Equal(2, renderer.Batches.Count);
+            var secondBatch = renderer.Batches[1];
+            var nestedComponentDiff = secondBatch.DiffsByComponentId[nestedComponentId].Single();
+
+            // The nested component was rendered with the correct parameters
+            Assert.Collection(nestedComponentDiff.Edits,
+                edit =>
+                {
+                    Assert.Equal(RenderTreeEditType.UpdateText, edit.Type);
+                    Assert.Equal(0, edit.ReferenceFrameIndex); // This is the only change
+                    AssertFrame.Text(secondBatch.ReferenceFrames[0], "TreeParameter=Hello; RegularParameter=Changed value");
+                });
+        }
+
         private class NoOpRenderer : Renderer
         {
             public NoOpRenderer() : base(new TestServiceProvider())
@@ -1331,23 +1418,14 @@ namespace Microsoft.AspNetCore.Blazor.Test
             }
         }
 
-        private class AncestryComponent : AutoRenderComponent
+        class TreeParameterConsumerComponent<T> : AutoRenderComponent
         {
-            [Parameter] public int NumDescendants { get; private set; }
+            [Parameter(FromTree = true)] T TreeParameter { get; set; }
+            [Parameter] string RegularParameter { get; set; }
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
-                // Recursively renders more of the same until NumDescendants == 0
-                if (NumDescendants > 0)
-                {
-                    builder.OpenComponent<AncestryComponent>(0);
-                    builder.AddAttribute(1, nameof(NumDescendants), NumDescendants - 1);
-                    builder.CloseComponent();
-                }
-                else
-                {
-                    builder.AddContent(1, "I'm the final descendant");
-                }
+                builder.AddContent(0, $"TreeParameter={TreeParameter}; RegularParameter={RegularParameter}");
             }
         }
     }

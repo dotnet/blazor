@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 
@@ -18,6 +19,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         private readonly ComponentState _parentComponentState;
         private readonly IComponent _component;
         private readonly Renderer _renderer;
+        private readonly IReadOnlyList<TreeParameterState> _treeParameters;
         private RenderTreeBuilder _renderTreeBuilderCurrent;
         private RenderTreeBuilder _renderTreeBuilderPrevious;
         private bool _componentWasDisposed;
@@ -39,6 +41,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             _parentComponentState = parentComponentState;
             _component = component ?? throw new ArgumentNullException(nameof(component));
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
+            _treeParameters = TreeParameterState.FindTreeParameters(this);
             _renderTreeBuilderCurrent = new RenderTreeBuilder(renderer);
             _renderTreeBuilderPrevious = new RenderTreeBuilder(renderer);
         }
@@ -99,7 +102,11 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
         public void SetDirectParameters(ParameterCollection parameters)
         {
-            // TODO: Attach tree parameters also
+            if (_treeParameters != null)
+            {
+                parameters = parameters.WithTreeParameters(_treeParameters);
+            }
+
             Component.SetParameters(parameters);
         }
     }
