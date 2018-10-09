@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         private RenderTreeBuilder _renderTreeBuilderPrevious;
         private bool _componentWasDisposed;
 
+        public int ComponentId => _componentId;
         public IComponent Component => _component;
         public ComponentState ParentComponentState => _parentComponentState;
 

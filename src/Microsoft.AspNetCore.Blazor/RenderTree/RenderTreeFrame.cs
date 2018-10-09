@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Blazor.Rendering;
 
 namespace Microsoft.AspNetCore.Blazor.RenderTree
 {
@@ -114,9 +115,15 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
 
         /// <summary>
         /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Component"/>,
+        /// gets the child component state object. Otherwise, the value is undefined.
+        /// </summary>
+        [FieldOffset(24)] internal readonly ComponentState ComponentState;
+
+        /// <summary>
+        /// If the <see cref="FrameType"/> property equals <see cref="RenderTreeFrameType.Component"/>,
         /// gets the child component instance. Otherwise, the value is undefined.
         /// </summary>
-        [FieldOffset(24)] public readonly IComponent Component;
+        public IComponent Component => ComponentState?.Component;
 
         // --------------------------------------------------------------------------------
         // RenderTreeFrameType.Region
@@ -195,11 +202,11 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
             ComponentSubtreeLength = componentSubtreeLength;
         }
 
-        private RenderTreeFrame(int sequence, Type componentType, int subtreeLength, int componentId, IComponent component)
+        private RenderTreeFrame(int sequence, Type componentType, int subtreeLength, ComponentState componentState)
             : this(sequence, componentType, subtreeLength)
         {
-            ComponentId = componentId;
-            Component = component;
+            ComponentId = componentState.ComponentId;
+            ComponentState = componentState;
         }
 
         private RenderTreeFrame(int sequence, string textContent)
@@ -301,8 +308,8 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         internal RenderTreeFrame WithAttributeSequence(int sequence)
             => new RenderTreeFrame(sequence, attributeName: AttributeName, attributeValue: AttributeValue);
 
-        internal RenderTreeFrame WithComponentInstance(int componentId, IComponent component)
-            => new RenderTreeFrame(Sequence, ComponentType, ComponentSubtreeLength, componentId, component);
+        internal RenderTreeFrame WithComponent(ComponentState componentState)
+            => new RenderTreeFrame(Sequence, ComponentType, ComponentSubtreeLength, componentState);
 
         internal RenderTreeFrame WithAttributeEventHandlerId(int eventHandlerId)
             => new RenderTreeFrame(Sequence, AttributeName, AttributeValue, eventHandlerId);
