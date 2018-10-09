@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Blazor.Components
 {
@@ -11,25 +12,44 @@ namespace Microsoft.AspNetCore.Blazor.Components
     /// </summary>
     public struct ParameterEnumerator
     {
-        RenderTreeFrameParameterEnumerator _renderTreeParamsEnumerator;
+        private RenderTreeFrameParameterEnumerator _renderTreeParamsEnumerator;
+        private TreeParameterEnumerator _treeParameterEnumerator;
+        private bool _isEnumeratingRenderTreeParams;
 
-        internal ParameterEnumerator(RenderTreeFrame[] frames, int ownerIndex)
+        internal ParameterEnumerator(RenderTreeFrame[] frames, int ownerIndex, IReadOnlyList<TreeParameterState> treeParameters)
         {
             _renderTreeParamsEnumerator = new RenderTreeFrameParameterEnumerator(frames, ownerIndex);
+            _treeParameterEnumerator = new TreeParameterEnumerator(treeParameters);
+            _isEnumeratingRenderTreeParams = true;
         }
 
         /// <summary>
         /// Gets the current value of the enumerator.
         /// </summary>
-        public Parameter Current
-            => _renderTreeParamsEnumerator.Current;
+        public Parameter Current => _isEnumeratingRenderTreeParams
+            ? _renderTreeParamsEnumerator.Current
+            : _treeParameterEnumerator.Current;
 
         /// <summary>
         /// Instructs the enumerator to move to the next value in the sequence.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A flag to indicate whether or not there is a next value.</returns>
         public bool MoveNext()
-            => _renderTreeParamsEnumerator.MoveNext();
+        {
+            if (_isEnumeratingRenderTreeParams)
+            {
+                if (_renderTreeParamsEnumerator.MoveNext())
+                {
+                    return true;
+                }
+                else
+                {
+                    _isEnumeratingRenderTreeParams = false;
+                }
+            }
+
+            return _treeParameterEnumerator.MoveNext();
+        }
 
         struct RenderTreeFrameParameterEnumerator
         {
@@ -81,6 +101,42 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                 _currentIndex = nextIndex;
                 return true;
+            }
+        }
+
+        struct TreeParameterEnumerator
+        {
+            private readonly IReadOnlyList<TreeParameterState> _treeParameters;
+            private int _currentIndex;
+
+            public TreeParameterEnumerator(IReadOnlyList<TreeParameterState> treeParameters)
+            {
+                _treeParameters = treeParameters;
+                _currentIndex = -1;
+            }
+
+            public Parameter Current => new Parameter(
+                _treeParameters[_currentIndex].LocalName,
+                _treeParameters[_currentIndex].FromProvider.CurrentValue);
+
+            public bool MoveNext()
+            {
+                // Bail out early if there are no tree parameters
+                if (_treeParameters == null)
+                {
+                    return false;
+                }
+
+                var nextIndex = _currentIndex + 1;
+                if (nextIndex < _treeParameters.Count)
+                {
+                    _currentIndex = nextIndex;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
     }

@@ -14,5 +14,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         // to work with all Provider types regardless of their generic param.
 
         internal abstract bool CanSupplyValue(Type valueType, string providerName);
+
+        internal abstract object CurrentValue { get; }
     }
 }

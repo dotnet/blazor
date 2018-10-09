@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             FromProvider = fromProvider;
         }
 
-        public static ICollection<TreeParameterState> FindTreeParameters(ComponentState componentState)
+        public static IReadOnlyList<TreeParameterState> FindTreeParameters(ComponentState componentState)
         {
             var componentType = componentState.Component.GetType();
             var infos = GetReflectedTreeParameterInfos(componentType);

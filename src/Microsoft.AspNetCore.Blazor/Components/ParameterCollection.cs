@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -19,15 +19,22 @@ namespace Microsoft.AspNetCore.Blazor.Components
         };
 
         private static readonly ParameterCollection _emptyCollection
-            = new ParameterCollection(_emptyCollectionFrames, 0);
+            = new ParameterCollection(_emptyCollectionFrames, 0, null);
 
         private readonly RenderTreeFrame[] _frames;
         private readonly int _ownerIndex;
+        private readonly IReadOnlyList<TreeParameterState> _treeParametersOrNull;
 
         internal ParameterCollection(RenderTreeFrame[] frames, int ownerIndex)
+            : this(frames, ownerIndex, null)
+        {
+        }
+
+        private ParameterCollection(RenderTreeFrame[] frames, int ownerIndex, IReadOnlyList<TreeParameterState> treeParametersOrNull)
         {
             _frames = frames;
             _ownerIndex = ownerIndex;
+            _treeParametersOrNull = treeParametersOrNull;
         }
 
         /// <summary>
@@ -40,7 +47,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         /// <returns>The enumerator.</returns>
         public ParameterEnumerator GetEnumerator()
-            => new ParameterEnumerator(_frames, _ownerIndex);
+            => new ParameterEnumerator(_frames, _ownerIndex, _treeParametersOrNull);
 
         /// <summary>
         /// Gets the value of the parameter with the specified name.
@@ -98,6 +105,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
             return result;
         }
+
+        internal ParameterCollection WithTreeParameters(IReadOnlyList<TreeParameterState> treeParameters)
+            => new ParameterCollection(_frames, _ownerIndex, treeParameters);
 
         // It's internal because there isn't a known use case for user code comparing
         // ParameterCollection instances, and even if there was, it's unlikely it should

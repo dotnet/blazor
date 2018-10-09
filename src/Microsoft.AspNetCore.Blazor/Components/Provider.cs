@@ -23,6 +23,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         [Parameter] private T Value { get; set; }
 
+        internal override object CurrentValue => Value;
+
         /// <summary>
         /// Optionally gives a name to the provided value. Descendant components
         /// will be able to receive the value by specifying this name.

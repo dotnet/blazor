@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Components;
@@ -86,6 +86,30 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void EnumerationIncludesTreeParameters()
+        {
+            // Arrange
+            var attribute1Value = new object();
+            var attribute2Value = new object();
+            var attribute3Value = new object();
+            var parameterCollection = new ParameterCollection(new[]
+            {
+                RenderTreeFrame.Element(0, "some element").WithElementSubtreeLength(2),
+                RenderTreeFrame.Attribute(1, "attribute 1", attribute1Value)
+            }, 0).WithTreeParameters(new List<TreeParameterState>
+            {
+                new TreeParameterState("attribute 2", new TestProvider(attribute2Value)),
+                new TreeParameterState("attribute 3", new TestProvider(attribute3Value)),
+            });
+
+            // Assert
+            Assert.Collection(ToEnumerable(parameterCollection),
+                AssertParameter("attribute 1", attribute1Value),
+                AssertParameter("attribute 2", attribute2Value),
+                AssertParameter("attribute 3", attribute3Value));
+        }
+
+        [Fact]
         public void CanTryGetNonExistingValue()
         {
             // Arrange
@@ -141,6 +165,25 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void CanGetValueOrDefault_WithMultipleMatchingValues()
+        {
+            // Arrange
+            var myEntryValue = new object();
+            var parameterCollection = new ParameterCollection(new[]
+            {
+                RenderTreeFrame.Element(0, "some element").WithElementSubtreeLength(3),
+                RenderTreeFrame.Attribute(1, "my entry", myEntryValue),
+                RenderTreeFrame.Attribute(1, "my entry", new object()),
+            }, 0);
+
+            // Act
+            var result = parameterCollection.GetValueOrDefault<object>("my entry");
+
+            // Assert: Picks first match
+            Assert.Same(myEntryValue, result);
+        }
+
+        [Fact]
         public void CanGetValueOrDefault_WithNonExistingValue()
         {
             // Arrange
@@ -148,7 +191,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 RenderTreeFrame.Element(0, "some element").WithElementSubtreeLength(2),
                 RenderTreeFrame.Attribute(1, "some other entry", new object())
-            }, 0);
+            }, 0).WithTreeParameters(new List<TreeParameterState>
+            {
+                new TreeParameterState("another entry", new TestProvider(null))
+            });
 
             // Act
             var result = parameterCollection.GetValueOrDefault<DateTime>("nonexisting entry");
@@ -221,6 +267,29 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 });
         }
 
+        [Fact]
+        public void CanGetValueOrDefault_WithMatchingTreeParameter()
+        {
+            // Arrange
+            var myEntryValue = new object();
+            var parameterCollection = new ParameterCollection(new[]
+            {
+                RenderTreeFrame.Element(0, "some element").WithElementSubtreeLength(2),
+                RenderTreeFrame.Attribute(1, "unrelated value", new object())
+            }, 0).WithTreeParameters(new List<TreeParameterState>
+            {
+                new TreeParameterState("unrelated value 2", new TestProvider(null)),
+                new TreeParameterState("my entry", new TestProvider(myEntryValue)),
+                new TreeParameterState("unrelated value 3", new TestProvider(null)),
+            });
+
+            // Act
+            var result = parameterCollection.GetValueOrDefault<object>("my entry");
+
+            // Assert
+            Assert.Same(myEntryValue, result);
+        }
+
         private Action<Parameter> AssertParameter(string expectedName, object expectedValue)
         {
             return parameter =>
@@ -244,6 +313,19 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 => throw new NotImplementedException();
 
             public void SetParameters(ParameterCollection parameters)
+                => throw new NotImplementedException();
+        }
+
+        private class TestProvider : ProviderBase
+        {
+            public TestProvider(object value)
+            {
+                CurrentValue = value;
+            }
+
+            internal override object CurrentValue { get; }
+
+            internal override bool CanSupplyValue(Type valueType, string providerName)
                 => throw new NotImplementedException();
         }
     }
