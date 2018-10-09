@@ -28,9 +28,20 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// Gets the current value of the enumerator.
         /// </summary>
         public Parameter Current
-            => _currentIndex > _ownerIndex
-                ? new Parameter(_frames, _currentIndex)
-                : throw new InvalidOperationException("Iteration has not yet started.");
+        {
+            get
+            {
+                if (_currentIndex > _ownerIndex)
+                {
+                    ref var frame = ref _frames[_currentIndex];
+                    return new Parameter(frame.AttributeName, frame.AttributeValue);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Iteration has not yet started.");
+                }
+            }
+        }
 
         /// <summary>
         /// Instructs the enumerator to move to the next value in the sequence.

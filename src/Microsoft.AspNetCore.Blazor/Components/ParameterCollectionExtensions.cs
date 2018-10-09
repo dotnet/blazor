@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
     {
         private const BindingFlags _bindablePropertyFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
-        private delegate void WriteParameterAction(ref RenderTreeFrame frame, object target);
+        private delegate void WriteParameterAction(object target, object parameterValue);
 
         private readonly static IDictionary<Type, IDictionary<string, WriteParameterAction>> _cachedParameterWriters
             = new ConcurrentDictionary<Type, IDictionary<string, WriteParameterAction>>();
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                 try
                 {
-                    parameterWriter(ref parameter.Frame, target);
+                    parameterWriter(target, parameter.Value);
                 }
                 catch (Exception ex)
                 {
@@ -86,9 +86,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
                         $"name '{propertyName.ToLowerInvariant()}'. Parameter names are case-insensitive and must be unique.");
                 }
 
-                result.Add(propertyName, (ref RenderTreeFrame frame, object target) =>
+                result.Add(propertyName, (object target, object parameterValue) =>
                 {
-                    propertySetter.SetValue(target, frame.AttributeValue);
+                    propertySetter.SetValue(target, parameterValue);
                 });
             }
 
