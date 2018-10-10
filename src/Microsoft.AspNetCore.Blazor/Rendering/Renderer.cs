@@ -51,6 +51,18 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         protected int AssignRootComponentId(IComponent component)
             => AttachAndInitComponent(component, -1).ComponentId;
 
+        /// <summary>
+        /// Performs the first render for a root component. After this, the root component
+        /// makes its own decisions about when to re-render, so there is no need to call
+        /// this more than once.
+        /// </summary>
+        /// <param name="componentId">The ID returned by <see cref="AssignRootComponentId(IComponent)"/>.</param>
+        protected void RenderRootComponent(int componentId)
+        {
+            GetRequiredComponentState(componentId)
+                .SetDirectParameters(ParameterCollection.Empty);
+        }
+
         private ComponentState AttachAndInitComponent(IComponent component, int parentComponentId)
         {
             var componentId = _nextComponentId++;

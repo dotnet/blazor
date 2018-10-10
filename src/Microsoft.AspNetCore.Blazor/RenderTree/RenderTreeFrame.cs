@@ -290,6 +290,9 @@ namespace Microsoft.AspNetCore.Blazor.RenderTree
         internal static RenderTreeFrame ChildComponent(int sequence, Type componentType)
             => new RenderTreeFrame(sequence, componentType, 0);
 
+        internal static RenderTreeFrame PlaceholderChildComponentWithSubtreeLength(int subtreeLength)
+            => new RenderTreeFrame(0, typeof(IComponent), subtreeLength);
+
         internal static RenderTreeFrame Region(int sequence)
             => new RenderTreeFrame(sequence, regionSubtreeLength: 0);
 

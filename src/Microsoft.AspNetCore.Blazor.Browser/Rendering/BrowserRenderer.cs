@@ -74,9 +74,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
                 domElementSelector,
                 componentId);
 
-            // No need for tree parameters to be attached, because there can't
-            // be any (this is a root component)
-            component.SetParameters(ParameterCollection.Empty);
+            RenderRootComponent(componentId);
         }
 
         /// <summary>

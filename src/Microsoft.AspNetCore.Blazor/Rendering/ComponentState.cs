@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         private readonly IReadOnlyList<TreeParameterState> _treeParameters;
         private RenderTreeBuilder _renderTreeBuilderCurrent;
         private RenderTreeBuilder _renderTreeBuilderPrevious;
+        private ArrayBuilder<RenderTreeFrame> _latestDirectParametersSnapshot; // Lazily instantiated
         private bool _componentWasDisposed;
 
         public int ComponentId => _componentId;
@@ -112,8 +113,28 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
         public void SetDirectParameters(ParameterCollection parameters)
         {
+            // Note: We should be careful to ensure that the framework never calls
+            // IComponent.SetParameters directly elsewhere. We should only call it
+            // via ComponentState.SetParameters (or NotifyTreeParameterChanged below).
+            // If we bypass this, the component won't receive the tree parameters nor
+            // will it update its snapshot of direct parameters.
+
+            // TODO: Consider adding a "static" mode for tree params in which we don't
+            // subscribe for updates, and hence don't have to do any of the parameter
+            // snapshotting. This would be useful for things like FormContext that aren't
+            // going to change.
+
             if (_treeParameters != null)
             {
+                // We may need to replay these direct parameters later (in NotifyTreeParameterChanged),
+                // but we can't guarantee that the original underlying data won't have mutated in the
+                // meantime, since it's just an index into the parent's RenderTreeFrames buffer.
+                if (_latestDirectParametersSnapshot == null)
+                {
+                    _latestDirectParametersSnapshot = new ArrayBuilder<RenderTreeFrame>();
+                }
+                parameters.CaptureSnapshot(_latestDirectParametersSnapshot);
+
                 parameters = parameters.WithTreeParameters(_treeParameters);
             }
 
@@ -122,8 +143,11 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
         public void NotifyTreeParameterChanged()
         {
-            // TODO: Retain previous direct parameters
-            Component.SetParameters(ParameterCollection.Empty.WithTreeParameters(_treeParameters));
+            var directParams = _latestDirectParametersSnapshot != null
+                ? new ParameterCollection(_latestDirectParametersSnapshot.Buffer, 0)
+                : ParameterCollection.Empty;
+            var allParams = directParams.WithTreeParameters(_treeParameters);
+            Component.SetParameters(allParams);
         }
 
         private void AddTreeParameterSubscriptions()

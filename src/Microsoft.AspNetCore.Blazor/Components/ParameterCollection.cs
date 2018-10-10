@@ -174,5 +174,27 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 }
             }
         }
+
+        internal void CaptureSnapshot(ArrayBuilder<RenderTreeFrame> builder)
+        {
+            builder.Clear();
+
+            var numEntries = 0;
+            foreach (var entry in this)
+            {
+                numEntries++;
+            }
+
+            // We need to prefix the captured frames with an "owner" frame that
+            // describes the length of the buffer so that ParameterCollection
+            // knows how far to iterate through it.
+            var owner = RenderTreeFrame.PlaceholderChildComponentWithSubtreeLength(1 + numEntries);
+            builder.Append(owner);
+
+            if (numEntries > 0)
+            {
+                builder.Append(_frames, _ownerIndex + 1, numEntries);
+            }
+        }
     }
 }

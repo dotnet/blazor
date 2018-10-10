@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using System;
 using System.Collections.Generic;
@@ -326,6 +327,12 @@ namespace Microsoft.AspNetCore.Blazor.Test
             internal override object CurrentValue { get; }
 
             internal override bool CanSupplyValue(Type valueType, string providerName)
+                => throw new NotImplementedException();
+
+            internal override void Subscribe(ComponentState subscriber)
+                => throw new NotImplementedException();
+
+            internal override void Unsubscribe(ComponentState subscriber)
                 => throw new NotImplementedException();
         }
     }
