@@ -44,6 +44,11 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             _treeParameters = TreeParameterState.FindTreeParameters(this);
             _renderTreeBuilderCurrent = new RenderTreeBuilder(renderer);
             _renderTreeBuilderPrevious = new RenderTreeBuilder(renderer);
+
+            if (_treeParameters != null)
+            {
+                AddTreeParameterSubscriptions();
+            }
         }
 
         public void RenderIntoBatch(RenderBatchBuilder batchBuilder, RenderFragment renderFragment)
@@ -81,6 +86,11 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             }
 
             RenderTreeDiffBuilder.DisposeFrames(batchBuilder, _renderTreeBuilderCurrent.GetFrames());
+
+            if (_treeParameters != null)
+            {
+                RemoveTreeParameterSubscriptions();
+            }
         }
 
         public void DispatchEvent(EventHandlerInvoker binding, UIEventArgs eventArgs)
@@ -108,6 +118,30 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             }
 
             Component.SetParameters(parameters);
+        }
+
+        public void NotifyTreeParameterChanged()
+        {
+            // TODO: Retain previous direct parameters
+            Component.SetParameters(ParameterCollection.Empty.WithTreeParameters(_treeParameters));
+        }
+
+        private void AddTreeParameterSubscriptions()
+        {
+            var numTreeParameters = _treeParameters.Count;
+            for (var i = 0; i < numTreeParameters; i++)
+            {
+                _treeParameters[i].FromProvider.Subscribe(this);
+            }
+        }
+
+        private void RemoveTreeParameterSubscriptions()
+        {
+            var numTreeParameters = _treeParameters.Count;
+            for (var i = 0; i < numTreeParameters; i++)
+            {
+                _treeParameters[i].FromProvider.Unsubscribe(this);
+            }
         }
     }
 }
