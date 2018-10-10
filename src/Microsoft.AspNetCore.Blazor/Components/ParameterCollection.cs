@@ -166,40 +166,13 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                         var oldValue = oldFrame.AttributeValue;
                         var newValue = newFrame.AttributeValue;
-                        var oldIsNotNull = oldValue != null;
-                        var newIsNotNull = newValue != null;
-                        if (oldIsNotNull != newIsNotNull)
+                        if (ChangeDetection.MayHaveChanged(oldValue, newValue))
                         {
-                            return false; // One's null and the other isn't, so different
-                        }
-                        else if (oldIsNotNull) // i.e., both are not null (considering previous check)
-                        {
-                            var oldValueType = oldValue.GetType();
-                            var newValueType = newValue.GetType();
-                            if (oldValueType != newValueType            // Definitely different
-                                || !IsKnownImmutableType(oldValueType)  // Maybe different
-                                || !oldValue.Equals(newValue))          // Somebody says they are different
-                            {
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            // Both null, hence equal, so continue
+                            return false;
                         }
                     }
                 }
             }
         }
-
-        // The contents of this list need to trade off false negatives against computation
-        // time. So we don't want a huge list of types to check (or would have to move to
-        // a hashtable lookup, which is differently expensive). It's better not to include
-        // uncommon types here even if they are known to be immutable.
-        private bool IsKnownImmutableType(Type type)
-            => type.IsPrimitive
-            || type == typeof(string)
-            || type == typeof(DateTime)
-            || type == typeof(decimal);
     }
 }
