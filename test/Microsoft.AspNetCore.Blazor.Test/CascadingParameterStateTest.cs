@@ -328,6 +328,27 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 });
         }
 
+        [Fact]
+        public void FindCascadingParameters_CanOverrideNonNullValueWithNull()
+        {
+            // Arrange
+            var states = CreateAncestry(
+                CreateCascadingValueComponent(new ValueType1()),
+                CreateCascadingValueComponent((ValueType1)null),
+                new ComponentWithCascadingParams());
+
+            // Act
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
+
+            // Assert
+            Assert.Collection(result.OrderBy(x => x.LocalValueName),
+                match => {
+                    Assert.Equal(nameof(ComponentWithCascadingParams.CascadingParam1), match.LocalValueName);
+                    Assert.Same(states[1].Component, match.ValueSupplier);
+                    Assert.Null(match.ValueSupplier.CurrentValue);
+                });
+        }
+
         static ComponentState[] CreateAncestry(params IComponent[] components)
         {
             var result = new ComponentState[components.Length];
