@@ -57,6 +57,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             private readonly int _ownerIndex;
             private readonly int _ownerDescendantsEndIndexExcl;
             private int _currentIndex;
+            private Parameter _current;
 
             internal RenderTreeFrameParameterEnumerator(RenderTreeFrame[] frames, int ownerIndex)
             {
@@ -64,23 +65,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 _ownerIndex = ownerIndex;
                 _ownerDescendantsEndIndexExcl = ownerIndex + _frames[ownerIndex].ElementSubtreeLength;
                 _currentIndex = ownerIndex;
+                _current = default;
             }
-            
-            public Parameter Current
-            {
-                get
-                {
-                    if (_currentIndex > _ownerIndex)
-                    {
-                        ref var frame = ref _frames[_currentIndex];
-                        return new Parameter(frame.AttributeName, frame.AttributeValue);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Iteration has not yet started.");
-                    }
-                }
-            }
+
+            public Parameter Current => _current;
 
             public bool MoveNext()
             {
@@ -99,6 +87,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 }
 
                 _currentIndex = nextIndex;
+
+                ref var frame = ref _frames[_currentIndex];
+                _current = new Parameter(frame.AttributeName, frame.AttributeValue);
+
                 return true;
             }
         }
@@ -107,16 +99,16 @@ namespace Microsoft.AspNetCore.Blazor.Components
         {
             private readonly IReadOnlyList<CascadingParameterState> _cascadingParameters;
             private int _currentIndex;
+            private Parameter _current;
 
             public CascadingParameterEnumerator(IReadOnlyList<CascadingParameterState> cascadingParameters)
             {
                 _cascadingParameters = cascadingParameters;
                 _currentIndex = -1;
+                _current = default;
             }
 
-            public Parameter Current => new Parameter(
-                _cascadingParameters[_currentIndex].LocalValueName,
-                _cascadingParameters[_currentIndex].ValueSupplier.CurrentValue);
+            public Parameter Current => _current;
 
             public bool MoveNext()
             {
@@ -130,6 +122,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 if (nextIndex < _cascadingParameters.Count)
                 {
                     _currentIndex = nextIndex;
+
+                    var state = _cascadingParameters[_currentIndex];
+                    _current = new Parameter(state.LocalValueName, state.ValueSupplier.CurrentValue);
                     return true;
                 }
                 else
