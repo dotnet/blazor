@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void FindCascadingParameters_IfHasNoCascadingParameters_ReturnsNull()
         {
             // Arrange
-            var componentState = CreateComponentState(new ComponentWithNoTreeParams());
+            var componentState = CreateComponentState(new ComponentWithNoCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(componentState);
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         public void FindCascadingParameters_IfHasNoAncestors_ReturnsNull()
         {
             // Arrange
-            var componentState = CreateComponentState(new ComponentWithTreeParams());
+            var componentState = CreateComponentState(new ComponentWithCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(componentState);
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 new ComponentWithNoParams(),
                 CreateCascadingValueComponent("Hello"),
                 new ComponentWithNoParams(),
-                new ComponentWithTreeParams());
+                new ComponentWithCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -75,9 +75,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             var states = CreateAncestry(
                 new ComponentWithNoParams(),
-                CreateCascadingValueComponent(new TreeValue2()),
+                CreateCascadingValueComponent(new ValueType2()),
                 new ComponentWithNoParams(),
-                new ComponentWithTreeParams());
+                new ComponentWithCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Assert
             Assert.Collection(result, match =>
             {
-                Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalValueName);
+                Assert.Equal(nameof(ComponentWithCascadingParams.CascadingParam2), match.LocalValueName);
                 Assert.Same(states[1].Component, match.ValueSupplier);
             });
         }
@@ -96,10 +96,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             var states = CreateAncestry(
                 new ComponentWithNoParams(),
-                CreateCascadingValueComponent(new TreeValue2()),
+                CreateCascadingValueComponent(new ValueType2()),
                 new ComponentWithNoParams(),
-                CreateCascadingValueComponent(new TreeValue1()),
-                new ComponentWithTreeParams());
+                CreateCascadingValueComponent(new ValueType1()),
+                new ComponentWithCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -107,11 +107,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Assert
             Assert.Collection(result.OrderBy(x => x.LocalValueName),
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalValueName);
+                    Assert.Equal(nameof(ComponentWithCascadingParams.CascadingParam1), match.LocalValueName);
                     Assert.Same(states[3].Component, match.ValueSupplier);
                 },
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalValueName);
+                    Assert.Equal(nameof(ComponentWithCascadingParams.CascadingParam2), match.LocalValueName);
                     Assert.Same(states[1].Component, match.ValueSupplier);
                 });
         }
@@ -121,9 +121,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValue1()),
-                CreateCascadingValueComponent(new TreeValue3()),
-                new ComponentWithInheritedTreeParams());
+                CreateCascadingValueComponent(new ValueType1()),
+                CreateCascadingValueComponent(new ValueType3()),
+                new ComponentWithInheritedCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -131,11 +131,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Assert
             Assert.Collection(result.OrderBy(x => x.LocalValueName),
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalValueName);
+                    Assert.Equal(nameof(ComponentWithCascadingParams.CascadingParam1), match.LocalValueName);
                     Assert.Same(states[0].Component, match.ValueSupplier);
                 },
                 match => {
-                    Assert.Equal(nameof(ComponentWithInheritedTreeParams.TreeParam3), match.LocalValueName);
+                    Assert.Equal(nameof(ComponentWithInheritedCascadingParams.CascadingParam3), match.LocalValueName);
                     Assert.Same(states[1].Component, match.ValueSupplier);
                 });
         }
@@ -145,15 +145,15 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValueDerivedClass()),
-                new ComponentWithGenericTreeParam<TreeValueBaseClass>());
+                CreateCascadingValueComponent(new CascadingValueTypeDerivedClass()),
+                new ComponentWithGenericCascadingParam<CascadingValueTypeBaseClass>());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalValueName);
+                Assert.Equal(nameof(ComponentWithGenericCascadingParam<object>.LocalName), match.LocalValueName);
                 Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
@@ -163,15 +163,15 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValueDerivedClass()),
-                new ComponentWithGenericTreeParam<ITreeValueDerivedClassInterface>());
+                CreateCascadingValueComponent(new CascadingValueTypeDerivedClass()),
+                new ComponentWithGenericCascadingParam<ICascadingValueTypeDerivedClassInterface>());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalValueName);
+                Assert.Equal(nameof(ComponentWithGenericCascadingParam<object>.LocalName), match.LocalValueName);
                 Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
@@ -181,8 +181,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValueBaseClass()),
-                new ComponentWithGenericTreeParam<TreeValueDerivedClass>());
+                CreateCascadingValueComponent(new CascadingValueTypeBaseClass()),
+                new ComponentWithGenericCascadingParam<CascadingValueTypeDerivedClass>());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -196,15 +196,15 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent((TreeValueDerivedClass)null),
-                new ComponentWithGenericTreeParam<TreeValueBaseClass>());
+                CreateCascadingValueComponent((CascadingValueTypeDerivedClass)null),
+                new ComponentWithGenericCascadingParam<CascadingValueTypeBaseClass>());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalValueName);
+                Assert.Equal(nameof(ComponentWithGenericCascadingParam<object>.LocalName), match.LocalValueName);
                 Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
@@ -215,7 +215,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             var states = CreateAncestry(
                 CreateCascadingValueComponent((object)null),
-                new ComponentWithGenericTreeParam<TreeValue1>());
+                new ComponentWithGenericCascadingParam<ValueType1>());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -229,8 +229,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValue1(), "MatchOnName"),
-                new ComponentWithTreeParams());
+                CreateCascadingValueComponent(new ValueType1(), "MatchOnName"),
+                new ComponentWithCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -244,8 +244,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValue1()),
-                new ComponentWithNamedTreeParam());
+                CreateCascadingValueComponent(new ValueType1()),
+                new ComponentWithNamedCascadingParam());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -259,8 +259,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValue1(), "MismatchName"),
-                new ComponentWithNamedTreeParam());
+                CreateCascadingValueComponent(new ValueType1(), "MismatchName"),
+                new ComponentWithNamedCascadingParam());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -274,8 +274,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValue2(), "MatchOnName"),
-                new ComponentWithNamedTreeParam());
+                CreateCascadingValueComponent(new ValueType2(), "MatchOnName"),
+                new ComponentWithNamedCascadingParam());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -289,15 +289,15 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValue1(), "matchonNAME"), // To show it's case-insensitive
-                new ComponentWithNamedTreeParam());
+                CreateCascadingValueComponent(new ValueType1(), "matchonNAME"), // To show it's case-insensitive
+                new ComponentWithNamedCascadingParam());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithNamedTreeParam.SomeLocalName), match.LocalValueName);
+                Assert.Equal(nameof(ComponentWithNamedCascadingParam.SomeLocalName), match.LocalValueName);
                 Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
@@ -307,11 +307,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateCascadingValueComponent(new TreeValue1()),
-                CreateCascadingValueComponent(new TreeValue2()),
-                CreateCascadingValueComponent(new TreeValue1()),
-                CreateCascadingValueComponent(new TreeValue2()),
-                new ComponentWithTreeParams());
+                CreateCascadingValueComponent(new ValueType1()),
+                CreateCascadingValueComponent(new ValueType2()),
+                CreateCascadingValueComponent(new ValueType1()),
+                CreateCascadingValueComponent(new ValueType2()),
+                new ComponentWithCascadingParams());
 
             // Act
             var result = CascadingParameterState.FindCascadingParameters(states.Last());
@@ -319,11 +319,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Assert
             Assert.Collection(result.OrderBy(x => x.LocalValueName),
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalValueName);
+                    Assert.Equal(nameof(ComponentWithCascadingParams.CascadingParam1), match.LocalValueName);
                     Assert.Same(states[2].Component, match.ValueSupplier);
                 },
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalValueName);
+                    Assert.Equal(nameof(ComponentWithCascadingParams.CascadingParam2), match.LocalValueName);
                     Assert.Same(states[3].Component, match.ValueSupplier);
                 });
         }
@@ -371,32 +371,32 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
         }
 
-        class ComponentWithNoTreeParams : TestComponentBase
+        class ComponentWithNoCascadingParams : TestComponentBase
         {
             [Parameter] bool SomeRegularParameter { get; set; }
         }
 
-        class ComponentWithTreeParams : TestComponentBase
+        class ComponentWithCascadingParams : TestComponentBase
         {
             [Parameter] bool RegularParam { get; set; }
-            [Parameter(FromTree = true)] internal TreeValue1 TreeParam1 { get; set; }
-            [Parameter(FromTree = true)] internal TreeValue2 TreeParam2 { get; set; }
+            [CascadingParameter] internal ValueType1 CascadingParam1 { get; set; }
+            [CascadingParameter] internal ValueType2 CascadingParam2 { get; set; }
         }
 
-        class ComponentWithInheritedTreeParams : ComponentWithTreeParams
+        class ComponentWithInheritedCascadingParams : ComponentWithCascadingParams
         {
-            [Parameter(FromTree = true)] internal TreeValue3 TreeParam3 { get; set; }
+            [CascadingParameter] internal ValueType3 CascadingParam3 { get; set; }
         }
 
-        class ComponentWithGenericTreeParam<T> : TestComponentBase
+        class ComponentWithGenericCascadingParam<T> : TestComponentBase
         {
-            [Parameter(FromTree = true)] internal T LocalName { get; set; }
+            [CascadingParameter] internal T LocalName { get; set; }
         }
 
-        class ComponentWithNamedTreeParam : TestComponentBase
+        class ComponentWithNamedCascadingParam : TestComponentBase
         {
-            [Parameter(FromTree = true, ProviderName = "MatchOnName")]
-            internal TreeValue1 SomeLocalName { get; set; }
+            [CascadingParameter(Name = "MatchOnName")]
+            internal ValueType1 SomeLocalName { get; set; }
         }
 
         class TestComponentBase : IComponent
@@ -408,12 +408,12 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 => throw new NotImplementedException();
         }
 
-        class TreeValue1 { }
-        class TreeValue2 { }
-        class TreeValue3 { }
+        class ValueType1 { }
+        class ValueType2 { }
+        class ValueType3 { }
 
-        class TreeValueBaseClass { }
-        class TreeValueDerivedClass : TreeValueBaseClass, ITreeValueDerivedClassInterface { }
-        interface ITreeValueDerivedClassInterface { }
+        class CascadingValueTypeBaseClass { }
+        class CascadingValueTypeDerivedClass : CascadingValueTypeBaseClass, ICascadingValueTypeDerivedClassInterface { }
+        interface ICascadingValueTypeDerivedClassInterface { }
     }
 }

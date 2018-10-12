@@ -263,7 +263,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public int NumSetParametersCalls { get; private set; }
             public int NumRenders { get; private set; }
 
-            [Parameter(FromTree = true)] T CascadingParameter { get; set; }
+            [CascadingParameter] T CascadingParameter { get; set; }
             [Parameter] string RegularParameter { get; set; }
 
             public override void SetParameters(ParameterCollection parameters)

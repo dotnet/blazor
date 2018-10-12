@@ -90,11 +90,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
         private static ReflectedCascadingParameterInfo[] CreateReflectedCascadingParameterInfos(Type componentType)
         {
             List<ReflectedCascadingParameterInfo> result = null;
-            var candidateProps = ParameterCollectionExtensions.GetBindableProperties(componentType);
+            var candidateProps = ParameterCollectionExtensions.GetCandidateBindableProperties(componentType);
             foreach (var prop in candidateProps)
             {
-                var parameterAttribute = prop.GetCustomAttribute<ParameterAttribute>();
-                if (parameterAttribute.FromTree)
+                var attribute = prop.GetCustomAttribute<CascadingParameterAttribute>();
+                if (attribute != null)
                 {
                     if (result == null)
                     {
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
                     result.Add(new ReflectedCascadingParameterInfo(
                         prop.Name,
                         prop.PropertyType,
-                        parameterAttribute.ProviderName));
+                        attribute.Name));
                 }
             }
 

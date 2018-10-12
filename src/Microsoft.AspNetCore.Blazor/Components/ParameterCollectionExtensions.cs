@@ -65,16 +65,22 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
         }
 
-        internal static IEnumerable<PropertyInfo> GetBindableProperties(Type targetType)
-            => MemberAssignment.GetPropertiesIncludingInherited(targetType, _bindablePropertyFlags)
-                .Where(property => property.IsDefined(typeof(ParameterAttribute)));
+        internal static IEnumerable<PropertyInfo> GetCandidateBindableProperties(Type targetType)
+            => MemberAssignment.GetPropertiesIncludingInherited(targetType, _bindablePropertyFlags);
 
         private static IDictionary<string, WriteParameterAction> CreateParameterWriters(Type targetType)
         {
             var result = new Dictionary<string, WriteParameterAction>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var propertyInfo in GetBindableProperties(targetType))
+            foreach (var propertyInfo in GetCandidateBindableProperties(targetType))
             {
+                var shouldCreateWriter = propertyInfo.IsDefined(typeof(ParameterAttribute))
+                    || propertyInfo.IsDefined(typeof(CascadingParameterAttribute));
+                if (!shouldCreateWriter)
+                {
+                    continue;
+                }
+
                 var propertySetter = MemberAssignment.CreatePropertySetter(targetType, propertyInfo);
 
                 var propertyName = propertyInfo.Name;
@@ -101,11 +107,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
             var propertyInfo = targetType.GetProperty(parameterName, _bindablePropertyFlags);
             if (propertyInfo != null)
             {
-                if (!propertyInfo.IsDefined(typeof(ParameterAttribute)))
+                if (!propertyInfo.IsDefined(typeof(ParameterAttribute)) && !propertyInfo.IsDefined(typeof(CascadingParameterAttribute)))
                 {
                     throw new InvalidOperationException(
                         $"Object of type '{targetType.FullName}' has a property matching the name '{parameterName}', " +
-                        $"but it does not have [{nameof(ParameterAttribute)}] applied.");
+                        $"but it does not have [{nameof(ParameterAttribute)}] or [{nameof(CascadingParameterAttribute)}] applied.");
                 }
                 else
                 {
