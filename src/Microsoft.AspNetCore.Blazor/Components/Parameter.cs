@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         public string Name { get; }
 
         /// <summary>
-        /// Gets the value of the parameter.
+        /// Gets the value being supplied for the parameter.
         /// </summary>
         public object Value { get; }
 
