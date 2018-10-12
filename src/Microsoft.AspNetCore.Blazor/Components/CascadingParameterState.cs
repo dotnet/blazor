@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
 {
     internal readonly struct CascadingParameterState
     {
-        private readonly static IDictionary<Type, ReflectedCascadingParameterInfo[]> _cachedInfos
+        private readonly static ConcurrentDictionary<Type, ReflectedCascadingParameterInfo[]> _cachedInfos
             = new ConcurrentDictionary<Type, ReflectedCascadingParameterInfo[]>();
 
         public string LocalValueName { get; }
@@ -42,7 +42,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
             for (var infoIndex = 0; infoIndex < numInfos; infoIndex++)
             {
                 ref var info = ref infos[infoIndex];
-                if (TryGetMatchingCascadingValueSupplier(info, componentState, out var supplier))
+                var supplier = GetMatchingCascadingValueSupplier(info, componentState);
+                if (supplier != null)
                 {
                     if (resultStates == null)
                     {
@@ -57,23 +58,21 @@ namespace Microsoft.AspNetCore.Blazor.Components
             return resultStates;
         }
 
-        private static bool TryGetMatchingCascadingValueSupplier(in ReflectedCascadingParameterInfo info, ComponentState componentState, out ICascadingValueComponent supplier)
+        private static ICascadingValueComponent GetMatchingCascadingValueSupplier(in ReflectedCascadingParameterInfo info, ComponentState componentState)
         {
             do
             {
                 if (componentState.Component is ICascadingValueComponent candidateSupplier
                     && candidateSupplier.CanSupplyValue(info.ValueType, info.SupplierValueName))
                 {
-                    supplier = candidateSupplier;
-                    return true;
+                    return candidateSupplier;
                 }
 
                 componentState = componentState.ParentComponentState;
             } while (componentState != null);
 
             // No match
-            supplier = null;
-            return false;
+            return null;
         }
 
         private static ReflectedCascadingParameterInfo[] GetReflectedCascadingParameterInfos(Type componentType)
