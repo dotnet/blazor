@@ -12,23 +12,23 @@ namespace Microsoft.AspNetCore.Blazor.Components
     /// </summary>
     public struct ParameterEnumerator
     {
-        private RenderTreeFrameParameterEnumerator _renderTreeParamsEnumerator;
-        private TreeParameterEnumerator _treeParameterEnumerator;
-        private bool _isEnumeratingRenderTreeParams;
+        private RenderTreeFrameParameterEnumerator _directParamsEnumerator;
+        private CascadingParameterEnumerator _cascadingParameterEnumerator;
+        private bool _isEnumeratingDirectParams;
 
-        internal ParameterEnumerator(RenderTreeFrame[] frames, int ownerIndex, IReadOnlyList<TreeParameterState> treeParameters)
+        internal ParameterEnumerator(RenderTreeFrame[] frames, int ownerIndex, IReadOnlyList<CascadingParameterState> cascadingParameters)
         {
-            _renderTreeParamsEnumerator = new RenderTreeFrameParameterEnumerator(frames, ownerIndex);
-            _treeParameterEnumerator = new TreeParameterEnumerator(treeParameters);
-            _isEnumeratingRenderTreeParams = true;
+            _directParamsEnumerator = new RenderTreeFrameParameterEnumerator(frames, ownerIndex);
+            _cascadingParameterEnumerator = new CascadingParameterEnumerator(cascadingParameters);
+            _isEnumeratingDirectParams = true;
         }
 
         /// <summary>
         /// Gets the current value of the enumerator.
         /// </summary>
-        public Parameter Current => _isEnumeratingRenderTreeParams
-            ? _renderTreeParamsEnumerator.Current
-            : _treeParameterEnumerator.Current;
+        public Parameter Current => _isEnumeratingDirectParams
+            ? _directParamsEnumerator.Current
+            : _cascadingParameterEnumerator.Current;
 
         /// <summary>
         /// Instructs the enumerator to move to the next value in the sequence.
@@ -36,19 +36,19 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <returns>A flag to indicate whether or not there is a next value.</returns>
         public bool MoveNext()
         {
-            if (_isEnumeratingRenderTreeParams)
+            if (_isEnumeratingDirectParams)
             {
-                if (_renderTreeParamsEnumerator.MoveNext())
+                if (_directParamsEnumerator.MoveNext())
                 {
                     return true;
                 }
                 else
                 {
-                    _isEnumeratingRenderTreeParams = false;
+                    _isEnumeratingDirectParams = false;
                 }
             }
 
-            return _treeParameterEnumerator.MoveNext();
+            return _cascadingParameterEnumerator.MoveNext();
         }
 
         struct RenderTreeFrameParameterEnumerator
@@ -65,7 +65,6 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 _ownerDescendantsEndIndexExcl = ownerIndex + _frames[ownerIndex].ElementSubtreeLength;
                 _currentIndex = ownerIndex;
             }
-
             
             public Parameter Current
             {
@@ -104,31 +103,31 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
         }
 
-        struct TreeParameterEnumerator
+        struct CascadingParameterEnumerator
         {
-            private readonly IReadOnlyList<TreeParameterState> _treeParameters;
+            private readonly IReadOnlyList<CascadingParameterState> _cascadingParameters;
             private int _currentIndex;
 
-            public TreeParameterEnumerator(IReadOnlyList<TreeParameterState> treeParameters)
+            public CascadingParameterEnumerator(IReadOnlyList<CascadingParameterState> cascadingParameters)
             {
-                _treeParameters = treeParameters;
+                _cascadingParameters = cascadingParameters;
                 _currentIndex = -1;
             }
 
             public Parameter Current => new Parameter(
-                _treeParameters[_currentIndex].LocalName,
-                _treeParameters[_currentIndex].FromProvider.CurrentValue);
+                _cascadingParameters[_currentIndex].LocalValueName,
+                _cascadingParameters[_currentIndex].ValueSupplier.CurrentValue);
 
             public bool MoveNext()
             {
-                // Bail out early if there are no tree parameters
-                if (_treeParameters == null)
+                // Bail out early if there are no cascading parameters
+                if (_cascadingParameters == null)
                 {
                     return false;
                 }
 
                 var nextIndex = _currentIndex + 1;
-                if (nextIndex < _treeParameters.Count)
+                if (nextIndex < _cascadingParameters.Count)
                 {
                     _currentIndex = nextIndex;
                     return true;

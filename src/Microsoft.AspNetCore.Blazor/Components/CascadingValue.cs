@@ -9,9 +9,9 @@ using System.Collections.Generic;
 namespace Microsoft.AspNetCore.Blazor.Components
 {
     /// <summary>
-    /// A component that provides one or more parameter values to all descendant components.
+    /// A component that provides a cascading value to all descendant components.
     /// </summary>
-    public class Provider<T> : ProviderBase, IComponent
+    public class CascadingValue<T> : ICascadingValueComponent, IComponent
     {
         private RenderHandle _renderHandle;
         private HashSet<ComponentState> _subscribers; // Lazily instantiated
@@ -26,8 +26,6 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         [Parameter] private T Value { get; set; }
 
-        internal override object CurrentValue => Value;
-
         /// <summary>
         /// Optionally gives a name to the provided value. Descendant components
         /// will be able to receive the value by specifying this name.
@@ -36,6 +34,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// value based the type of value they are requesting.
         /// </summary>
         [Parameter] private string Name { get; set; }
+
+        object ICascadingValueComponent.CurrentValue => Value;
 
         /// <inheritdoc />
         public void Init(RenderHandle renderHandle)
@@ -72,17 +72,17 @@ namespace Microsoft.AspNetCore.Blazor.Components
                     Name = (string)parameter.Value;
                     if (string.IsNullOrEmpty(Name))
                     {
-                        throw new ArgumentException($"The parameter '{nameof(Name)}' for component '{nameof(Provider<T>)}' does not allow null or empty values.");
+                        throw new ArgumentException($"The parameter '{nameof(Name)}' for component '{nameof(CascadingValue<T>)}' does not allow null or empty values.");
                     }
                 }
                 else
                 {
-                    throw new ArgumentException($"The component '{nameof(Provider<T>)}' does not accept a parameter with the name '{parameter.Name}'.");
+                    throw new ArgumentException($"The component '{nameof(CascadingValue<T>)}' does not accept a parameter with the name '{parameter.Name}'.");
                 }
             }
 
             // It's OK for the value to be null, but some "Value" param must be suppled
-            // because it serves no useful purpose to have a <Provider> otherwise.
+            // because it serves no useful purpose to have a <CascadingValue> otherwise.
             if (!hasSuppliedValue)
             {
                 throw new ArgumentException($"Missing required parameter '{nameof(Value)}' for component '{nameof(Parameter)}'.");
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             // At some point we might consider making the render queue actually enforce this
             // ordering during insertion.
             //
-            // For the Provider component, this observation is why it's important to render
+            // For the CascadingValue component, this observation is why it's important to render
             // ourself before notifying subscribers (which can be grandchildren or deeper).
             // If we rerendered subscribers first, then our own subsequent render might cause an
             // further update that makes those nested subscribers get rendered twice.
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
         }
 
-        internal override bool CanSupplyValue(Type requestedType, string requestedName)
+        bool ICascadingValueComponent.CanSupplyValue(Type requestedType, string requestedName)
         {
             if (!requestedType.IsAssignableFrom(typeof(T)))
             {
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 || string.Equals(requestedName, Name, StringComparison.OrdinalIgnoreCase); // Also match on name
         }
 
-        internal override void Subscribe(ComponentState subscriber)
+        void ICascadingValueComponent.Subscribe(ComponentState subscriber)
         {
             if (_subscribers == null)
             {
@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             _subscribers.Add(subscriber);
         }
 
-        internal override void Unsubscribe(ComponentState subscriber)
+        void ICascadingValueComponent.Unsubscribe(ComponentState subscriber)
         {
             _subscribers.Remove(subscriber);
         }
@@ -137,7 +137,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         {
             foreach (var subscriber in _subscribers)
             {
-                subscriber.NotifyTreeParameterChanged();
+                subscriber.NotifyCascadingValueChanged();
             }
         }
 

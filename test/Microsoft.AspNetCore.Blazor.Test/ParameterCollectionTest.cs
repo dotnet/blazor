@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void EnumerationIncludesTreeParameters()
+        public void EnumerationIncludesCascadingParameters()
         {
             // Arrange
             var attribute1Value = new object();
@@ -97,10 +97,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 RenderTreeFrame.Element(0, "some element").WithElementSubtreeLength(2),
                 RenderTreeFrame.Attribute(1, "attribute 1", attribute1Value)
-            }, 0).WithTreeParameters(new List<TreeParameterState>
+            }, 0).WithCascadingParameters(new List<CascadingParameterState>
             {
-                new TreeParameterState("attribute 2", new TestProvider(attribute2Value)),
-                new TreeParameterState("attribute 3", new TestProvider(attribute3Value)),
+                new CascadingParameterState("attribute 2", new TestCascadingValue(attribute2Value)),
+                new CascadingParameterState("attribute 3", new TestCascadingValue(attribute3Value)),
             });
 
             // Assert
@@ -192,9 +192,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 RenderTreeFrame.Element(0, "some element").WithElementSubtreeLength(2),
                 RenderTreeFrame.Attribute(1, "some other entry", new object())
-            }, 0).WithTreeParameters(new List<TreeParameterState>
+            }, 0).WithCascadingParameters(new List<CascadingParameterState>
             {
-                new TreeParameterState("another entry", new TestProvider(null))
+                new CascadingParameterState("another entry", new TestCascadingValue(null))
             });
 
             // Act
@@ -269,7 +269,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void CanGetValueOrDefault_WithMatchingTreeParameter()
+        public void CanGetValueOrDefault_WithMatchingCascadingParameter()
         {
             // Arrange
             var myEntryValue = new object();
@@ -277,11 +277,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 RenderTreeFrame.Element(0, "some element").WithElementSubtreeLength(2),
                 RenderTreeFrame.Attribute(1, "unrelated value", new object())
-            }, 0).WithTreeParameters(new List<TreeParameterState>
+            }, 0).WithCascadingParameters(new List<CascadingParameterState>
             {
-                new TreeParameterState("unrelated value 2", new TestProvider(null)),
-                new TreeParameterState("my entry", new TestProvider(myEntryValue)),
-                new TreeParameterState("unrelated value 3", new TestProvider(null)),
+                new CascadingParameterState("unrelated value 2", new TestCascadingValue(null)),
+                new CascadingParameterState("my entry", new TestCascadingValue(myEntryValue)),
+                new CascadingParameterState("unrelated value 3", new TestCascadingValue(null)),
             });
 
             // Act
@@ -317,22 +317,22 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 => throw new NotImplementedException();
         }
 
-        private class TestProvider : ProviderBase
+        private class TestCascadingValue : ICascadingValueComponent
         {
-            public TestProvider(object value)
+            public TestCascadingValue(object value)
             {
                 CurrentValue = value;
             }
 
-            internal override object CurrentValue { get; }
+            public object CurrentValue { get; }
 
-            internal override bool CanSupplyValue(Type valueType, string providerName)
+            public bool CanSupplyValue(Type valueType, string valueName)
                 => throw new NotImplementedException();
 
-            internal override void Subscribe(ComponentState subscriber)
+            public void Subscribe(ComponentState subscriber)
                 => throw new NotImplementedException();
 
-            internal override void Unsubscribe(ComponentState subscriber)
+            public void Unsubscribe(ComponentState subscriber)
                 => throw new NotImplementedException();
         }
     }

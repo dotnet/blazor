@@ -9,20 +9,20 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Test
 {
-    public class TreeParameterTest
+    public class CascadingParameterTest
     {
         [Fact]
-        public void PassesTreeParametersToNestedComponents()
+        public void PassesCascadingParametersToNestedComponents()
         {
             // Arrange
             var renderer = new TestRenderer();
             var component = new TestComponent(builder =>
             {
-                builder.OpenComponent<Provider<string>>(0);
+                builder.OpenComponent<CascadingValue<string>>(0);
                 builder.AddAttribute(1, "Value", "Hello");
                 builder.AddAttribute(2, RenderTreeBuilder.ChildContent, new RenderFragment(childBuilder =>
                 {
-                    childBuilder.OpenComponent<TreeParameterConsumerComponent<string>>(0);
+                    childBuilder.OpenComponent<CascadingParameterConsumerComponent<string>>(0);
                     childBuilder.AddAttribute(1, "RegularParameter", "Goodbye");
                     childBuilder.CloseComponent();
                 }));
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var batch = renderer.Batches.Single();
-            var nestedComponent = FindComponent<TreeParameterConsumerComponent<string>>(batch, out var nestedComponentId);
+            var nestedComponent = FindComponent<CascadingParameterConsumerComponent<string>>(batch, out var nestedComponentId);
             var nestedComponentDiff = batch.DiffsByComponentId[nestedComponentId].Single();
 
             // The nested component was rendered with the correct parameters
@@ -43,24 +43,24 @@ namespace Microsoft.AspNetCore.Blazor.Test
                     Assert.Equal(RenderTreeEditType.PrependFrame, edit.Type);
                     AssertFrame.Text(
                         batch.ReferenceFrames[edit.ReferenceFrameIndex],
-                        "TreeParameter=Hello; RegularParameter=Goodbye");
+                        "CascadingParameter=Hello; RegularParameter=Goodbye");
                 });
             Assert.Equal(1, nestedComponent.NumRenders);
         }
 
         [Fact]
-        public void RetainsTreeParametersWhenUpdatingDirectParameters()
+        public void RetainsCascadingParametersWhenUpdatingDirectParameters()
         {
             // Arrange
             var renderer = new TestRenderer();
             var regularParameterValue = "Initial value";
             var component = new TestComponent(builder =>
             {
-                builder.OpenComponent<Provider<string>>(0);
+                builder.OpenComponent<CascadingValue<string>>(0);
                 builder.AddAttribute(1, "Value", "Hello");
                 builder.AddAttribute(2, RenderTreeBuilder.ChildContent, new RenderFragment(childBuilder =>
                 {
-                    childBuilder.OpenComponent<TreeParameterConsumerComponent<string>>(0);
+                    childBuilder.OpenComponent<CascadingParameterConsumerComponent<string>>(0);
                     childBuilder.AddAttribute(1, "RegularParameter", regularParameterValue);
                     childBuilder.CloseComponent();
                 }));
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Capture the nested component so we can verify the update later
             var firstBatch = renderer.Batches.Single();
-            var nestedComponent = FindComponent<TreeParameterConsumerComponent<string>>(firstBatch, out var nestedComponentId);
+            var nestedComponent = FindComponent<CascadingParameterConsumerComponent<string>>(firstBatch, out var nestedComponentId);
             Assert.Equal(1, nestedComponent.NumRenders);
             
             // Act 2: Render again with updated regular parameter
@@ -91,24 +91,24 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 {
                     Assert.Equal(RenderTreeEditType.UpdateText, edit.Type);
                     Assert.Equal(0, edit.ReferenceFrameIndex); // This is the only change
-                    AssertFrame.Text(secondBatch.ReferenceFrames[0], "TreeParameter=Hello; RegularParameter=Changed value");
+                    AssertFrame.Text(secondBatch.ReferenceFrames[0], "CascadingParameter=Hello; RegularParameter=Changed value");
                 });
             Assert.Equal(2, nestedComponent.NumRenders);
         }
 
         [Fact]
-        public void NotifiesDescendantsOfUpdatedTreeParameterValuesAndPreservesDirectParameters()
+        public void NotifiesDescendantsOfUpdatedCascadingParameterValuesAndPreservesDirectParameters()
         {
             // Arrange
             var providedValue = "Initial value";
             var renderer = new TestRenderer();
             var component = new TestComponent(builder =>
             {
-                builder.OpenComponent<Provider<string>>(0);
+                builder.OpenComponent<CascadingValue<string>>(0);
                 builder.AddAttribute(1, "Value", providedValue);
                 builder.AddAttribute(2, RenderTreeBuilder.ChildContent, new RenderFragment(childBuilder =>
                 {
-                    childBuilder.OpenComponent<TreeParameterConsumerComponent<string>>(0);
+                    childBuilder.OpenComponent<CascadingParameterConsumerComponent<string>>(0);
                     childBuilder.AddAttribute(1, "RegularParameter", "Goodbye");
                     childBuilder.CloseComponent();
                 }));
@@ -119,14 +119,14 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var firstBatch = renderer.Batches.Single();
-            var nestedComponent = FindComponent<TreeParameterConsumerComponent<string>>(firstBatch, out var nestedComponentId);
+            var nestedComponent = FindComponent<CascadingParameterConsumerComponent<string>>(firstBatch, out var nestedComponentId);
             Assert.Equal(1, nestedComponent.NumRenders);
 
-            // Act 2: Re-render provider with new value
+            // Act 2: Re-render CascadingValue with new value
             providedValue = "Updated value";
             component.TriggerRender();
 
-            // Assert: We re-rendered TreeParameterConsumerComponent
+            // Assert: We re-rendered CascadingParameterConsumerComponent
             Assert.Equal(2, renderer.Batches.Count);
             var secondBatch = renderer.Batches[1];
             var nestedComponentDiff = secondBatch.DiffsByComponentId[nestedComponentId].Single();
@@ -137,23 +137,23 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 {
                     Assert.Equal(RenderTreeEditType.UpdateText, edit.Type);
                     Assert.Equal(0, edit.ReferenceFrameIndex); // This is the only change
-                    AssertFrame.Text(secondBatch.ReferenceFrames[0], "TreeParameter=Updated value; RegularParameter=Goodbye");
+                    AssertFrame.Text(secondBatch.ReferenceFrames[0], "CascadingParameter=Updated value; RegularParameter=Goodbye");
                 });
             Assert.Equal(2, nestedComponent.NumRenders);
         }
 
         [Fact]
-        public void DoesNotNotifyDescendantsIfTreeParameterValuesAreImmutableAndUnchanged()
+        public void DoesNotNotifyDescendantsIfCascadingParameterValuesAreImmutableAndUnchanged()
         {
             // Arrange
             var renderer = new TestRenderer();
             var component = new TestComponent(builder =>
             {
-                builder.OpenComponent<Provider<string>>(0);
+                builder.OpenComponent<CascadingValue<string>>(0);
                 builder.AddAttribute(1, "Value", "Unchanging value");
                 builder.AddAttribute(2, RenderTreeBuilder.ChildContent, new RenderFragment(childBuilder =>
                 {
-                    childBuilder.OpenComponent<TreeParameterConsumerComponent<string>>(0);
+                    childBuilder.OpenComponent<CascadingParameterConsumerComponent<string>>(0);
                     childBuilder.AddAttribute(1, "RegularParameter", "Goodbye");
                     childBuilder.CloseComponent();
                 }));
@@ -164,17 +164,17 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var firstBatch = renderer.Batches.Single();
-            var nestedComponent = FindComponent<TreeParameterConsumerComponent<string>>(firstBatch, out _);
-            Assert.Equal(3, firstBatch.DiffsByComponentId.Count); // Root + Provider + nested
+            var nestedComponent = FindComponent<CascadingParameterConsumerComponent<string>>(firstBatch, out _);
+            Assert.Equal(3, firstBatch.DiffsByComponentId.Count); // Root + CascadingValue + nested
             Assert.Equal(1, nestedComponent.NumRenders);
 
-            // Act/Assert: Re-render the provider; observe nested component wasn't re-rendered
+            // Act/Assert: Re-render the CascadingValue; observe nested component wasn't re-rendered
             component.TriggerRender();
 
-            // Assert: We did not re-render TreeParameterConsumerComponent
+            // Assert: We did not re-render CascadingParameterConsumerComponent
             Assert.Equal(2, renderer.Batches.Count);
             var secondBatch = renderer.Batches[1];
-            Assert.Equal(2, secondBatch.DiffsByComponentId.Count); // Root + Provider, but not nested one
+            Assert.Equal(2, secondBatch.DiffsByComponentId.Count); // Root + CascadingValue, but not nested one
             Assert.Equal(1, nestedComponent.NumRenders);
         }
 
@@ -187,13 +187,13 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var renderer = new TestRenderer();
             var component = new TestComponent(builder =>
             {
-                builder.OpenComponent<Provider<string>>(0);
+                builder.OpenComponent<CascadingValue<string>>(0);
                 builder.AddAttribute(1, "Value", providedValue);
                 builder.AddAttribute(2, RenderTreeBuilder.ChildContent, new RenderFragment(childBuilder =>
                 {
                     if (displayNestedComponent)
                     {
-                        childBuilder.OpenComponent<TreeParameterConsumerComponent<string>>(0);
+                        childBuilder.OpenComponent<CascadingParameterConsumerComponent<string>>(0);
                         childBuilder.AddAttribute(1, "RegularParameter", "Goodbye");
                         childBuilder.CloseComponent();
                     }
@@ -205,11 +205,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var firstBatch = renderer.Batches.Single();
-            var nestedComponent = FindComponent<TreeParameterConsumerComponent<string>>(firstBatch, out var nestedComponentId);
+            var nestedComponent = FindComponent<CascadingParameterConsumerComponent<string>>(firstBatch, out var nestedComponentId);
             Assert.Equal(1, nestedComponent.NumSetParametersCalls);
             Assert.Equal(1, nestedComponent.NumRenders);
 
-            // Act/Assert 2: Re-render the provider; observe nested component wasn't re-rendered
+            // Act/Assert 2: Re-render the CascadingValue; observe nested component wasn't re-rendered
             providedValue = "Updated value";
             displayNestedComponent = false; // Remove the nested componet
             component.TriggerRender();
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(2, renderer.Batches.Count);
             var secondBatch = renderer.Batches[1];
             Assert.Equal(1, nestedComponent.NumRenders);
-            Assert.Equal(2, secondBatch.DiffsByComponentId.Count); // Root + Provider, but not nested one
+            Assert.Equal(2, secondBatch.DiffsByComponentId.Count); // Root + CascadingValue, but not nested one
 
             // We *did* send updated params during the first render where it was removed,
             // because the params are sent before the disposal logic runs. We could avoid
@@ -230,7 +230,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(2, nestedComponent.NumSetParametersCalls);
 
             // Act 3: However, after disposal, the subscription is removed, so we won't send
-            // updated params on subsequent provider renders.
+            // updated params on subsequent CascadingValue renders.
             providedValue = "Updated value 2";
             component.TriggerRender();
             Assert.Equal(2, nestedComponent.NumSetParametersCalls);
@@ -258,12 +258,12 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 => _renderFragment(builder);
         }
 
-        class TreeParameterConsumerComponent<T> : AutoRenderComponent
+        class CascadingParameterConsumerComponent<T> : AutoRenderComponent
         {
             public int NumSetParametersCalls { get; private set; }
             public int NumRenders { get; private set; }
 
-            [Parameter(FromTree = true)] T TreeParameter { get; set; }
+            [Parameter(FromTree = true)] T CascadingParameter { get; set; }
             [Parameter] string RegularParameter { get; set; }
 
             public override void SetParameters(ParameterCollection parameters)
@@ -275,7 +275,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
                 NumRenders++;
-                builder.AddContent(0, $"TreeParameter={TreeParameter}; RegularParameter={RegularParameter}");
+                builder.AddContent(0, $"CascadingParameter={CascadingParameter}; RegularParameter={RegularParameter}");
             }
         }
     }

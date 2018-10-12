@@ -23,18 +23,18 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
         private readonly RenderTreeFrame[] _frames;
         private readonly int _ownerIndex;
-        private readonly IReadOnlyList<TreeParameterState> _treeParametersOrNull;
+        private readonly IReadOnlyList<CascadingParameterState> _cascadingParametersOrNull;
 
         internal ParameterCollection(RenderTreeFrame[] frames, int ownerIndex)
             : this(frames, ownerIndex, null)
         {
         }
 
-        private ParameterCollection(RenderTreeFrame[] frames, int ownerIndex, IReadOnlyList<TreeParameterState> treeParametersOrNull)
+        private ParameterCollection(RenderTreeFrame[] frames, int ownerIndex, IReadOnlyList<CascadingParameterState> cascadingParametersOrNull)
         {
             _frames = frames;
             _ownerIndex = ownerIndex;
-            _treeParametersOrNull = treeParametersOrNull;
+            _cascadingParametersOrNull = cascadingParametersOrNull;
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         /// <returns>The enumerator.</returns>
         public ParameterEnumerator GetEnumerator()
-            => new ParameterEnumerator(_frames, _ownerIndex, _treeParametersOrNull);
+            => new ParameterEnumerator(_frames, _ownerIndex, _cascadingParametersOrNull);
 
         /// <summary>
         /// Gets the value of the parameter with the specified name.
@@ -106,8 +106,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
             return result;
         }
 
-        internal ParameterCollection WithTreeParameters(IReadOnlyList<TreeParameterState> treeParameters)
-            => new ParameterCollection(_frames, _ownerIndex, treeParameters);
+        internal ParameterCollection WithCascadingParameters(IReadOnlyList<CascadingParameterState> cascadingParameters)
+            => new ParameterCollection(_frames, _ownerIndex, cascadingParameters);
 
         // It's internal because there isn't a known use case for user code comparing
         // ParameterCollection instances, and even if there was, it's unlikely it should

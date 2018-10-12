@@ -11,320 +11,320 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Blazor.Test
 {
-    public class TreeParameterStateTest
+    public class CascadingParameterStateTest
     {
         [Fact]
-        public void FindTreeParameters_IfHasNoParameters_ReturnsNull()
+        public void FindCascadingParameters_IfHasNoParameters_ReturnsNull()
         {
             // Arrange
             var componentState = CreateComponentState(new ComponentWithNoParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(componentState);
+            var result = CascadingParameterState.FindCascadingParameters(componentState);
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_IfHasNoTreeParameters_ReturnsNull()
+        public void FindCascadingParameters_IfHasNoCascadingParameters_ReturnsNull()
         {
             // Arrange
             var componentState = CreateComponentState(new ComponentWithNoTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(componentState);
+            var result = CascadingParameterState.FindCascadingParameters(componentState);
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_IfHasNoAncestors_ReturnsNull()
+        public void FindCascadingParameters_IfHasNoAncestors_ReturnsNull()
         {
             // Arrange
             var componentState = CreateComponentState(new ComponentWithTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(componentState);
+            var result = CascadingParameterState.FindCascadingParameters(componentState);
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_IfHasNoMatchesInAncestors_ReturnsNull()
+        public void FindCascadingParameters_IfHasNoMatchesInAncestors_ReturnsNull()
         {
             // Arrange: Build the ancestry list
             var states = CreateAncestry(
                 new ComponentWithNoParams(),
-                CreateProvider("Hello"),
+                CreateCascadingValueComponent("Hello"),
                 new ComponentWithNoParams(),
                 new ComponentWithTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_IfHasPartialMatchesInAncestors_ReturnsMatches()
+        public void FindCascadingParameters_IfHasPartialMatchesInAncestors_ReturnsMatches()
         {
             // Arrange
             var states = CreateAncestry(
                 new ComponentWithNoParams(),
-                CreateProvider(new TreeValue2()),
+                CreateCascadingValueComponent(new TreeValue2()),
                 new ComponentWithNoParams(),
                 new ComponentWithTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match =>
             {
-                Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalName);
-                Assert.Same(states[1].Component, match.FromProvider);
+                Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalValueName);
+                Assert.Same(states[1].Component, match.ValueSupplier);
             });
         }
 
         [Fact]
-        public void FindTreeParameters_IfHasMultipleMatchesInAncestors_ReturnsMatches()
+        public void FindCascadingParameters_IfHasMultipleMatchesInAncestors_ReturnsMatches()
         {
             // Arrange
             var states = CreateAncestry(
                 new ComponentWithNoParams(),
-                CreateProvider(new TreeValue2()),
+                CreateCascadingValueComponent(new TreeValue2()),
                 new ComponentWithNoParams(),
-                CreateProvider(new TreeValue1()),
+                CreateCascadingValueComponent(new TreeValue1()),
                 new ComponentWithTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
-            Assert.Collection(result.OrderBy(x => x.LocalName),
+            Assert.Collection(result.OrderBy(x => x.LocalValueName),
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalName);
-                    Assert.Same(states[3].Component, match.FromProvider);
+                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalValueName);
+                    Assert.Same(states[3].Component, match.ValueSupplier);
                 },
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalName);
-                    Assert.Same(states[1].Component, match.FromProvider);
+                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalValueName);
+                    Assert.Same(states[1].Component, match.ValueSupplier);
                 });
         }
 
         [Fact]
-        public void FindTreeParameters_InheritedParameters_ReturnsMatches()
+        public void FindCascadingParameters_InheritedParameters_ReturnsMatches()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue1()),
-                CreateProvider(new TreeValue3()),
+                CreateCascadingValueComponent(new TreeValue1()),
+                CreateCascadingValueComponent(new TreeValue3()),
                 new ComponentWithInheritedTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
-            Assert.Collection(result.OrderBy(x => x.LocalName),
+            Assert.Collection(result.OrderBy(x => x.LocalValueName),
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalName);
-                    Assert.Same(states[0].Component, match.FromProvider);
+                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalValueName);
+                    Assert.Same(states[0].Component, match.ValueSupplier);
                 },
                 match => {
-                    Assert.Equal(nameof(ComponentWithInheritedTreeParams.TreeParam3), match.LocalName);
-                    Assert.Same(states[1].Component, match.FromProvider);
+                    Assert.Equal(nameof(ComponentWithInheritedTreeParams.TreeParam3), match.LocalValueName);
+                    Assert.Same(states[1].Component, match.ValueSupplier);
                 });
         }
 
         [Fact]
-        public void FindTreeParameters_ComponentRequestsBaseType_ReturnsMatches()
+        public void FindCascadingParameters_ComponentRequestsBaseType_ReturnsMatches()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValueDerivedClass()),
+                CreateCascadingValueComponent(new TreeValueDerivedClass()),
                 new ComponentWithGenericTreeParam<TreeValueBaseClass>());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalName);
-                Assert.Same(states[0].Component, match.FromProvider);
+                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalValueName);
+                Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
 
         [Fact]
-        public void FindTreeParameters_ComponentRequestsImplementedInterface_ReturnsMatches()
+        public void FindCascadingParameters_ComponentRequestsImplementedInterface_ReturnsMatches()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValueDerivedClass()),
+                CreateCascadingValueComponent(new TreeValueDerivedClass()),
                 new ComponentWithGenericTreeParam<ITreeValueDerivedClassInterface>());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalName);
-                Assert.Same(states[0].Component, match.FromProvider);
+                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalValueName);
+                Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
 
         [Fact]
-        public void FindTreeParameters_ComponentRequestsDerivedType_ReturnsNull()
+        public void FindCascadingParameters_ComponentRequestsDerivedType_ReturnsNull()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValueBaseClass()),
+                CreateCascadingValueComponent(new TreeValueBaseClass()),
                 new ComponentWithGenericTreeParam<TreeValueDerivedClass>());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_TypeAssignmentIsValidForNullValue_ReturnsMatches()
+        public void FindCascadingParameters_TypeAssignmentIsValidForNullValue_ReturnsMatches()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider((TreeValueDerivedClass)null),
+                CreateCascadingValueComponent((TreeValueDerivedClass)null),
                 new ComponentWithGenericTreeParam<TreeValueBaseClass>());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalName);
-                Assert.Same(states[0].Component, match.FromProvider);
+                Assert.Equal(nameof(ComponentWithGenericTreeParam<object>.LocalName), match.LocalValueName);
+                Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
 
         [Fact]
-        public void FindTreeParameters_TypeAssignmentIsInvalidForNullValue_ReturnsNull()
+        public void FindCascadingParameters_TypeAssignmentIsInvalidForNullValue_ReturnsNull()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider((object)null),
+                CreateCascadingValueComponent((object)null),
                 new ComponentWithGenericTreeParam<TreeValue1>());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_ProviderSpecifiesNameButConsumerDoesNot_ReturnsNull()
+        public void FindCascadingParameters_SupplierSpecifiesNameButConsumerDoesNot_ReturnsNull()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue1(), "MatchOnName"),
+                CreateCascadingValueComponent(new TreeValue1(), "MatchOnName"),
                 new ComponentWithTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_ConsumerSpecifiesNameButProviderDoesNot_ReturnsNull()
+        public void FindCascadingParameters_ConsumerSpecifiesNameButSupplierDoesNot_ReturnsNull()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue1()),
+                CreateCascadingValueComponent(new TreeValue1()),
                 new ComponentWithNamedTreeParam());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_MismatchingNameButMatchingType_ReturnsNull()
+        public void FindCascadingParameters_MismatchingNameButMatchingType_ReturnsNull()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue1(), "MismatchName"),
+                CreateCascadingValueComponent(new TreeValue1(), "MismatchName"),
                 new ComponentWithNamedTreeParam());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_MatchingNameButMismatchingType_ReturnsNull()
+        public void FindCascadingParameters_MatchingNameButMismatchingType_ReturnsNull()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue2(), "MatchOnName"),
+                CreateCascadingValueComponent(new TreeValue2(), "MatchOnName"),
                 new ComponentWithNamedTreeParam());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Null(result);
         }
 
         [Fact]
-        public void FindTreeParameters_MatchingNameAndType_ReturnsMatches()
+        public void FindCascadingParameters_MatchingNameAndType_ReturnsMatches()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue1(), "matchonNAME"), // To show it's case-insensitive
+                CreateCascadingValueComponent(new TreeValue1(), "matchonNAME"), // To show it's case-insensitive
                 new ComponentWithNamedTreeParam());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
             Assert.Collection(result, match => {
-                Assert.Equal(nameof(ComponentWithNamedTreeParam.SomeLocalName), match.LocalName);
-                Assert.Same(states[0].Component, match.FromProvider);
+                Assert.Equal(nameof(ComponentWithNamedTreeParam.SomeLocalName), match.LocalValueName);
+                Assert.Same(states[0].Component, match.ValueSupplier);
             });
         }
 
         [Fact]
-        public void FindTreeParameters_MultipleMatchingAncestors_ReturnsClosestMatches()
+        public void FindCascadingParameters_MultipleMatchingAncestors_ReturnsClosestMatches()
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue1()),
-                CreateProvider(new TreeValue2()),
-                CreateProvider(new TreeValue1()),
-                CreateProvider(new TreeValue2()),
+                CreateCascadingValueComponent(new TreeValue1()),
+                CreateCascadingValueComponent(new TreeValue2()),
+                CreateCascadingValueComponent(new TreeValue1()),
+                CreateCascadingValueComponent(new TreeValue2()),
                 new ComponentWithTreeParams());
 
             // Act
-            var result = TreeParameterState.FindTreeParameters(states.Last());
+            var result = CascadingParameterState.FindCascadingParameters(states.Last());
 
             // Assert
-            Assert.Collection(result.OrderBy(x => x.LocalName),
+            Assert.Collection(result.OrderBy(x => x.LocalValueName),
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalName);
-                    Assert.Same(states[2].Component, match.FromProvider);
+                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam1), match.LocalValueName);
+                    Assert.Same(states[2].Component, match.ValueSupplier);
                 },
                 match => {
-                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalName);
-                    Assert.Same(states[3].Component, match.FromProvider);
+                    Assert.Equal(nameof(ComponentWithTreeParams.TreeParam2), match.LocalValueName);
+                    Assert.Same(states[3].Component, match.ValueSupplier);
                 });
         }
 
@@ -348,23 +348,23 @@ namespace Microsoft.AspNetCore.Blazor.Test
             return new ComponentState(new TestRenderer(), 0, component, parentComponentState);
         }
 
-        static Provider<T> CreateProvider<T>(T value, string name = null)
+        static CascadingValue<T> CreateCascadingValueComponent<T>(T value, string name = null)
         {
-            var provider = new Provider<T>();
-            provider.Init(new RenderHandle(new TestRenderer(), 0));
+            var supplier = new CascadingValue<T>();
+            supplier.Init(new RenderHandle(new TestRenderer(), 0));
 
-            var providerParams = new Dictionary<string, object>
+            var supplierParams = new Dictionary<string, object>
             {
                 { "Value", value }
             };
 
             if (name != null)
             {
-                providerParams.Add("Name", name);
+                supplierParams.Add("Name", name);
             }
 
-            provider.SetParameters(providerParams);
-            return provider;
+            supplier.SetParameters(supplierParams);
+            return supplier;
         }
        
         class ComponentWithNoParams : TestComponentBase
