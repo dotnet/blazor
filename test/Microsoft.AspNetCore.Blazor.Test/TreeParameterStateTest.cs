@@ -289,7 +289,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             // Arrange
             var states = CreateAncestry(
-                CreateProvider(new TreeValue1(), "MatchOnName"),
+                CreateProvider(new TreeValue1(), "matchonNAME"), // To show it's case-insensitive
                 new ComponentWithNamedTreeParam());
 
             // Act

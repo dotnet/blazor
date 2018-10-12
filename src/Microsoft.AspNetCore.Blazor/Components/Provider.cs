@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
 
             return (requestedName == null && Name == null) // Match on type alone
-                || string.Equals(requestedName, Name, StringComparison.Ordinal); // Also match on name
+                || string.Equals(requestedName, Name, StringComparison.OrdinalIgnoreCase); // Also match on name
         }
 
         internal override void Subscribe(ComponentState subscriber)
