@@ -43,18 +43,19 @@ namespace Microsoft.AspNetCore.Blazor.Reflection
         class PropertySetter<TTarget, TValue> : IPropertySetter
         {
             private readonly Action<TTarget, TValue> _setterDelegate;
-            private Type _propertyType;
+            private object _defaultValue;
 
             public PropertySetter(MethodInfo setMethod)
             {
                 _setterDelegate = (Action<TTarget, TValue>)Delegate.CreateDelegate(
                     typeof(Action<TTarget, TValue>), setMethod);
-                _propertyType = typeof(TValue);
+                 var propertyType = typeof(TValue);
+                _defaultValue = propertyType.IsValueType ? Activator.CreateInstance(propertyType) : null;
             }
 
             public object GetDefaultValue()
             {
-                return typeof(TValue).IsValueType ? Activator.CreateInstance(typeof(TValue)) : null;
+                return _defaultValue;
             }
 
             public void SetValue(object target, object value)
