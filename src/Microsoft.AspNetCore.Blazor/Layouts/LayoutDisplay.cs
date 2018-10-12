@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Blazor.Layouts
         /// <inheritdoc />
         public void SetParameters(ParameterCollection parameters)
         {
-            parameters.AssignToProperties(this);
+            parameters.SetParameterProperties(this);
             Render();
         }
 

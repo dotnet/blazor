@@ -1135,7 +1135,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 => RenderHandle = renderHandle;
 
             public void SetParameters(ParameterCollection parameters)
-                => parameters.AssignToProperties(this);
+                => parameters.SetParameterProperties(this);
         }
 
         private class EventComponent : AutoRenderComponent, IComponent, IHandleEvent
@@ -1243,7 +1243,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             public void SetParameters(ParameterCollection parameters)
             {
-                parameters.AssignToProperties(this);
+                parameters.SetParameterProperties(this);
                 Render();
             }
 

@@ -12,14 +12,14 @@ using System.Reflection;
 namespace Microsoft.AspNetCore.Blazor.Components
 {
     /// <summary>
-    /// Extension methods for the <see cref="ParameterCollection"/> type.
+    /// Extsion methods for the <see cref="ParameterCollection"/> type.
     /// </summary>
     public static class ParameterCollectionExtensions
     {
         private const BindingFlags _bindablePropertyFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
-        private readonly static IDictionary<Type, IDictionary<string, WriteParameterAction>> _cachedParameterWriters
-            = new ConcurrentDictionary<Type, IDictionary<string, WriteParameterAction>>();
+        private readonly static IDictionary<Type, IDictionary<string, IPropertySetter>> _cachedParameterWriters
+            = new ConcurrentDictionary<Type, IDictionary<string, IPropertySetter>>();
 
         /// <summary>
         /// Iterates through the <see cref="ParameterCollection"/>, assigning each parameter
@@ -27,8 +27,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         /// <param name="parameterCollection">The <see cref="ParameterCollection"/>.</param>
         /// <param name="target">An object that has a public writable property matching each parameter's name and type.</param>
-        public static void AssignToProperties(
-            in this ParameterCollection parameterCollection,
+        public static void SetParameterProperties(
+            this ParameterCollection parameterCollection,
             object target)
         {
             if (target == null)
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 parameterWriters = CreateParameterWriters(targetType);
                 _cachedParameterWriters[targetType] = parameterWriters;
             }
-            var usedWriters = new List<WriteParameterAction>();
+            var localParameterWriter = parameterWriters.Values.ToList();
 
             foreach (var parameter in parameterCollection)
             {
@@ -54,8 +54,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                 try
                 {
-                    parameterWriter.Setter(ref parameter.Frame, target);
-                    usedWriters.Add(parameterWriter);
+                    parameterWriter.SetValue(target, parameter.Frame.AttributeValue);
+                    localParameterWriter.Remove(parameterWriter);
                 }
                 catch (Exception ex)
                 {
@@ -64,21 +64,19 @@ namespace Microsoft.AspNetCore.Blazor.Components
                         $"type '{target.GetType().FullName}'. The error was: {ex.Message}", ex);
                 }
             }
-            foreach (var nonUsedParameter in parameterWriters.Values.Except(usedWriters))
+            foreach (var nonUsedParameter in localParameterWriter)
             {
-                var type = nonUsedParameter.PropertyType;
-                var nullValueTreeFrame = RenderTreeFrame.Attribute(0, null, type.IsValueType ? Activator.CreateInstance(type) : null);
-                nonUsedParameter.Setter(ref nullValueTreeFrame, target);
+                nonUsedParameter.SetValue(target, nonUsedParameter.GetDefaultValue());
             }
         }
 
-        private static IDictionary<string, WriteParameterAction> CreateParameterWriters(Type targetType)
+        private static IDictionary<string, IPropertySetter> CreateParameterWriters(Type targetType)
         {
-            var result = new Dictionary<string, WriteParameterAction>(StringComparer.OrdinalIgnoreCase);
+            var result = new Dictionary<string, IPropertySetter>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var propertyInfo in GetBindableProperties(targetType))
             {
-                var propertySetter = MemberAssignment.CreatePropertySetter(targetType, propertyInfo);
+                IPropertySetter propertySetter = MemberAssignment.CreatePropertySetter(targetType, propertyInfo);
 
                 var propertyName = propertyInfo.Name;
                 if (result.ContainsKey(propertyName))
@@ -88,11 +86,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
                         $"name '{propertyName.ToLowerInvariant()}'. Parameter names are case-insensitive and must be unique.");
                 }
 
-                result.Add(propertyName, new WriteParameterAction((ref RenderTreeFrame frame, object target) =>
-                {
-                    propertySetter.SetValue(target, frame.AttributeValue);
-                },
-                propertyInfo.PropertyType));
+                result.Add(propertyName, propertySetter);
             }
 
             return result;
@@ -128,21 +122,6 @@ namespace Microsoft.AspNetCore.Blazor.Components
                     $"Object of type '{targetType.FullName}' does not have a property " +
                     $"matching the name '{parameterName}'.");
             }
-        }
-
-
-        private class WriteParameterAction
-        {
-            public WriteParameterAction(WriteParameterActionSetter setter, Type propertyType)
-            {
-                Setter = setter;
-                PropertyType = propertyType;
-            }
-
-            public delegate void WriteParameterActionSetter(ref RenderTreeFrame frame, object target);
-            public WriteParameterActionSetter Setter { get; set; }
-
-            public Type PropertyType { get; set; }
         }
     }
 }

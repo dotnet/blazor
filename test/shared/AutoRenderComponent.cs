@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Blazor.Test.Helpers
 
         public void SetParameters(ParameterCollection parameters)
         {
-            parameters.AssignToProperties(this);
+            parameters.SetParameterProperties(this);
             TriggerRender();
         }
 

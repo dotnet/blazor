@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var target = new HasInstanceProperties();
 
             // Act
-            parameterCollection.AssignToProperties(target);
+            parameterCollection.SetParameterProperties(target);
 
             // Assert
             Assert.Equal(123, target.IntProp);
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var target = new HasInstanceProperties();
 
             // Act
-            parameterCollection.AssignToProperties(target);
+            parameterCollection.SetParameterProperties(target);
 
             // Assert
             Assert.Equal(123, target.IntProp);
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var target = new HasInheritedProperties();
 
             // Act
-            parameterCollection.AssignToProperties(target);
+            parameterCollection.SetParameterProperties(target);
 
             // Assert
             Assert.Equal(123, target.IntProp);
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var parameterCollection = new ParameterCollectionBuilder().Build();
 
             // Act
-            parameterCollection.AssignToProperties(target);
+            parameterCollection.SetParameterProperties(target);
 
             // Assert
             Assert.Equal(0, target.IntProp);
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(
-                () => parameterCollection.AssignToProperties(target));
+                () => parameterCollection.SetParameterProperties(target));
 
             // Assert
             Assert.Equal(
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(
-                () => parameterCollection.AssignToProperties(target));
+                () => parameterCollection.SetParameterProperties(target));
 
             // Assert
             Assert.Equal(default, target.IntProp);
@@ -149,7 +149,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(
-                () => parameterCollection.AssignToProperties(target));
+                () => parameterCollection.SetParameterProperties(target));
 
             // Assert
             Assert.Equal(
@@ -170,7 +170,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(
-                () => parameterCollection.AssignToProperties(target));
+                () => parameterCollection.SetParameterProperties(target));
 
             // Assert
             Assert.Equal(
@@ -188,7 +188,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(() =>
-                parameterCollection.AssignToProperties(target));
+                parameterCollection.SetParameterProperties(target));
 
             // Assert
             Assert.Equal(
@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             var ex = Assert.Throws<InvalidOperationException>(() =>
-                parameterCollection.AssignToProperties(target));
+                parameterCollection.SetParameterProperties(target));
 
             // Assert
             Assert.Equal(
