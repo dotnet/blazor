@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Builder
             // Currently the items in it are bizarre and don't relate to their purpose,
             // hence all the path manipulation here. We shouldn't be hardcoding 'dist' here either.
             var env = (IHostingEnvironment)app.ApplicationServices.GetService(typeof(IHostingEnvironment));
-            var config = BlazorConfig.Read(options.ClientAssemblyPath);
+            var config = options.Config ?? BlazorConfig.Read(options.ClientAssemblyPath);
 
             if (env.IsDevelopment() && config.EnableAutoRebuilding)
             {
