@@ -297,7 +297,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 Assert.Equal(expectedName, parameter.Name);
                 Assert.Same(expectedValue, parameter.Value);
-                Assert.Equal(expectedIsCascading, parameter.IsCascading);
+                Assert.Equal(expectedIsCascading, parameter.Cascading);
             };
         }
 

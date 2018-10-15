@@ -23,13 +23,13 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// Gets a value to indicate whether the parameter is cascading, meaning that it
         /// was supplied by a <see cref="CascadingValue{T}"/>.
         /// </summary>
-        public bool IsCascading { get; }
+        public bool Cascading { get; }
 
-        internal Parameter(string name, object value, bool isCascading)
+        internal Parameter(string name, object value, bool cascading)
         {
             Name = name;
             Value = value;
-            IsCascading = isCascading;
+            Cascading = cascading;
         }
     }
 }
