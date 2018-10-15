@@ -28,7 +28,7 @@ To see Blazor in action, check out [Steve Sanderson's demo at NDC Minnesota](htt
 
 ## Getting Started
 
-To get started with Blazor and build your first Blazor web app check out our [getting started guide](https://go.microsoft.com/fwlink/?linkid=870449).
+To get started with Blazor and build your first Blazor web app, check out our [getting started guide](https://go.microsoft.com/fwlink/?linkid=870449).
 
 ## Building the Repo
 
@@ -75,7 +75,7 @@ Before attempting to open the Blazor repo in Visual Studio, restore Git submodul
 
     git submodule update --init --recursive
 
-If you have problems using Visual Studio with `Blazor.sln` please refer to the [developer documentation](https://github.com/aspnet/Home/wiki/Building-from-source).
+If you have problems using Visual Studio with `Blazor.sln`, please refer to the [developer documentation](https://github.com/aspnet/Home/wiki/Building-from-source).
 
 ## Developing the Blazor VS Tooling
 
