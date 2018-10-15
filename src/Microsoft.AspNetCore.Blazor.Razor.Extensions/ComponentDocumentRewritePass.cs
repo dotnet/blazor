@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
     {
         // Per the HTML spec, the following elements are inherently self-closing
         // For example, <img> is the same as <img /> (and therefore it cannot contain descendants)
-        private readonly static HashSet<string> VoidElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        public static readonly HashSet<string> VoidElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr",
         };
@@ -150,6 +150,17 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
                             switch (token.Type)
                             {
+                                case HtmlTokenType.Doctype:
+                                    {
+                                        // DocType isn't meaningful in Blazor. We don't process them in the runtime
+                                        // it wouldn't really mean much anyway since we build a DOM directly rather
+                                        // than letting the user-agent parse the document.
+                                        //
+                                        // For now, <!DOCTYPE html> and similar things will just be skipped by the compiler
+                                        // unless we come up with something more meaningful to do.
+                                        break;
+                                    }
+
                                 case HtmlTokenType.Character:
                                     {
                                         // Text content
@@ -171,7 +182,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                                     }
 
                                 case HtmlTokenType.StartTag:
-                                case HtmlTokenType.EndTag:
                                     {
                                         var tag = token.AsTag();
 
@@ -207,48 +217,55 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                                             stack.Pop();
                                         }
 
-                                        if (token.Type == HtmlTokenType.EndTag)
-                                        {
-                                            var popped = stack.Pop();
-                                            if (stack.Count == 0)
-                                            {
-                                                // If we managed to 'bottom out' the stack then we have an unbalanced end tag.
-                                                // Put back the current node so we don't crash.
-                                                stack.Push(popped);
+                                        break;
+                                    }
 
-                                                var tagName = parser.GetTagNameOriginalCasing(token.AsTag());
-                                                var span = new SourceSpan(start, end.AbsoluteIndex - start.AbsoluteIndex);
-                                                var diagnostic = BlazorDiagnosticFactory.Create_UnexpectedClosingTag(span, tagName);
-                                                popped.Children.Add(new HtmlElementIntermediateNode()
+                                case HtmlTokenType.EndTag:
+                                    {
+                                        var tag = token.AsTag();
+
+                                        var popped = stack.Pop();
+                                        if (stack.Count == 0)
+                                        {
+                                            // If we managed to 'bottom out' the stack then we have an unbalanced end tag.
+                                            // Put back the current node so we don't crash.
+                                            stack.Push(popped);
+
+                                            var tagName = parser.GetTagNameOriginalCasing(tag);
+                                            var span = new SourceSpan(start, end.AbsoluteIndex - start.AbsoluteIndex);
+
+                                            var diagnostic = VoidElements.Contains(tagName)
+                                                ? BlazorDiagnosticFactory.Create_UnexpectedClosingTagForVoidElement(span, tagName)
+                                                : BlazorDiagnosticFactory.Create_UnexpectedClosingTag(span, tagName);
+                                            popped.Children.Add(new HtmlElementIntermediateNode()
+                                            {
+                                                Diagnostics =
                                                 {
-                                                    Diagnostics =
-                                                    {
-                                                        diagnostic,
-                                                    },
-                                                    TagName = tagName,
-                                                    Source = span,
-                                                });
-                                            }
-                                            else if (!string.Equals(tag.Name, ((HtmlElementIntermediateNode)popped).TagName, StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                var span = new SourceSpan(start, end.AbsoluteIndex - start.AbsoluteIndex);
-                                                var diagnostic = BlazorDiagnosticFactory.Create_MismatchedClosingTag(span, ((HtmlElementIntermediateNode)popped).TagName, token.Data);
-                                                popped.Diagnostics.Add(diagnostic);
-                                            }
-                                            else
-                                            {
-                                                // Happy path.
-                                                //
-                                                // We need to compute a new source span because when we found the start tag before we knew
-                                                // the end poosition of the tag.
-                                                var length = end.AbsoluteIndex - popped.Source.Value.AbsoluteIndex;
-                                                popped.Source = new SourceSpan(
-                                                    popped.Source.Value.FilePath,
-                                                    popped.Source.Value.AbsoluteIndex,
-                                                    popped.Source.Value.LineIndex,
-                                                    popped.Source.Value.CharacterIndex,
-                                                    length);
-                                            }
+                                                    diagnostic,
+                                                },
+                                                TagName = tagName,
+                                                Source = span,
+                                            });
+                                        }
+                                        else if (!string.Equals(tag.Name, ((HtmlElementIntermediateNode)popped).TagName, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            var span = new SourceSpan(start, end.AbsoluteIndex - start.AbsoluteIndex);
+                                            var diagnostic = BlazorDiagnosticFactory.Create_MismatchedClosingTag(span, ((HtmlElementIntermediateNode)popped).TagName, token.Data);
+                                            popped.Diagnostics.Add(diagnostic);
+                                        }
+                                        else
+                                        {
+                                            // Happy path.
+                                            //
+                                            // We need to compute a new source span because when we found the start tag before we knew
+                                            // the end poosition of the tag.
+                                            var length = end.AbsoluteIndex - popped.Source.Value.AbsoluteIndex;
+                                            popped.Source = new SourceSpan(
+                                                popped.Source.Value.FilePath,
+                                                popped.Source.Value.AbsoluteIndex,
+                                                popped.Source.Value.LineIndex,
+                                                popped.Source.Value.CharacterIndex,
+                                                length);
                                         }
 
                                         break;
@@ -403,6 +420,13 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     throw new InvalidOperationException("You need to call Push first.");
                 }
 
+                // This will decode any HTML entities into their textual equivalent.
+                //
+                // This is OK because an HtmlContent node is used with document.createTextNode
+                // in the DOM, which can accept content that has decoded entities.
+                //
+                // In the event that we merge HtmlContent into an HtmlBlock, we need to
+                // re-encode the entites. That's done in the HtmlBlock pass.
                 var tokens = _textSource.Tokenize(HtmlEntityService.Resolver);
                 return tokens;
             }

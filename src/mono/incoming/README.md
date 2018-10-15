@@ -61,16 +61,53 @@ Go to `http://localhost:8000/sample.html`
 
 # Debugging
 
+The debugger requires dotnet core version 2.1.301 or greater installed.
+
 To experiment with the debugger, do the following steps:
 
 - When calling `packager.exe` pass the `-debug` argument to it.
 - Start Chrome with remote debugging enabled (IE `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome\ Canary --remote-debugging-port=9222`)
-- Download and run the debugger proxy: https://github.com/kumpera/ws-proxy
+- Run the proxy: `dotnet dbg-proxy/ProxyDriver.dll`
 - Connect to the remote debugged Chrome and pick the page which is running the wasm code
 - Rewrite the request URL (just the `ws` argument) to use the proxy port instead of the browser port
 - Refresh the debugged page and you should be set
 
 Beware that the debugger is in active development so bugs and missing features will be present.
+
+# AOT development
+
+AOT experimentation happens with the following steps:
+
+1) from `sdks` and configure it to disable all but WASM and BCL. (See sdks/Make.config.sample)
+2) from `sdks/builds` hit `make package`
+3) from `sdks/wasm` hit `make build`
+4) from `sdks/wasm` hit `make build-aot-sample`
+4) from `sdks/wasm/aot` hit `~/.jsvu/sm aot-driver.js`
+
+If you don't have jsvu installed, run `make toolchain` from `sdks/wasm`. It requires a recent version of node installed in your system.
+
+Now you can experiment with the `aot-sample` and `link-sample` make targets to try the toolchain. The first invokes the AOT compiler and the second links the results.
+
+To update the runtimes used use the following make target in `sdks/build`
+
+`package-wasm-interp` for the interpreter-based runtime
+`package-wasm-aot` for the aot compiler
+`package-wasm-aot-runtime` for the wasm runtime that works with AOT'd code.
+
+
+To update the aot compiler:
+```
+make -C sdks/builds package-wasm-aot-compiler
+make -C sdks/wasm aot-sample
+make -C sdks/wasm link-sample
+```
+
+To update the aot runtime:
+```
+make -C sdks/builds package-wasm-aot
+make -C sdks/wasm aot-sample
+make -C sdks/wasm link-sample
+```
 
 # Notes
 

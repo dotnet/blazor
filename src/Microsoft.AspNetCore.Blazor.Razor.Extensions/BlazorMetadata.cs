@@ -26,8 +26,31 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             public readonly static string ChangeAttribute = "Blazor.Bind.ChangeAttribute";
         }
 
+        public static class ChildContent
+        {
+            public static readonly string RuntimeName = "Blazor.None";
+
+            public static readonly string TagHelperKind = "Blazor.ChildContent";
+
+            public static readonly string ParameterNameBoundAttributeKind = "Blazor.ChildContentParameterName";
+
+            /// <summary>
+            /// The name of the synthesized attribute used to set a child content parameter.
+            /// </summary>
+            public static readonly string ParameterAttributeName = "Context";
+
+            /// <summary>
+            /// The default name of the child content parameter (unless set by a Context attribute).
+            /// </summary>
+            public static readonly string DefaultParameterName = "context";
+        }
+
         public static class Component
         {
+            public static readonly string ChildContentKey = "Blazor.ChildContent";
+
+            public static readonly string ChildContentParameterNameKey = "Blazor.ChildContentParameterName";
+
             public static readonly string DelegateSignatureKey = "Blazor.DelegateSignature";
 
             public static readonly string WeaklyTypedKey = "Blazor.IsWeaklyTyped";
@@ -35,6 +58,10 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             public static readonly string RuntimeName = "Blazor.IComponent";
 
             public readonly static string TagHelperKind = "Blazor.Component";
+
+            public readonly static string GenericTypedKey = "Blazor.GenericTyped";
+
+            public readonly static string TypeParameterKey = "Blazor.TypeParameter";
         }
 
         public static class EventHandler

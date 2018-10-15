@@ -9,5 +9,4 @@
     to implement timers. Fixes https://github.com/aspnet/Blazor/issues/239 -->
     <type fullname="System.Threading.WasmRuntime" />
   </assembly>
-
 </linker>

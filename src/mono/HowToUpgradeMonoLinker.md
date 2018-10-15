@@ -2,8 +2,8 @@
 
 * `git clone https://github.com/mono/linker.git`
 * `cd linker/corebuild`
-* `./dotnet.{sh/ps1} restore ./corebuild/integration/linker.sln`
-* `./dotnet.{sh/ps1} pack ./corebuild/integration/ILLink.Tasks/ILLink.Tasks.csproj -c Release`
+* `./dotnet.{sh/cmd} restore ./integration/linker.sln`
+* `./dotnet.{sh/cmd} pack ./integration/ILLink.Tasks/ILLink.Tasks.csproj -c Release`
 * `cd integration/bin/nupkgs`
 
 In here you'll now have a `.nupkg` file. Extract its files (i.e., treating it as a `.zip` file), open its `tools/netcoreapp2.0` directory, and copy the following to `(blazorroot)/mono/tools/binaries/illink`:

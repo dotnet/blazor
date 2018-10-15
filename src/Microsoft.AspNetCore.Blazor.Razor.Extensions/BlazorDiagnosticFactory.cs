@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -58,6 +59,16 @@ namespace Microsoft.AspNetCore.Blazor.Razor
         public static RazorDiagnostic Create_MismatchedClosingTag(SourceSpan? span, string expectedTagName, string tagName)
         {
             return RazorDiagnostic.Create(MismatchedClosingTag, span ?? SourceSpan.Undefined, expectedTagName, tagName);
+        }
+
+        public static readonly RazorDiagnosticDescriptor UnexpectedClosingTagForVoidElement = new RazorDiagnosticDescriptor(
+            "BL9983",
+            () => "Unexpected closing tag '{0}'. The element '{0}' is a void element, and should be used without a closing tag.",
+            RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_UnexpectedClosingTagForVoidElement(SourceSpan? span, string tagName)
+        {
+            return RazorDiagnostic.Create(UnexpectedClosingTagForVoidElement, span ?? SourceSpan.Undefined, tagName);
         }
 
         public static readonly RazorDiagnosticDescriptor InvalidHtmlContent = new RazorDiagnosticDescriptor(
@@ -153,8 +164,17 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             new RazorDiagnosticDescriptor(
             "BL9991",
             () => "The attribute names could not be inferred from bind attibute '{0}'. Bind attributes should be of the form" +
-                    "'bind', 'bind-value' or 'bind-value-change'",
+                "'bind', 'bind-value' or 'bind-value-change'",
             RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic CreateBindAttribute_InvalidSyntax(SourceSpan? source, string attribute)
+        {
+            var diagnostic = RazorDiagnostic.Create(
+                BindAttribute_InvalidSyntax,
+                source ?? SourceSpan.Undefined,
+                attribute);
+            return diagnostic;
+        }
 
         public static readonly RazorDiagnosticDescriptor DisallowedScriptTag = new RazorDiagnosticDescriptor(
             "BL9992",
@@ -169,13 +189,135 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             return diagnostic;
         }
 
-        public static RazorDiagnostic CreateBindAttribute_InvalidSyntax(SourceSpan? source, string attribute)
+        public static readonly RazorDiagnosticDescriptor TemplateInvalidLocation =
+            new RazorDiagnosticDescriptor(
+            "BL9994",
+            () => "Razor templates cannot be used in attributes.",
+            RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_TemplateInvalidLocation(SourceSpan? source)
         {
-            var diagnostic = RazorDiagnostic.Create(
-                BindAttribute_InvalidSyntax,
+            return RazorDiagnostic.Create(TemplateInvalidLocation, source ?? SourceSpan.Undefined);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentSetByAttributeAndBody =
+            new RazorDiagnosticDescriptor(
+                "BL9995",
+                () => "The child content property '{0}' is set by both the attribute and the element contents.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentSetByAttributeAndBody(SourceSpan? source, string attribute)
+        {
+            return RazorDiagnostic.Create(ChildContentSetByAttributeAndBody, source ?? SourceSpan.Undefined, attribute);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentMixedWithExplicitChildContent =
+            new RazorDiagnosticDescriptor(
+                "BL9996",
+                () => "Unrecognized child content inside component '{0}'. The component '{0}' accepts child content through the " +
+                "following top-level items: {1}.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentMixedWithExplicitChildContent(SourceSpan? source, ComponentExtensionNode component)
+        {
+            var supportedElements = string.Join(", ", component.Component.GetChildContentProperties().Select(p => $"'{p.Name}'"));
+            return RazorDiagnostic.Create(ChildContentMixedWithExplicitChildContent, source ?? SourceSpan.Undefined, component.TagName, supportedElements);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidAttribute =
+            new RazorDiagnosticDescriptor(
+                "BL9997",
+                () => "Unrecognized attribute '{0}' on child content element '{1}'.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentHasInvalidAttribute(SourceSpan? source, string attribute, string element)
+        {
+            return RazorDiagnostic.Create(ChildContentHasInvalidAttribute, source ?? SourceSpan.Undefined, attribute, element);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidParameter =
+            new RazorDiagnosticDescriptor(
+                "BL9998",
+                () => "Invalid parameter name. The parameter name attribute '{0}' on child content element '{1}' can only include literal text.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentHasInvalidParameter(SourceSpan? source, string attribute, string element)
+        {
+            return RazorDiagnostic.Create(ChildContentHasInvalidParameter, source ?? SourceSpan.Undefined, attribute, element);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentRepeatedParameterName =
+            new RazorDiagnosticDescriptor(
+                "BL9999",
+                () => "The child content element '{0}' of component '{1}' uses the same parameter name ('{2}') as enclosing child content " +
+                "element '{3}' of component '{4}'. Specify the parameter name like: '<{0} Context=\"another_name\"> to resolve the ambiguity",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentRepeatedParameterName(
+            SourceSpan? source,
+            ComponentChildContentIntermediateNode childContent1,
+            ComponentExtensionNode component1,
+            ComponentChildContentIntermediateNode childContent2,
+            ComponentExtensionNode component2)
+        {
+            Debug.Assert(childContent1.ParameterName == childContent2.ParameterName);
+            Debug.Assert(childContent1.IsParameterized);
+            Debug.Assert(childContent2.IsParameterized);
+
+            return RazorDiagnostic.Create(
+                ChildContentRepeatedParameterName,
                 source ?? SourceSpan.Undefined,
-                attribute);
-            return diagnostic;
+                childContent1.AttributeName,
+                component1.TagName,
+                childContent1.ParameterName,
+                childContent2.AttributeName,
+                component2.TagName);
+        }
+
+        public static readonly RazorDiagnosticDescriptor GenericComponentMissingTypeArgument =
+            new RazorDiagnosticDescriptor(
+                "BL10000",
+                () => "The component '{0}' is missing required type arguments. Specify the missing types using the attributes: {1}.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_GenericComponentMissingTypeArgument(
+            SourceSpan? source,
+            ComponentExtensionNode component,
+            IEnumerable<BoundAttributeDescriptor> attributes)
+        {
+            Debug.Assert(component.Component.IsGenericTypedComponent());
+
+            var attributesText = string.Join(", ", attributes.Select(a => $"'{a.Name}'"));
+            return RazorDiagnostic.Create(GenericComponentMissingTypeArgument, source ?? SourceSpan.Undefined, component.TagName, attributesText);
+        }
+
+        public static readonly RazorDiagnosticDescriptor GenericComponentTypeInferenceUnderspecified =
+            new RazorDiagnosticDescriptor(
+                "BL10001",
+                () => "The type of component '{0}' cannot be inferred based on the values provided. Consider specifying the type arguments " +
+                    "directly using the following attributes: {1}.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_GenericComponentTypeInferenceUnderspecified(
+            SourceSpan? source,
+            ComponentExtensionNode component,
+            IEnumerable<BoundAttributeDescriptor> attributes)
+        {
+            Debug.Assert(component.Component.IsGenericTypedComponent());
+
+            var attributesText = string.Join(", ", attributes.Select(a => $"'{a.Name}'"));
+            return RazorDiagnostic.Create(GenericComponentTypeInferenceUnderspecified, source ?? SourceSpan.Undefined, component.TagName, attributesText);
+        }
+
+        public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidParameterOnComponent =
+            new RazorDiagnosticDescriptor(
+                "BL10002",
+                () => "Invalid parameter name. The parameter name attribute '{0}' on component '{1}' can only include literal text.",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_ChildContentHasInvalidParameterOnComponent(SourceSpan? source, string attribute, string element)
+        {
+            return RazorDiagnostic.Create(ChildContentHasInvalidParameterOnComponent, source ?? SourceSpan.Undefined, attribute, element);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -15,8 +15,12 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
     public class IntermediateNodeWriter :
         IntermediateNodeVisitor,
         IExtensionIntermediateNodeVisitor<HtmlElementIntermediateNode>,
+        IExtensionIntermediateNodeVisitor<HtmlBlockIntermediateNode>,
         IExtensionIntermediateNodeVisitor<ComponentExtensionNode>,
         IExtensionIntermediateNodeVisitor<ComponentAttributeExtensionNode>,
+        IExtensionIntermediateNodeVisitor<ComponentChildContentIntermediateNode>,
+        IExtensionIntermediateNodeVisitor<ComponentTypeArgumentExtensionNode>,
+        IExtensionIntermediateNodeVisitor<ComponentTypeInferenceMethodIntermediateNode>,
         IExtensionIntermediateNodeVisitor<RouteAttributeExtensionNode>,
         IExtensionIntermediateNodeVisitor<RefExtensionNode>
     {
@@ -269,6 +273,11 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             WriteContentNode(node, node.TagName);
         }
 
+        void IExtensionIntermediateNodeVisitor<HtmlBlockIntermediateNode>.VisitExtension(HtmlBlockIntermediateNode node)
+        {
+            WriteContentNode(node, node.Content);
+        }
+
         void IExtensionIntermediateNodeVisitor<ComponentExtensionNode>.VisitExtension(ComponentExtensionNode node)
         {
             WriteContentNode(node, node.TagName, node.TypeName);
@@ -277,6 +286,21 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         void IExtensionIntermediateNodeVisitor<ComponentAttributeExtensionNode>.VisitExtension(ComponentAttributeExtensionNode node)
         {
             WriteContentNode(node, node.AttributeName, node.PropertyName);
+        }
+
+        void IExtensionIntermediateNodeVisitor<ComponentChildContentIntermediateNode>.VisitExtension(ComponentChildContentIntermediateNode node)
+        {
+            WriteContentNode(node, node.AttributeName);
+        }
+
+        void IExtensionIntermediateNodeVisitor<ComponentTypeArgumentExtensionNode>.VisitExtension(ComponentTypeArgumentExtensionNode node)
+        {
+            WriteContentNode(node, node.TypeParameterName);
+        }
+
+        void IExtensionIntermediateNodeVisitor<ComponentTypeInferenceMethodIntermediateNode>.VisitExtension(ComponentTypeInferenceMethodIntermediateNode node)
+        {
+            WriteContentNode(node, node.FullTypeName, node.MethodName);
         }
 
         void IExtensionIntermediateNodeVisitor<RouteAttributeExtensionNode>.VisitExtension(RouteAttributeExtensionNode node)

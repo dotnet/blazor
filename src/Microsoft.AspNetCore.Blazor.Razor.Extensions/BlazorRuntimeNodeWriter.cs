@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
@@ -64,7 +65,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 if (node.Children[i] is IntermediateToken token && token.IsCSharp)
                 {
-                    _scopeStack.IncrementCurrentScopeChildCount(context);
                     context.AddSourceMappingFor(token);
                     context.CodeWriter.Write(token.Content);
                 }
@@ -99,7 +99,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             // Since we're not in the middle of writing an element, this must evaluate as some
             // text to display
-            _scopeStack.IncrementCurrentScopeChildCount(context);
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.AddContent)}")
                 .Write((_sourceSequence++).ToString())
@@ -114,7 +113,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 else
                 {
                     // There may be something else inside the expression like a Template or another extension node.
-                    throw new NotImplementedException("Unsupported: CSharpExpression with child node that isn't a CSharp node");
+                    context.RenderNode(node.Children[i]);
                 }
             }
 
@@ -148,7 +147,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
         }
 
-        public override void WriteHtmlElement(CodeRenderingContext context, HtmlElementIntermediateNode node)
+        public override void WriteHtmlBlock(CodeRenderingContext context, HtmlBlockIntermediateNode node)
         {
             if (context == null)
             {
@@ -160,7 +159,25 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(node));
             }
 
-            _scopeStack.IncrementCurrentScopeChildCount(context);
+            context.CodeWriter
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.AddMarkupContent)}")
+                .Write((_sourceSequence++).ToString())
+                .WriteParameterSeparator()
+                .WriteStringLiteral(node.Content)
+                .WriteEndMethodInvocation();
+        }
+
+        public override void WriteHtmlElement(CodeRenderingContext context, HtmlElementIntermediateNode node)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
 
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.OpenElement)}")
@@ -180,15 +197,11 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 context.RenderNode(capture);
             }
 
-            _scopeStack.OpenScope(tagName: node.TagName, isComponent: false);
-
             // Render body of the tag inside the scope
             foreach (var child in node.Body)
             {
                 context.RenderNode(child);
             }
-
-            _scopeStack.CloseScope(context);
 
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{BlazorApi.RenderTreeBuilder.CloseElement}")
@@ -244,7 +257,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
             // Text node
             var content = GetHtmlContent(node);
-            _scopeStack.IncrementCurrentScopeChildCount(context);
             context.CodeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(BlazorApi.RenderTreeBuilder.AddContent)}")
                 .Write((_sourceSequence++).ToString())
@@ -280,46 +292,126 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(node));
             }
 
-            // The start tag counts as a child from a markup point of view.
-            _scopeStack.IncrementCurrentScopeChildCount(context);
-
-            // builder.OpenComponent<TComponent>(42);
-            context.CodeWriter.Write(_scopeStack.BuilderVarName);
-            context.CodeWriter.Write(".");
-            context.CodeWriter.Write(BlazorApi.RenderTreeBuilder.OpenComponent);
-            context.CodeWriter.Write("<");
-            context.CodeWriter.Write(node.TypeName);
-            context.CodeWriter.Write(">(");
-            context.CodeWriter.Write((_sourceSequence++).ToString());
-            context.CodeWriter.Write(");");
-            context.CodeWriter.WriteLine();
-
-            foreach (var attribute in node.Attributes)
+            if (node.TypeInferenceNode == null)
             {
-                context.RenderNode(attribute);
-            }
+                // If the component is using not using type inference then we just write an open/close with a series
+                // of add attribute calls in between.
+                //
+                // Writes something like:
+                //
+                // builder.OpenComponent<MyComponent>(0);
+                // builder.AddAttribute(1, "Foo", ...);
+                // builder.AddAttribute(2, "ChildContent", ...);
+                // builder.AddElementCapture(3, (__value) => _field = __value);
+                // builder.CloseComponent();
 
-            _scopeStack.OpenScope(node.TagName, isComponent: true);
-            foreach (var child in node.Body)
+                // builder.OpenComponent<TComponent>(42);
+                context.CodeWriter.Write(_scopeStack.BuilderVarName);
+                context.CodeWriter.Write(".");
+                context.CodeWriter.Write(BlazorApi.RenderTreeBuilder.OpenComponent);
+                context.CodeWriter.Write("<");
+                context.CodeWriter.Write(node.TypeName);
+                context.CodeWriter.Write(">(");
+                context.CodeWriter.Write((_sourceSequence++).ToString());
+                context.CodeWriter.Write(");");
+                context.CodeWriter.WriteLine();
+
+                // We can skip type arguments during runtime codegen, they are handled in the
+                // type/parameter declarations.
+
+                foreach (var attribute in node.Attributes)
+                {
+                    context.RenderNode(attribute);
+                }
+
+                foreach (var childContent in node.ChildContents)
+                {
+                    context.RenderNode(childContent);
+                }
+
+                foreach (var capture in node.Captures)
+                {
+                    context.RenderNode(capture);
+                }
+
+                // builder.CloseComponent();
+                context.CodeWriter.Write(_scopeStack.BuilderVarName);
+                context.CodeWriter.Write(".");
+                context.CodeWriter.Write(BlazorApi.RenderTreeBuilder.CloseComponent);
+                context.CodeWriter.Write("();");
+                context.CodeWriter.WriteLine();
+            }
+            else
             {
-                context.RenderNode(child);
+                // When we're doing type inference, we can't write all of the code inline to initialize
+                // the component on the builder. We generate a method elsewhere, and then pass all of the information
+                // to that method. We pass in all of the attribute values + the sequence numbers.
+                //
+                // __Blazor.MyComponent.TypeInference.CreateMyComponent_0(builder, 0, 1, ..., 2, ..., 3, ...);
+                var attributes = node.Attributes.ToList();
+                var childContents = node.ChildContents.ToList();
+                var captures = node.Captures.ToList();
+                var remaining = attributes.Count + childContents.Count + captures.Count;
+
+                context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
+                context.CodeWriter.Write(".");
+                context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
+                context.CodeWriter.Write("(");
+
+                context.CodeWriter.Write(_scopeStack.BuilderVarName);
+                context.CodeWriter.Write(", ");
+
+                context.CodeWriter.Write((_sourceSequence++).ToString());
+                context.CodeWriter.Write(", ");
+
+                for (var i = 0; i < attributes.Count; i++)
+                {
+                    context.CodeWriter.Write((_sourceSequence++).ToString());
+                    context.CodeWriter.Write(", ");
+
+                    // Don't type check generics, since we can't actually write the type name.
+                    // The type checking with happen anyway since we defined a method and we're generating
+                    // a call to it.
+                    WriteComponentAttributeInnards(context, attributes[i], canTypeCheck: false);
+
+                    remaining--;
+                    if (remaining > 0)
+                    {
+                        context.CodeWriter.Write(", ");
+                    }
+                }
+
+                for (var i = 0; i < childContents.Count; i++)
+                {
+                    context.CodeWriter.Write((_sourceSequence++).ToString());
+                    context.CodeWriter.Write(", ");
+
+                    WriteComponentChildContentInnards(context, childContents[i]);
+
+                    remaining--;
+                    if (remaining > 0)
+                    {
+                        context.CodeWriter.Write(", ");
+                    }
+                }
+                
+                for (var i = 0; i < captures.Count; i++)
+                {
+                    context.CodeWriter.Write((_sourceSequence++).ToString());
+                    context.CodeWriter.Write(", ");
+
+                    WriteReferenceCaptureInnards(context, captures[i], shouldTypeCheck: false);
+
+                    remaining--;
+                    if (remaining > 0)
+                    {
+                        context.CodeWriter.Write(", ");
+                    }
+                }
+
+                context.CodeWriter.Write(");");
+                context.CodeWriter.WriteLine();
             }
-            _scopeStack.CloseScope(context);
-
-            foreach (var capture in node.Captures)
-            {
-                context.RenderNode(capture);
-            }
-
-            // The close tag counts as a child from a markup point of view.
-            _scopeStack.IncrementCurrentScopeChildCount(context);
-
-            // builder.OpenComponent<TComponent>(42);
-            context.CodeWriter.Write(_scopeStack.BuilderVarName);
-            context.CodeWriter.Write(".");
-            context.CodeWriter.Write(BlazorApi.RenderTreeBuilder.CloseComponent);
-            context.CodeWriter.Write("();");
-            context.CodeWriter.WriteLine();
         }
 
         public override void WriteComponentAttribute(CodeRenderingContext context, ComponentAttributeExtensionNode node)
@@ -334,7 +426,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 throw new ArgumentNullException(nameof(node));
             }
 
-            // builder.OpenComponent<TComponent>(42);
+            // builder.AddAttribute(1, "Foo", 42);
             context.CodeWriter.Write(_scopeStack.BuilderVarName);
             context.CodeWriter.Write(".");
             context.CodeWriter.Write(BlazorApi.RenderTreeBuilder.AddAttribute);
@@ -344,6 +436,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             context.CodeWriter.WriteStringLiteral(node.AttributeName);
             context.CodeWriter.Write(", ");
 
+            WriteComponentAttributeInnards(context, node, canTypeCheck: true);
+
+            context.CodeWriter.Write(");");
+            context.CodeWriter.WriteLine();
+        }
+
+        private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeExtensionNode node, bool canTypeCheck)
+        {
             if (node.AttributeStructure == AttributeStructure.Minimized)
             {
                 // Minimized attributes always map to 'true'
@@ -364,26 +464,33 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             {
                 // See comments in BlazorDesignTimeNodeWriter for a description of the cases that are possible.
                 var tokens = GetCSharpTokens(node);
-                if (node.BoundAttribute?.IsDelegateProperty() ?? false)
+                if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
+                    (node.BoundAttribute?.IsChildContentProperty() ?? false))
                 {
-                    context.CodeWriter.Write("new ");
-                    context.CodeWriter.Write(node.BoundAttribute.TypeName);
-                    context.CodeWriter.Write("(");
+                    if (canTypeCheck)
+                    {
+                        context.CodeWriter.Write("new ");
+                        context.CodeWriter.Write(node.TypeName);
+                        context.CodeWriter.Write("(");
+                    }
 
                     for (var i = 0; i < tokens.Count; i++)
                     {
                         context.CodeWriter.Write(tokens[i].Content);
                     }
 
-                    context.CodeWriter.Write(")");
+                    if (canTypeCheck)
+                    {
+                        context.CodeWriter.Write(")");
+                    }
                 }
                 else
                 {
-                    if (node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped())
+                    if (canTypeCheck && NeedsTypeCheck(node))
                     {
                         context.CodeWriter.Write(BlazorApi.RuntimeHelpers.TypeCheck);
                         context.CodeWriter.Write("<");
-                        context.CodeWriter.Write(node.BoundAttribute.TypeName);
+                        context.CodeWriter.Write(node.TypeName);
                         context.CodeWriter.Write(">");
                         context.CodeWriter.Write("(");
                     }
@@ -393,15 +500,12 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                         context.CodeWriter.Write(tokens[i].Content);
                     }
 
-                    if (node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped())
+                    if (canTypeCheck && NeedsTypeCheck(node))
                     {
                         context.CodeWriter.Write(")");
                     }
                 }
             }
-
-            context.CodeWriter.Write(");");
-            context.CodeWriter.WriteLine();
 
             IReadOnlyList<IntermediateToken> GetCSharpTokens(ComponentAttributeExtensionNode attribute)
             {
@@ -414,10 +518,90 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // We generally expect all children to be HTML, this is here just in case.
                 return html.FindDescendantNodes<IntermediateToken>().Where(t => t.IsHtml).ToArray();
             }
+
+            bool NeedsTypeCheck(ComponentAttributeExtensionNode n)
+            {
+                return node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped();
+            }
+        }
+
+        public override void WriteComponentChildContent(CodeRenderingContext context, ComponentChildContentIntermediateNode node)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            // Writes something like:
+            //
+            // builder.AddAttribute(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
+            // OR
+            // builder.AddAttribute(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
+            BeginWriteAttribute(context.CodeWriter, node.AttributeName);
+            context.CodeWriter.Write($"({node.TypeName})(");
+
+            WriteComponentChildContentInnards(context, node);
+
+            context.CodeWriter.Write(")");
+            context.CodeWriter.WriteEndMethodInvocation();
+        }
+
+        private void WriteComponentChildContentInnards(CodeRenderingContext context, ComponentChildContentIntermediateNode node)
+        {
+            // Writes something like:
+            //
+            // ((__builder73) => { ... })
+            // OR
+            // ((person) => (__builder73) => { })
+            _scopeStack.OpenComponentScope(
+                context,
+                node.AttributeName,
+                node.IsParameterized ? node.ParameterName : null);
+            for (var i = 0; i < node.Children.Count; i++)
+            {
+                context.RenderNode(node.Children[i]);
+            }
+            _scopeStack.CloseScope(context);
+        }
+
+        public override void WriteComponentTypeArgument(CodeRenderingContext context, ComponentTypeArgumentExtensionNode node)
+        {
+            // We can skip type arguments during runtime codegen, they are handled in the
+            // type/parameter declarations.
+        }
+
+        public override void WriteTemplate(CodeRenderingContext context, TemplateIntermediateNode node)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            // Looks like:
+            //
+            // (__builder73) => { ... }
+            _scopeStack.OpenTemplateScope(context);
+            context.RenderChildren(node);
+            _scopeStack.CloseScope(context);
         }
 
         public override void WriteReferenceCapture(CodeRenderingContext context, RefExtensionNode node)
         {
+            // Looks like:
+            //
+            // builder.AddComponentReferenceCapture(2, (__value) = { _field = (MyComponent)__value; });
+            // OR
+            // builder.AddElementReferenceCapture(2, (__value) = { _field = (ElementRef)__value; });
             var codeWriter = context.CodeWriter;
 
             var methodName = node.IsComponentCapture
@@ -428,25 +612,36 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator();
 
+            WriteReferenceCaptureInnards(context, node, shouldTypeCheck: true);
+
+            codeWriter.WriteEndMethodInvocation();
+        }
+
+        protected override void WriteReferenceCaptureInnards(CodeRenderingContext context, RefExtensionNode node, bool shouldTypeCheck)
+        {
+            // Looks like:
+            //
+            // (__value) = { _field = (MyComponent)__value; }
+            // OR
+            // (__value) = { _field = (ElementRef)__value; }
             const string refCaptureParamName = "__value";
-            using (var lambdaScope = codeWriter.BuildLambda(refCaptureParamName))
+            using (var lambdaScope = context.CodeWriter.BuildLambda(refCaptureParamName))
             {
-                var typecastIfNeeded = node.IsComponentCapture ? $"({node.ComponentCaptureTypeName})" : string.Empty;
+                var typecastIfNeeded = shouldTypeCheck && node.IsComponentCapture ? $"({node.ComponentCaptureTypeName})" : string.Empty;
                 WriteCSharpCode(context, new CSharpCodeIntermediateNode
                 {
                     Source = node.Source,
                     Children =
                     {
                         node.IdentifierToken,
-                        new IntermediateToken {
+                        new IntermediateToken
+                        {
                             Kind = TokenKind.CSharp,
                             Content = $" = {typecastIfNeeded}{refCaptureParamName};"
                         }
                     }
                 });
             }
-
-            codeWriter.WriteEndMethodInvocation();
         }
 
         private void WriteAttribute(CodeWriter codeWriter, string key, IList<IntermediateToken> value)

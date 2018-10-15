@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <BlazorLinkOnBuild Condition="'$(BlazorLinkOnBuild)'==''">true</BlazorLinkOnBuild>
     <BlazorPublishDistDir>$(AssemblyName)\dist\</BlazorPublishDistDir>
@@ -14,7 +14,8 @@
 
   <Target Name="BlazorGetCopyToPublishDirectoryItems"
           BeforeTargets="GetCopyToPublishDirectoryItems"
-          DependsOnTargets="PrepareBlazorOutputs">
+          DependsOnTargets="PrepareBlazorOutputs"
+          Condition="'$(OutputType.ToLowerInvariant())'=='exe'">
     <ItemGroup>
       <!-- Don't want to publish the assemblies from the regular 'bin' dir. Instead we publish ones from 'dist'. -->
       <ResolvedAssembliesToPublish Remove="@(ResolvedAssembliesToPublish)" />
@@ -23,11 +24,11 @@
       <ContentWithTargetPath Update="@(ContentWithTargetPath)" Condition="$([System.String]::new(%(TargetPath)).StartsWith('wwwroot\')) OR $([System.String]::new(%(TargetPath)).StartsWith('wwwroot/'))">
         <TargetPath>$(BlazorPublishDistDir)$([System.String]::new(%(TargetPath)).Substring(8))</TargetPath>
       </ContentWithTargetPath>
-      
+
       <!-- Publish all the 'dist' files -->
       <_BlazorGCTPDIDistFiles Include="@(BlazorItemOutput->'%(TargetOutputPath)')" />
       <_BlazorGCTPDI Include="@(_BlazorGCTPDIDistFiles)">
-        <TargetPath>$(BlazorPublishDistDir)$([MSBuild]::MakeRelative('$(ProjectDir)$(OutDir)dist\', %(Identity)))</TargetPath>
+        <TargetPath>$(BlazorPublishDistDir)$([MSBuild]::MakeRelative('$(TargetDir)dist\', %(Identity)))</TargetPath>
       </_BlazorGCTPDI>
 
       <ContentWithTargetPath Include="@(_BlazorGCTPDI)">
@@ -41,7 +42,7 @@
       <_BlazorConfigPath>$(OutDir)$(AssemblyName).blazor.config</_BlazorConfigPath>
     </PropertyGroup>
     <WriteLinesToFile File="$(_BlazorConfigPath)" Lines="." Overwrite="true" />
-    <WriteLinesToFile File="$(_BlazorConfigPath)" Lines="$(AssemblyName)\" Overwrite="false" />
+    <WriteLinesToFile File="$(_BlazorConfigPath)" Lines="$(AssemblyName)/" Overwrite="false" />
   </Target>
 
   <!-- The following target runs only for standalone publishing -->
@@ -54,7 +55,7 @@
       Condition="!Exists('$(PublishDir)web.config')"
       File="$(PublishDir)web.config"
       Lines="@(_StandaloneWebConfigContent->Replace('[ServeSubdirectory]','$(BlazorPublishDistDir)'))" />
-  
+
     <!-- Remove the .blazor.config file, since it's irrelevant for standalone publishing -->
     <Delete Files="$(PublishDir)$(AssemblyName).blazor.config" />
   </Target>

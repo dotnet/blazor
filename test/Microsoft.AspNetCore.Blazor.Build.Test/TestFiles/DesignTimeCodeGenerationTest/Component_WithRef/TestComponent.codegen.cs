@@ -26,6 +26,8 @@ global::System.Object __typeHelper = "*, TestAssembly";
         protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
+            __o = "";
+            __o = "";
             builder.AddAttribute(-1, "ChildContent", (Microsoft.AspNetCore.Blazor.RenderFragment)((builder2) => {
             }
             ));
@@ -38,9 +40,8 @@ global::System.Object __typeHelper = "*, TestAssembly";
         #pragma warning restore 1998
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
             
-    Test.MyComponent myInstance;
-
-    void DoSomething() { myInstance.GetHashCode(); } // Avoid 'assigned but not used' warning
+    private Test.MyComponent myInstance;
+    public void Foo() { System.GC.KeepAlive(myInstance); }
 
 #line default
 #line hidden

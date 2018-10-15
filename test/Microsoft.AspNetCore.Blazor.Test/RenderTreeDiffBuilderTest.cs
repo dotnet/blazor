@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Components;
@@ -292,6 +292,40 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 {
                     AssertEdit(entry, RenderTreeEditType.UpdateText, 1);
                     Assert.Equal(1, entry.ReferenceFrameIndex);
+                });
+        }
+
+        [Fact]
+        public void RecognizesMarkupChanges()
+        {
+            // Arrange
+            oldTree.AddMarkupContent(1, "preserved");
+            oldTree.AddMarkupContent(3, "will be updated");
+            oldTree.AddMarkupContent(4, "will be removed");
+            newTree.AddMarkupContent(1, "preserved");
+            newTree.AddMarkupContent(2, "was inserted");
+            newTree.AddMarkupContent(3, "was updated");
+
+            // Act
+            var (result, referenceFrames) = GetSingleUpdatedComponent();
+
+            // Assert
+            Assert.Collection(result.Edits,
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.PrependFrame, 1);
+                    Assert.Equal(0, entry.ReferenceFrameIndex);
+                    Assert.Equal("was inserted", referenceFrames[entry.ReferenceFrameIndex].MarkupContent);
+                },
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.UpdateMarkup, 2);
+                    Assert.Equal(1, entry.ReferenceFrameIndex);
+                    Assert.Equal("was updated", referenceFrames[entry.ReferenceFrameIndex].MarkupContent);
+                },
+                entry =>
+                {
+                    AssertEdit(entry, RenderTreeEditType.RemoveFrame, 3);
                 });
         }
 
@@ -1342,9 +1376,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Act
             var (diff, referenceFrames) = GetSingleUpdatedComponent();
 
-            // Assert: Distinct nonzero IDs
-            Assert.NotEqual(0, ref1.Id);
-            Assert.NotEqual(0, ref2.Id);
+            // Assert: Distinct nonnull IDs
+            Assert.NotNull(ref1.Id);
+            Assert.NotNull(ref2.Id);
             Assert.NotEqual(ref1.Id, ref2.Id);
 
             // Assert: Also specified in diff
@@ -1388,7 +1422,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Note: We're not preserving the ReferenceCaptureId on the actual RenderTreeFrames in the same
             //       way we do for event handler IDs, simply because there's no need to do so. We only do
             //       anything with ReferenceCaptureId when frames are first inserted into the document.
-            Assert.NotEqual(0, ref1.Id);
+            Assert.NotNull(ref1.Id);
             Assert.Equal(1, refWriteCount);
             Assert.Empty(diff.Edits);
             Assert.Empty(referenceFrames);

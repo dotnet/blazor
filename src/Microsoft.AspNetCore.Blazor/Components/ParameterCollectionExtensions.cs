@@ -2,11 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Reflection;
-using Microsoft.AspNetCore.Blazor.RenderTree;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.AspNetCore.Blazor.Components
@@ -70,13 +68,27 @@ namespace Microsoft.AspNetCore.Blazor.Components
             }
         }
 
+
+        
+
+        internal static IEnumerable<PropertyInfo> GetCandidateBindableProperties(Type targetType)
+            => MemberAssignment.GetPropertiesIncludingInherited(targetType, _bindablePropertyFlags);
+
         private static IDictionary<string, IPropertySetter> CreateParameterWriters(Type targetType)
         {
             var result = new Dictionary<string, IPropertySetter>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var propertyInfo in GetBindableProperties(targetType))
+            foreach (var propertyInfo in GetCandidateBindableProperties(targetType))
             {
-                IPropertySetter propertySetter = MemberAssignment.CreatePropertySetter(targetType, propertyInfo);
+                var shouldCreateWriter = propertyInfo.IsDefined(typeof(ParameterAttribute))
+                    || propertyInfo.IsDefined(typeof(CascadingParameterAttribute));
+                if (!shouldCreateWriter)
+                {
+                    continue;
+                }
+
+                var propertySetter = MemberAssignment.CreatePropertySetter(targetType, propertyInfo);
+
 
                 var propertyName = propertyInfo.Name;
                 if (result.ContainsKey(propertyName))
@@ -85,16 +97,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
                         $"The type '{targetType.FullName}' declares more than one parameter matching the " +
                         $"name '{propertyName.ToLowerInvariant()}'. Parameter names are case-insensitive and must be unique.");
                 }
-
                 result.Add(propertyName, propertySetter);
             }
 
             return result;
         }
-
-        private static IEnumerable<PropertyInfo> GetBindableProperties(Type targetType)
-            => MemberAssignment.GetPropertiesIncludingInherited(targetType, _bindablePropertyFlags)
-                .Where(property => property.IsDefined(typeof(ParameterAttribute)));
 
         private static void ThrowForUnknownIncomingParameterName(Type targetType, string parameterName)
         {
@@ -103,11 +110,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
             var propertyInfo = targetType.GetProperty(parameterName, _bindablePropertyFlags);
             if (propertyInfo != null)
             {
-                if (!propertyInfo.IsDefined(typeof(ParameterAttribute)))
+                if (!propertyInfo.IsDefined(typeof(ParameterAttribute)) && !propertyInfo.IsDefined(typeof(CascadingParameterAttribute)))
                 {
                     throw new InvalidOperationException(
                         $"Object of type '{targetType.FullName}' has a property matching the name '{parameterName}', " +
-                        $"but it does not have [{nameof(ParameterAttribute)}] applied.");
+                        $"but it does not have [{nameof(ParameterAttribute)}] or [{nameof(CascadingParameterAttribute)}] applied.");
                 }
                 else
                 {

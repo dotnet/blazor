@@ -6,6 +6,9 @@ import { EventForDotNet, UIEventArgs } from './EventForDotNet';
 import { LogicalElement, toLogicalElement, insertLogicalChild, removeLogicalChild, getLogicalParent, getLogicalChild, createAndInsertLogicalContainer, isSvgElement } from './LogicalElements';
 import { applyCaptureIdToElement } from './ElementReferenceCapture';
 const selectValuePropname = '_blazorSelectValue';
+const sharedTemplateElemForParsing = document.createElement('template');
+const sharedSvgElemForParsing = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+const preventDefaultEvents: { [eventType: string]: boolean } = { submit: true };
 let raiseEventMethod: MethodHandle;
 let renderComponentMethod: MethodHandle;
 
@@ -77,7 +80,7 @@ export class BrowserRenderer {
           const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
           const siblingIndex = editReader.siblingIndex(edit);
           const element = getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
-          if (element instanceof HTMLElement) {
+          if (element instanceof Element) {
             this.applyAttribute(batch, componentId, element, frame);
           } else {
             throw new Error(`Cannot set attribute on non-element child`);
@@ -111,6 +114,14 @@ export class BrowserRenderer {
           } else {
             throw new Error(`Cannot set text content on non-text child`);
           }
+          break;
+        }
+        case EditType.updateMarkup: {
+          const frameIndex = editReader.newTreeIndex(edit);
+          const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
+          const siblingIndex = editReader.siblingIndex(edit);
+          removeLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+          this.insertMarkup(batch, parent, childIndexAtCurrentDepth + siblingIndex, frame);
           break;
         }
         case EditType.stepIn: {
@@ -153,11 +164,14 @@ export class BrowserRenderer {
         return this.insertFrameRange(batch, componentId, parent, childIndex, frames, frameIndex + 1, frameIndex + frameReader.subtreeLength(frame));
       case FrameType.elementReferenceCapture:
         if (parent instanceof Element) {
-          applyCaptureIdToElement(parent, frameReader.elementReferenceCaptureId(frame));
+          applyCaptureIdToElement(parent, frameReader.elementReferenceCaptureId(frame)!);
           return 0; // A "capture" is a child in the diff, but has no node in the DOM
         } else {
           throw new Error('Reference capture frames can only be children of element frames.');
         }
+      case FrameType.markup:
+        this.insertMarkup(batch, parent, childIndex, frame);
+        return 1;
       default:
         const unknownType: never = frameType; // Compile-time verification that the switch was exhaustive
         throw new Error(`Unknown frame type: ${unknownType}`);
@@ -201,6 +215,17 @@ export class BrowserRenderer {
     const textContent = batch.frameReader.textContent(textFrame)!;
     const newTextNode = document.createTextNode(textContent);
     insertLogicalChild(newTextNode, parent, childIndex);
+  }
+
+  private insertMarkup(batch: RenderBatch, parent: LogicalElement, childIndex: number, markupFrame: RenderTreeFrame) {
+    const markupContainer = createAndInsertLogicalContainer(parent, childIndex);
+
+    const markupContent = batch.frameReader.markupContent(markupFrame);
+    const parsedMarkup = parseMarkup(markupContent, isSvgElement(parent));
+    let logicalSiblingIndex = 0;
+    while (parsedMarkup.firstChild) {
+      insertLogicalChild(parsedMarkup.firstChild, markupContainer, logicalSiblingIndex++);
+    }
   }
 
   private applyAttribute(batch: RenderBatch, componentId: number, toDomElement: Element, attributeFrame: RenderTreeFrame) {
@@ -305,6 +330,16 @@ export class BrowserRenderer {
   }
 }
 
+function parseMarkup(markup: string, isSvg: boolean) {
+  if (isSvg) {
+    sharedSvgElemForParsing.innerHTML = markup || ' ';
+    return sharedSvgElemForParsing;
+  } else {
+    sharedTemplateElemForParsing.innerHTML = markup || ' ';
+    return sharedTemplateElemForParsing.content;
+  }
+}
+
 function countDescendantFrames(batch: RenderBatch, frame: RenderTreeFrame): number {
   const frameReader = batch.frameReader;
   switch (frameReader.frameType(frame)) {
@@ -320,7 +355,11 @@ function countDescendantFrames(batch: RenderBatch, frame: RenderTreeFrame): numb
   }
 }
 
-async function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
+function raiseEvent(event: Event, browserRendererId: number, componentId: number, eventHandlerId: number, eventArgs: EventForDotNet<UIEventArgs>) {
+  if (preventDefaultEvents[event.type]) {
+    event.preventDefault();
+  }
+
   const eventDescriptor = {
     browserRendererId,
     componentId,
@@ -328,7 +367,7 @@ async function raiseEvent(event: Event, browserRendererId: number, componentId: 
     eventArgsType: eventArgs.type
   };
 
-  await DotNet.invokeMethodAsync(
+  return DotNet.invokeMethodAsync(
     'Microsoft.AspNetCore.Blazor.Browser',
     'DispatchEvent',
     eventDescriptor,

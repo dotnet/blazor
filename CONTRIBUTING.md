@@ -4,7 +4,7 @@ There are lots of ways to contribute to Blazor and we appreciate the help from t
 
 ## Code of conduct
 
-To better foster an open, innovative and inclusive community please refer to our [Code of Conduct](https://github.com/aspnet/Blazor/blob/dev/CODE_OF_CONDUCT.md) when contributing.
+To better foster an open, innovative and inclusive community please refer to our [Code of Conduct](CODE_OF_CONDUCT.md) when contributing.
 
 ## Provide feedback
 
@@ -17,7 +17,7 @@ The best way to get your bug fixed is to be as detailed as you can be about the 
 Providing a minimal project with steps to reproduce the problem is ideal.
 Here are questions you can answer before you file a bug to make sure you're not missing any important information.
 
-1. Did you read the [documentation](https://github.com/aspnet/blazor/wiki)?
+1. Did you read the [documentation](https://blazor.net/docs/index.html)?
 2. Did you include the snippet of broken code in the issue?
 3. What are the *EXACT* steps to reproduce this problem?
 4. What specific version or build are you using?
@@ -25,7 +25,7 @@ Here are questions you can answer before you file a bug to make sure you're not 
 
 GitHub supports [markdown](https://help.github.com/articles/github-flavored-markdown/), so when filing bugs make sure you check the formatting before clicking submit.
 
-> Note: Security issues and bugs should be reported privately, via email, to the Microsoft Security Response Center (MSRC)  secure@microsoft.com. You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message. Further information, including the MSRC PGP key, can be found in the [Security TechCenter](https://technet.microsoft.com/en-us/security/ff852094.aspx).
+> Note: Security issues and bugs should be reported privately, via email, to the Microsoft Security Response Center (MSRC)  secure@microsoft.com. You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message. Further information, including the MSRC PGP key, can be found in the [Security TechCenter](https://www.microsoft.com/en-us/msrc/).
 
 ### Make a suggestion
 
@@ -37,4 +37,4 @@ If you have a question be sure to first checkout our [documentation](https://git
 
 ## Contributing code and content
 
-Blazor is an open source project and we welcome code and content contributions from the community. For details on how to submit a PR please see the ["Contributing code and content" section of the ASP.NET Contributing Guide](https://github.com/aspnet/Home/blob/dev/CONTRIBUTING.md#contributing-code-and-content).
+Blazor is an open source project and we welcome code and content contributions from the community. For details on how to submit a PR please see the ["Contributing code and content" section of the ASP.NET Contributing Guide](https://github.com/aspnet/Home/blob/master/CONTRIBUTING.md#contributing-code-and-content).

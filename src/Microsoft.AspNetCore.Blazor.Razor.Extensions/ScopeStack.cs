@@ -1,11 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Blazor.Shared;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
 {
@@ -21,44 +19,42 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         public string BuilderVarName { get; private set; } = "builder";
 
-        public void OpenScope(string tagName, bool isComponent)
+        public void OpenComponentScope(CodeRenderingContext context, string name, string parameterName)
         {
-            _stack.Push(new ScopeEntry(tagName, isComponent));
+            var scope = new ScopeEntry(name, ScopeKind.Component);
+            _stack.Push(scope);
+
+            OffsetBuilderVarNumber(1);
+
+            // Writes code that looks like:
+            //
+            // ((__builder) => { ... })
+            // OR
+            // ((context) => (__builder) => { ... })
+
+            if (parameterName != null)
+            {
+                context.CodeWriter.Write($"({parameterName}) => ");
+            }
+
+            scope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
+        }
+
+        public void OpenTemplateScope(CodeRenderingContext context)
+        {
+            var currentScope = new ScopeEntry("__template", ScopeKind.Template);
+            _stack.Push(currentScope);
+
+            // Templates always get a lambda scope, because they are defined as a lambda.
+            OffsetBuilderVarNumber(1);
+            currentScope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
         }
 
         public void CloseScope(CodeRenderingContext context)
         {
             var currentScope = _stack.Pop();
-
-            // When closing the scope for a component with children, it's time to close the lambda
-            if (currentScope.LambdaScope != null)
-            {
-                currentScope.LambdaScope.Dispose();
-                context.CodeWriter.Write(")");
-                context.CodeWriter.WriteEndMethodInvocation();
-                OffsetBuilderVarNumber(-1);
-            }
-        }
-
-        public void IncrementCurrentScopeChildCount(CodeRenderingContext context)
-        {
-            if (_stack.Count > 0)
-            {
-                var currentScope = _stack.Peek();
-
-                if (currentScope.IsComponent && currentScope.ChildCount == 0)
-                {
-                    // When we're about to insert the first child into a component,
-                    // it's time to open a new lambda
-                    var blazorNodeWriter = (BlazorNodeWriter)context.NodeWriter;
-                    blazorNodeWriter.BeginWriteAttribute(context.CodeWriter, BlazorApi.RenderTreeBuilder.ChildContent);
-                    OffsetBuilderVarNumber(1);
-                    context.CodeWriter.Write($"({BlazorApi.RenderFragment.FullTypeName})(");
-                    currentScope.LambdaScope = context.CodeWriter.BuildLambda(BuilderVarName);
-                }
-
-                currentScope.ChildCount++;
-            }
+            currentScope.LambdaScope.Dispose();
+            OffsetBuilderVarNumber(-1);
         }
 
         private void OffsetBuilderVarNumber(int delta)
@@ -71,17 +67,25 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private class ScopeEntry
         {
-            public readonly string TagName;
-            public readonly bool IsComponent;
+            public readonly string Name;
+            public ScopeKind Kind;
             public int ChildCount;
             public IDisposable LambdaScope;
 
-            public ScopeEntry(string tagName, bool isComponent)
+            public ScopeEntry(string name, ScopeKind kind)
             {
-                TagName = tagName;
-                IsComponent = isComponent;
+                Name = name;
+                Kind = kind;
                 ChildCount = 0;
             }
+
+            public override string ToString() => $"<{Name}> ({Kind})";
+        }
+
+        private enum ScopeKind
+        {
+            Component,
+            Template,
         }
     }
 }

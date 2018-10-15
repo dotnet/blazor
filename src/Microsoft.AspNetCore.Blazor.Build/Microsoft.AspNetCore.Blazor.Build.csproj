@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <OutDir>tools</OutDir> <!-- So we can use the tool from source within the repo without having to pack -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
@@ -11,7 +10,7 @@
   <PropertyGroup>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <NuspecFile>Microsoft.AspNetCore.Blazor.Build.nuspec</NuspecFile>
-    <IntermediatePackDir>$(MSBuildProjectDirectory)/bin/$(Configuration)/publish/</IntermediatePackDir>
+    <IntermediatePackDir>$(OutputPath)publish\</IntermediatePackDir>
     <PublishDir>$(IntermediatePackDir)$(TargetFramework)/</PublishDir>
   </PropertyGroup>
 
@@ -22,7 +21,7 @@
       <NuspecProperties>
       version=$(PackageVersion);
       publishDir=$([MSBuild]::NormalizeDirectory($(IntermediatePackDir)));
-      razorversion=$(RazorPackageVersion);</NuspecProperties>
+      razorversion=$(MicrosoftAspNetCoreRazorDesignPackageVersion);</NuspecProperties>
     </PropertyGroup>
     <ItemGroup>
       <_TargetFramework Include="$(TargetFrameworks)" />
@@ -31,12 +30,8 @@
   </Target>
 
   <ItemGroup>
-    <None Remove="tools\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- This is a newer version than is in the shared framework, so copy it -->
-    <Content Include="..\Microsoft.AspNetCore.Blazor.Razor.Extensions\bin\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll">
+    <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Blazor.Razor.Extensions\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
@@ -46,10 +41,10 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.Browser.JS\Microsoft.AspNetCore.Blazor.Browser.JS.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.Razor.Extensions\Microsoft.AspNetCore.Blazor.Razor.Extensions.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
-    <PackageReference Include="AngleSharp" Version="0.9.9.2" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.TagHelperWorkaround\Microsoft.AspNetCore.Blazor.TagHelperWorkaround.csproj" />
 
     <!-- Intentionally include Razor.Design's MSBuild assets for everyone who reference Blazor.Build -->
-    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="$(RazorPackageVersion)" PrivateAssets="None" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="$(MicrosoftAspNetCoreRazorDesignPackageVersion)" PrivateAssets="None" />
 
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Composite" Version="$(AspNetCorePackageVersion)" />

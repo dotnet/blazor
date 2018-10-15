@@ -1,10 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
@@ -28,7 +27,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             });
 
             // Act
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             // Assert
@@ -58,7 +57,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             });
 
             // Act/Assert
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var batch = renderer.Batches.Single();
             var componentFrame = batch.ReferenceFrames
@@ -89,7 +88,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange
             var renderer = new TestRenderer();
             var component = new MessageComponent { Message = "Initial message" };
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
 
             // Act/Assert: first render
             component.TriggerRender();
@@ -127,7 +126,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.OpenComponent<MessageComponent>(0);
                 builder.CloseComponent();
             });
-            var parentComponentId = renderer.AssignComponentId(parentComponent);
+            var parentComponentId = renderer.AssignRootComponentId(parentComponent);
             parentComponent.TriggerRender();
             var nestedComponentFrame = renderer.Batches.Single()
                 .ReferenceFrames
@@ -173,7 +172,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 OnTest = args => { receivedArgs = args; }
             };
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var eventHandlerId = renderer.Batches.Single()
@@ -201,7 +200,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 OnClick = args => { receivedArgs = args; }
             };
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var eventHandlerId = renderer.Batches.Single()
@@ -229,7 +228,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 OnClickAction = () => { receivedArgs = new object(); }
             };
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var eventHandlerId = renderer.Batches.Single()
@@ -258,7 +257,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.OpenComponent<EventComponent>(0);
                 builder.CloseComponent();
             });
-            var parentComponentId = renderer.AssignComponentId(parentComponent);
+            var parentComponentId = renderer.AssignRootComponentId(parentComponent);
             parentComponent.TriggerRender();
 
             // Arrange: Render nested component
@@ -298,7 +297,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.CloseElement();
             });
 
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var eventHandlerId = renderer.Batches.Single()
@@ -336,9 +335,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var renderer1 = new TestRenderer();
             var renderer2 = new TestRenderer();
             var component = new MultiRendererComponent();
-            var renderer1ComponentId = renderer1.AssignComponentId(component);
-            renderer2.AssignComponentId(new TestComponent(null)); // Just so they don't get the same IDs
-            var renderer2ComponentId = renderer2.AssignComponentId(component);
+            var renderer1ComponentId = renderer1.AssignRootComponentId(component);
+            renderer2.AssignRootComponentId(new TestComponent(null)); // Just so they don't get the same IDs
+            var renderer2ComponentId = renderer2.AssignRootComponentId(component);
 
             // Act/Assert
             component.TriggerRender();
@@ -376,7 +375,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.CloseComponent();
             });
 
-            var rootComponentId = renderer.AssignComponentId(component);
+            var rootComponentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var nestedComponentFrame = renderer.Batches.Single()
@@ -417,7 +416,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.CloseComponent();
             });
 
-            var rootComponentId = renderer.AssignComponentId(component);
+            var rootComponentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var originalComponentFrame = renderer.Batches.Single()
@@ -453,7 +452,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.CloseComponent();
             });
 
-            var rootComponentId = renderer.AssignComponentId(component);
+            var rootComponentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var childComponentId = renderer.Batches.Single()
@@ -495,7 +494,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.CloseComponent();
             });
 
-            var rootComponentId = renderer.AssignComponentId(component);
+            var rootComponentId = renderer.AssignRootComponentId(component);
 
             // Act/Assert 1: First render, capturing child component IDs
             component.TriggerRender();
@@ -534,7 +533,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var eventCount = 0;
             Action<UIEventArgs> origEventHandler = args => { eventCount++; };
             var component = new EventComponent { OnTest = origEventHandler };
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -571,7 +570,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var eventCount = 0;
             Action<UIEventArgs> origEventHandler = args => { eventCount++; };
             var component = new EventComponent { OnTest = origEventHandler };
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -611,7 +610,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                     { nameof(EventComponent.OnTest), origEventHandler }
                 }
             };
-            var rootComponentId = renderer.AssignComponentId(component);
+            var rootComponentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var batch = renderer.Batches.Single();
             var rootComponentDiff = batch.DiffsByComponentId[rootComponentId].Single();
@@ -653,7 +652,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var eventCount = 0;
             Action<UIEventArgs> origEventHandler = args => { eventCount++; };
             var component = new EventComponent { OnTest = origEventHandler };
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -699,7 +698,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 });
                 builder.CloseComponent();
             });
-            var rootComponentId = renderer.AssignComponentId(rootComponent);
+            var rootComponentId = renderer.AssignRootComponentId(rootComponent);
             rootComponent.TriggerRender();
             var origBatchReferenceFrames = renderer.Batches.Single().ReferenceFrames;
             var childComponentFrame = origBatchReferenceFrames
@@ -781,7 +780,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 builder.AddContent(0, $"Render count: {++renderCount}");
             });
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
 
             // Act/Assert: Can trigger initial render
             Assert.Equal(0, renderCount);
@@ -817,7 +816,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.CloseComponent();
                 builder.AddContent(2, $"Parent render count: {++parentRenderCount}");
             });
-            var parentComponentId = renderer.AssignComponentId(parent);
+            var parentComponentId = renderer.AssignRootComponentId(parent);
 
             // Act
             parent.TriggerRender();
@@ -891,7 +890,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 }
             });
 
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var childComponentId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -928,7 +927,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Arrange: Rendered with textbox enabled
             var renderer = new TestRenderer();
             var component = new BindPlusConditionalAttributeComponent();
-            var componentId = renderer.AssignComponentId(component);
+            var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var checkboxChangeEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -971,7 +970,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.CloseElement();
             });
             var renderer = new TestRenderer();
-            renderer.AssignComponentId(component);
+            renderer.AssignRootComponentId(component);
 
             // Act: Update the attribute value on the parent
             component.TriggerRender();
@@ -1001,7 +1000,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 OnUpdateDisplay = _ => onAfterRenderCallCountLog.Add(component.OnAfterRenderCallCount)
             };
-            renderer.AssignComponentId(component);
+            renderer.AssignRootComponentId(component);
 
             // Act
             component.TriggerRender();
@@ -1042,7 +1041,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 }
             });
             var renderer = new TestRenderer();
-            var parentComponentId = renderer.AssignComponentId(parentComponent);
+            var parentComponentId = renderer.AssignRootComponentId(parentComponent);
 
             // Act: First render
             parentComponent.TriggerRender();
@@ -1077,8 +1076,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
             }
 
-            public new int AssignComponentId(IComponent component)
-                => base.AssignComponentId(component);
+            public new int AssignRootComponentId(IComponent component)
+                => base.AssignRootComponentId(component);
 
             protected override void UpdateDisplay(in RenderBatch renderBatch)
             {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -17,20 +17,26 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         public IEnumerable<RefExtensionNode> Captures => Children.OfType<RefExtensionNode>();
 
-        public IEnumerable<IntermediateNode> Body => Children.Where(c =>
-        {
-            return
-                c as ComponentAttributeExtensionNode == null &&
-                c as RefExtensionNode == null;
-        });
+        public IEnumerable<ComponentChildContentIntermediateNode> ChildContents => Children.OfType<ComponentChildContentIntermediateNode>();
 
         public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
 
         public TagHelperDescriptor Component { get; set; }
 
-        public string TagName { get; set; }
+        /// <summary>
+        /// Gets the child content parameter name (null if unset) that was applied at the component level.
+        /// </summary>
+        public string ChildContentParameterName { get; set; }
 
-        public string TypeName => Component?.GetTypeName();
+        public IEnumerable<ComponentTypeArgumentExtensionNode> TypeArguments => Children.OfType<ComponentTypeArgumentExtensionNode>();
+
+        public string TagName { get; set; }
+        
+        // An optional type inference node. This will be populated (and point to a different part of the tree)
+        // if this component call site requires type inference.
+        public ComponentTypeInferenceMethodIntermediateNode TypeInferenceNode { get; set; }
+        
+        public string TypeName { get; set; }
 
         public override void Accept(IntermediateNodeVisitor visitor)
         {
@@ -81,8 +87,15 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     builder.Append("=\"...\"");
                 }
 
+                foreach (var typeArgument in TypeArguments)
+                {
+                    builder.Append(" ");
+                    builder.Append(typeArgument.TypeParameterName);
+                    builder.Append("=\"...\"");
+                }
+
                 builder.Append(">");
-                builder.Append(Body.Any() ? "..." : string.Empty);
+                builder.Append(ChildContents.Any() ? "..." : string.Empty);
                 builder.Append("</");
                 builder.Append(TagName);
                 builder.Append(">");

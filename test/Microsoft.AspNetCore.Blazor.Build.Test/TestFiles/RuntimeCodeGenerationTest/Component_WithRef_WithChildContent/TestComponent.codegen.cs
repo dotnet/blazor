@@ -19,13 +19,10 @@ namespace Test
             builder.AddAttribute(1, "SomeProp", "val");
             builder.AddAttribute(2, "ChildContent", (Microsoft.AspNetCore.Blazor.RenderFragment)((builder2) => {
                 builder2.AddContent(3, "\n    Some ");
-                builder2.OpenElement(4, "el");
-                builder2.AddContent(5, "further");
-                builder2.CloseElement();
-                builder2.AddContent(6, " content\n");
+                builder2.AddMarkupContent(4, "<el>further</el> content\n");
             }
             ));
-            builder.AddComponentReferenceCapture(7, (__value) => {
+            builder.AddComponentReferenceCapture(5, (__value) => {
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                   myInstance = (Test.MyComponent)__value;
 
@@ -39,6 +36,7 @@ namespace Test
 #line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
             
     private Test.MyComponent myInstance;
+    public void Foo() { System.GC.KeepAlive(myInstance); }
 
 #line default
 #line hidden

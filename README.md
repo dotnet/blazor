@@ -9,12 +9,12 @@ Blazor is a .NET web framework that runs in any browser. You author Blazor apps 
 Blazor uses only the latest web standards. No plugins or transpilation needed. It runs in the browser on a real .NET runtime ([Mono](http://www.mono-project.com/news/2017/08/09/hello-webassembly/)) implemented in [WebAssembly](http://webassembly.org) that executes normal .NET assemblies. It works in older browsers too by falling back to an [asm.js](http://asmjs.org/) based .NET runtime.
 
 Blazor will have all the features of a modern web framework, including: 
-- A component model for building composable UI 
-- Routing 
-- Layouts 
+- [A component model for building composable UI](https://blazor.net/docs/components/index.html) 
+- [Routing](https://blazor.net/docs/routing.html) 
+- [Layouts](https://blazor.net/docs/layouts.html) 
 - Forms and validation 
 - Dependency injection 
-- JavaScript interop 
+- [JavaScript interop](https://blazor.net/docs/javascript-interop.html) 
 - Live reloading in the browser during development 
 - Server-side rendering 
 - Full .NET debugging both in browsers and in the IDE
@@ -34,10 +34,15 @@ To get started with Blazor and build your first Blazor web app check out our [ge
 
 Prerequisites:
 - [Node.js](https://nodejs.org/) (>8.3)
+- Restore Git submodules by running the following command at the repo root:
 
-The Blazor repository uses the same set of build tools as the other ASP.NET Core projects. The [developer documentation](https://github.com/aspnet/Home/wiki/Building-from-source) for building is the authoritative guide. **Please read this document and check your PATH setup if you have trouble building or using Visual Studio**
+      git submodule update --init --recursive
+
+The Blazor repository uses the same set of build tools as the other ASP.NET Core projects. The [developer documentation](https://github.com/aspnet/Home/wiki/Building-from-source) for building is the authoritative guide. **Please read this document and check your PATH setup if you have trouble building or using Visual Studio.**
 
 To build at the command line, run `build.cmd` or `build.sh` from the solution directory.
+
+If you get a build error similar to *The project file "(some path)\blazor\modules\jsinterop\src\Mono.WebAssembly.Interop\Mono.WebAssembly.Interop.csproj" was not found.*, it's because you didn't yet restore the Git submodules. Please see *Prerequisites* above.
 
 ## Run unit tests
 
@@ -62,13 +67,13 @@ Prerequisites:
 - Follow the steps [here](https://github.com/aspnet/Home/wiki/Building-from-source) to set up a local copy of dotnet
 - Visual Studio 2017 15.7 latest preview - [download](https://www.visualstudio.com/thank-you-downloading-visual-studio/?ch=pre&sku=Enterprise&rel=15)
 
-We recommend getting the latest preview version of Visual Studio and updating it frequently. The Blazor
-editing experience in Visual Studio depends on  new features of the Razor language tooling and
-will be updated frequently.
-
 When installing Visual Studio choose the following workloads:
 - ASP.NET and Web Development
 - Visual Studio extension development features
+
+Before attempting to open the Blazor repo in Visual Studio, restore Git submodules by running the following command at the repo root:
+
+    git submodule update --init --recursive
 
 If you have problems using Visual Studio with `Blazor.sln` please refer to the [developer documentation](https://github.com/aspnet/Home/wiki/Building-from-source).
 
@@ -109,7 +114,7 @@ You can browse https://dotnet.myget.org/gallery/blazor-dev to find the current v
 ```xml
 <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Browser" Version="0.3.0-preview1-10220" />
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.3.0-preview1-10220" />
+    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.3.0-preview1-10220" PrivateAssets="all" />
     <DotNetCliToolReference Include="Microsoft.AspNetCore.Blazor.Cli" Version="0.3.0-preview1-10220" />
 </ItemGroup>
 ```
@@ -122,7 +127,7 @@ You should then be able to install or update the Blazor Language Service extensi
 
 ## Contributing
 
-There are lots of ways that you can contribute to Blazor! Read our [contributing guide](https://github.com/aspnet/Blazor/blob/dev/CONTRIBUTING.md) to learn about our development process and how to propose bug fixes and improvements.
+There are lots of ways that you can contribute to Blazor! Read our [contributing guide](https://github.com/aspnet/Blazor/blob/master/CONTRIBUTING.md) to learn about our development process and how to propose bug fixes and improvements.
 
 ## Still got questions?
 

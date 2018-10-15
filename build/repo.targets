@@ -5,5 +5,5 @@
       <!-- the 'DebugNoVSIX' and 'ReleaseNoVSIX' configurations exclude the VSIX project, which doesn't build with Microsoft.NET.Sdk yet. -->
       <AdditionalProperties>Configuration=$(Configuration)NoVSIX</AdditionalProperties>
     </Solutions>
-  </ItemGroup> 
+  </ItemGroup>
 </Project>

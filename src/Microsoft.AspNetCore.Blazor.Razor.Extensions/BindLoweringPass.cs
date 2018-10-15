@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
@@ -310,6 +311,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     BoundAttribute = valueAttribute, // Might be null if it doesn't match a component attribute
                     PropertyName = valueAttribute?.GetPropertyName(),
                     TagHelper = valueAttribute == null ? null : node.TagHelper,
+                    TypeName = valueAttribute?.IsWeaklyTyped() == false ? valueAttribute.TypeName : null,
                 };
 
                 valueNode.Children.Clear();
@@ -325,6 +327,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                     BoundAttribute = changeAttribute, // Might be null if it doesn't match a component attribute
                     PropertyName = changeAttribute?.GetPropertyName(),
                     TagHelper = changeAttribute == null ? null : node.TagHelper,
+                    TypeName = changeAttribute?.IsWeaklyTyped() == false ? changeAttribute.TypeName : null,
                 };
 
                 changeNode.Children.Clear();
@@ -474,6 +477,14 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private static IntermediateToken GetAttributeContent(TagHelperPropertyIntermediateNode node)
         {
+            var template = node.FindDescendantNodes<TemplateIntermediateNode>().FirstOrDefault();
+            if (template != null)
+            {
+                // See comments in TemplateDiagnosticPass
+                node.Diagnostics.Add(BlazorDiagnosticFactory.Create_TemplateInvalidLocation(template.Source));
+                return new IntermediateToken() { Kind = TokenKind.CSharp, Content = string.Empty, };
+            }
+
             if (node.Children[0] is HtmlContentIntermediateNode htmlContentNode)
             {
                 // This case can be hit for a 'string' attribute. We want to turn it into

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace Microsoft.AspNetCore.Blazor.Shared
@@ -13,6 +13,7 @@ namespace Microsoft.AspNetCore.Blazor.Shared
         {
             public static readonly string Namespace = "Microsoft.AspNetCore.Blazor.Components";
             public static readonly string FullTypeName = Namespace + ".BlazorComponent";
+            public static readonly string MetadataName = FullTypeName;
 
             public static readonly string BuildRenderTree = nameof(BuildRenderTree);
         }
@@ -20,6 +21,7 @@ namespace Microsoft.AspNetCore.Blazor.Shared
         public static class ParameterAttribute
         {
             public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.ParameterAttribute";
+            public static readonly string MetadataName = FullTypeName;
         }
 
         public static class LayoutAttribute
@@ -43,8 +45,16 @@ namespace Microsoft.AspNetCore.Blazor.Shared
         {
             public static readonly string Namespace = "Microsoft.AspNetCore.Blazor";
             public static readonly string FullTypeName = Namespace + ".RenderFragment";
+            public static readonly string MetadataName = FullTypeName;
         }
-        
+
+        public static class RenderFragmentOfT
+        {
+            public static readonly string Namespace = "Microsoft.AspNetCore.Blazor";
+            public static readonly string FullTypeName = Namespace + ".RenderFragment<>";
+            public static readonly string MetadataName = Namespace + ".RenderFragment`1";
+        }
+
         public static class RenderTreeBuilder
         {
             public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder";
@@ -56,6 +66,8 @@ namespace Microsoft.AspNetCore.Blazor.Shared
             public static readonly string OpenComponent = nameof(OpenComponent);
 
             public static readonly string CloseComponent = nameof(CloseComponent);
+
+            public static readonly string AddMarkupContent = nameof(AddMarkupContent);
 
             public static readonly string AddContent = nameof(AddContent);
 

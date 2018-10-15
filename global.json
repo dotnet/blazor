@@ -1,5 +1,8 @@
-{ "sdk": { 
-"version": "2.1.300" },
-"msbuild-sdks": {
-"Microsoft.DotNet.GlobalTools.Sdk": "2.1.1-rtm-15793"}
- }
+{
+    "sdk": {
+        "version": "2.1.400"
+    },
+    "msbuild-sdks": {
+        "Internal.AspNetCore.Sdk": "2.2.0-preview1-20181001.1"
+    }
+}
