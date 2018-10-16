@@ -88,7 +88,9 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             if (context.Handler == null)
             {
                 if (useFallback || FallbackRoute == null)
+                {
                     throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with {(useFallback ? "the fallback route" : "a route for")} '/{locationPath}'.");
+                }
 
                 Refresh(useFallback: true);
                 return;
