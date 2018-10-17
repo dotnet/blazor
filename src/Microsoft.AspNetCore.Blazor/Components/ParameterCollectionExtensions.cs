@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Blazor.Components
 {
@@ -52,7 +53,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                 try
                 {
-                    parameterWriter.SetValue(target, parameter.Frame.AttributeValue);
+                    parameterWriter.SetValue(target, parameter.Value);
                     localParameterWriter.Remove(parameterWriter);
                 }
                 catch (Exception ex)
