@@ -173,7 +173,7 @@ function parseKeyboardEvent(event: KeyboardEvent) {
     type: event.type,
     key: event.key,
     code: event.code,
-    location: event.location,
+    location: Locations[Locations[event.location]],
     repeat: event.repeat,
     ctrlKey: event.ctrlKey,
     shiftKey: event.shiftKey,
@@ -276,7 +276,7 @@ interface UIFocusEventArgs extends UIEventArgs {
 interface UIKeyboardEventArgs extends UIEventArgs {
   key: string;
   code: string;
-  location: number;
+  location: Locations;
   repeat: boolean;
   ctrlKey: boolean;
   shiftKey: boolean;
@@ -341,4 +341,11 @@ interface UIWheelEventArgs extends UIMouseEventArgs {
   deltaY: number;
   deltaZ: number;
   deltaMode: number;
+}
+
+enum Locations {
+  Standard = 0,
+  Left,
+  Right,
+  Numpad
 }
