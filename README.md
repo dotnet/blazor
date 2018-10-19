@@ -34,6 +34,8 @@ To get started with Blazor and build your first Blazor web app check out our [ge
 
 Prerequisites:
 - [Node.js](https://nodejs.org/) (>8.3)
+- webpack
+      npm install webpack -g
 - Restore Git submodules by running the following command at the repo root:
 
       git submodule update --init --recursive
