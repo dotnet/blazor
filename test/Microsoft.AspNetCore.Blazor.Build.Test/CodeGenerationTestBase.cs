@@ -1264,6 +1264,20 @@ namespace Test
         }
 
         [Fact]
+        public void EventHandler_OnElement_EscapeQuotes()
+        {
+            // Act
+            var generated = CompileToCSharp(@"
+<input onfocus='alert(""Test"");' />
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void EventHandler_OnElement_WithMixedContent()
         {
             // Act
@@ -2454,20 +2468,6 @@ Welcome to your new app.
     {
     }
 }
-");
-
-            // Assert
-            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-            CompileToAssembly(generated);
-        }
-
-        [Fact]
-        public void EventHandlerTagHelper_EscapeQuotes()
-        {
-            // Act
-            var generated = CompileToCSharp(@"
-<input onfocus='alert(""Test"");' />
 ");
 
             // Assert
