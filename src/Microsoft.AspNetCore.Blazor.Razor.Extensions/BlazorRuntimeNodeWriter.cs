@@ -701,7 +701,6 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 }
             }
 
-
             if (hasHtml && hasCSharp)
             {
                 // If it's a C# expression, we have to wrap it in parens, otherwise things like ternary 
