@@ -1,0 +1,13 @@
+Source Location: (2:0,2 [96] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    var link = "link";
+    var teacherId = "1234567890";
+    var startDate = DateTime.Now;
+|
+Generated Location: (654:18,2 [96] )
+|
+    var link = "link";
+    var teacherId = "1234567890";
+    var startDate = DateTime.Now;
+|
+

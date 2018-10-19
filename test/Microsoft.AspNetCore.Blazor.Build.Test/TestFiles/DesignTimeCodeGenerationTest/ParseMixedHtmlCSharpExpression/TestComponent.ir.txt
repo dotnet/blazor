@@ -1,0 +1,68 @@
+Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [12] ) - System
+        UsingDirective - (18:2,1 [32] ) - System.Collections.Generic
+        UsingDirective - (53:3,1 [17] ) - System.Linq
+        UsingDirective - (73:4,1 [28] ) - System.Threading.Tasks
+        UsingDirective - (104:5,1 [33] ) - Microsoft.AspNetCore.Blazor
+        UsingDirective - (140:6,1 [44] ) - Microsoft.AspNetCore.Blazor.Components
+        ClassDeclaration -  - public - TestComponent - Microsoft.AspNetCore.Blazor.Components.BlazorComponent - 
+            DesignTimeDirective - 
+                DirectiveToken - (14:0,14 [32] ) - "*, Microsoft.AspNetCore.Blazor"
+                DirectiveToken - (14:0,14 [9] ) - "*, Test"
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static System.Object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - base.BuildRenderTree(builder);
+                CSharpCode - (2:0,2 [96] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (2:0,2 [96] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    var link = "link";\n    var teacherId = "1234567890";\n    var startDate = DateTime.Now;\n
+                HtmlContent - (101:5,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (101:5,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                HtmlElement - (103:6,0 [152] x:\dir\subdir\Test\TestComponent.cshtml) - button
+                    HtmlContent - (234:6,131 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+                        IntermediateToken - (234:6,131 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - More info...
+                    HtmlAttribute - (121:6,18 [53] x:\dir\subdir\Test\TestComponent.cshtml) - onkeydown=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - Microsoft.AspNetCore.Blazor.Components.BindMethods.GetEventHandlerValue<Microsoft.AspNetCore.Blazor.UIKeyboardEventArgs>(
+                            IntermediateToken - (123:6,20 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - $"window.location.href = '/teacher/{teacherId}/';"
+                            IntermediateToken -  - CSharp - )
+                    HtmlAttribute - (184:6,81 [48] x:\dir\subdir\Test\TestComponent.cshtml) - onclick=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - Microsoft.AspNetCore.Blazor.Components.BindMethods.GetEventHandlerValue<Microsoft.AspNetCore.Blazor.UIMouseEventArgs>(
+                            IntermediateToken - (184:6,81 [20] x:\dir\subdir\Test\TestComponent.cshtml) - Html - window.location.href
+                            IntermediateToken - (204:6,101 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  =
+                            IntermediateToken - (206:6,103 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  '/teacher/
+                            IntermediateToken - (219:6,116 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - teacherId
+                            IntermediateToken - (229:6,126 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - /';
+                            IntermediateToken -  - CSharp - )
+                HtmlContent - (255:6,152 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (255:6,152 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                HtmlElement - (259:8,0 [111] x:\dir\subdir\Test\TestComponent.cshtml) - a
+                    HtmlAttribute -  -  - 
+                        HtmlAttributeValue -  - 
+                            IntermediateToken -  - Html - btn btn-secondary float-left
+                    HtmlAttribute - (261:8,2 [63] x:\dir\subdir\Test\TestComponent.cshtml) -  href=" - "
+                        HtmlAttributeValue - (268:8,9 [10] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            IntermediateToken - (268:8,9 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Html - fetchdata/
+                        CSharpExpressionAttributeValue - (278:8,19 [45] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            IntermediateToken - (279:8,20 [44] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - startDate.AddDays(-5).ToString("yyyy-MM-dd")
+                    HtmlContent - (362:8,103 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                        IntermediateToken - (362:8,103 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Link
+                HtmlContent - (370:8,111 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (370:8,111 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                HtmlElement - (374:10,0 [48] x:\dir\subdir\Test\TestComponent.cshtml) - button
+                    HtmlContent - (401:10,27 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+                        IntermediateToken - (401:10,27 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - More info...
+                    HtmlAttribute - (391:10,17 [8] x:\dir\subdir\Test\TestComponent.cshtml) - onclick=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - Microsoft.AspNetCore.Blazor.Components.BindMethods.GetEventHandlerValue<Microsoft.AspNetCore.Blazor.UIMouseEventArgs>(
+                            IntermediateToken - (393:10,19 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - link
+                            IntermediateToken - (398:10,24 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - b
+                            IntermediateToken -  - CSharp - )
+                HtmlContent - (422:10,48 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    IntermediateToken - (422:10,48 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

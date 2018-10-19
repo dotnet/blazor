@@ -701,16 +701,35 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 }
             }
 
+
             if (hasHtml && hasCSharp)
             {
                 // If it's a C# expression, we have to wrap it in parens, otherwise things like ternary 
                 // expressions don't compose with concatenation. However, this is a little complicated
                 // because C# tokens themselves aren't guaranteed to be distinct expressions. We want
                 // to treat all contiguous C# tokens as a single expression.
-                var insideCSharp = false;
-                for (var i = 0; i < tokens.Count; i++)
+                IList<IntermediateToken> targetTokens;
+                IntermediateToken bindingAttributeToken = null;
+                IntermediateToken bindingClosingAttributeToken = null;
+
+                if (IsBindingAttributeToken(tokens.FirstOrDefault()))
                 {
-                    var token = tokens[i];
+                    bindingAttributeToken = tokens.FirstOrDefault();
+                    bindingClosingAttributeToken = tokens.LastOrDefault();
+
+                    targetTokens = tokens.Skip(1).Take(tokens.Count - 2).ToList();
+                }
+                else
+                {
+                    targetTokens = tokens;
+                }
+
+                if (bindingAttributeToken != null) writer.Write(bindingAttributeToken.Content);
+
+                var insideCSharp = false;
+                for (var i = 0; i < targetTokens.Count; i++)
+                {
+                    var token = targetTokens[i];
                     if (token.IsCSharp)
                     {
                         if (!insideCSharp)
@@ -747,6 +766,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 {
                     writer.Write(")");
                 }
+
+                if (bindingClosingAttributeToken != null) writer.Write(bindingClosingAttributeToken.Content);
             }
             else if (hasCSharp)
             {
@@ -761,6 +782,16 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 // Minimized attributes always map to 'true'
                 writer.Write("true");
             }
+        }
+
+        private static bool IsBindingAttributeToken(IntermediateToken token)
+        {
+            var bindingAssemblyName = BlazorApi.AssemblyName;
+            const string bindMethodsClassName = nameof(BlazorApi.BindMethods);
+
+            return token.IsCSharp &&
+                   token.Content.Contains(bindingAssemblyName) &&
+                   token.Content.Contains(bindMethodsClassName);
         }
     }
 }

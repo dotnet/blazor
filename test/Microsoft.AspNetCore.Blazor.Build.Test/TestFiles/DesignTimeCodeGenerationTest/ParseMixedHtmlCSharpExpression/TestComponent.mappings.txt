@@ -1,0 +1,33 @@
+Source Location: (2:0,2 [96] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    var link = "link";
+    var teacherId = "1234567890";
+    var startDate = DateTime.Now;
+|
+Generated Location: (922:25,2 [96] )
+|
+    var link = "link";
+    var teacherId = "1234567890";
+    var startDate = DateTime.Now;
+|
+
+Source Location: (123:6,20 [50] x:\dir\subdir\Test\TestComponent.cshtml)
+|$"window.location.href = '/teacher/{teacherId}/';"|
+Generated Location: (1188:32,139 [50] )
+|$"window.location.href = '/teacher/{teacherId}/';"|
+
+Source Location: (219:6,116 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|teacherId|
+Generated Location: (1378:33,136 [9] )
+|teacherId|
+
+Source Location: (279:8,20 [44] x:\dir\subdir\Test\TestComponent.cshtml)
+|startDate.AddDays(-5).ToString("yyyy-MM-dd")|
+Generated Location: (1462:35,20 [44] )
+|startDate.AddDays(-5).ToString("yyyy-MM-dd")|
+
+Source Location: (393:10,19 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|link|
+Generated Location: (1676:39,136 [4] )
+|link|
+

@@ -2457,6 +2457,30 @@ Welcome to your new app.
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void ParseMixedHtmlCSharpExpression()
+        {
+            // Act
+            var generated = CompileToCSharp(@"
+@{
+    var link = ""link"";
+    var teacherId = ""1234567890"";
+    var startDate = DateTime.Now;
+}
+
+<button onkeydown=@($""window.location.href = '/teacher/{teacherId}/';"") onclick=""window.location.href = '/teacher/@(teacherId)/';"">More info...</button>
+
+<a href=""fetchdata/@startDate.AddDays(-5).ToString(""yyyy-MM-dd"")"" class=""btn btn-secondary float-left"">Link</a>
+
+<button onclick=""@(link)b"">More info...</button>
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
     }
 }
