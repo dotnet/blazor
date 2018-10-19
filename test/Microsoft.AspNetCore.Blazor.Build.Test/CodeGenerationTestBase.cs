@@ -1263,6 +1263,25 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void EventHandler_OnElement_WithMixedContent()
+        {
+            // Act
+            var generated = CompileToCSharp(@"
+@{
+    var a = ""a"";
+    var teacherId = 5;
+}
+<button onclick=""alert(@(a)b)"">More info...</button>
+<button onclick=""window.location.href = '/teacher/@(teacherId)/';"">More info...</button>
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
 
         #region Generics

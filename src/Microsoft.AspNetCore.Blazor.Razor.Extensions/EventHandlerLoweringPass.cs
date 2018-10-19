@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Blazor.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -204,7 +205,23 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             }
             else
             {
-                return node.FindDescendantNodes<IntermediateToken>();
+                var nodes = node.FindDescendantNodes<IntermediateToken>().ToList();
+                if (nodes.Any(x => x.IsCSharp) && nodes.Any(x => x.IsHtml))
+                {
+                    var content = new StringBuilder("$\"");
+                    foreach (var token in nodes)
+                    {
+                        if (token.Kind == TokenKind.CSharp)
+                            content.Append($"{{{token.Content}}}");
+                        else
+                            content.Append(token.Content.Replace("\"", "\\\""));
+                    }
+
+                    content.Append("\"");
+                    return new[] { new IntermediateToken { Content = content.ToString(), Kind = TokenKind.CSharp } };
+                }
+                else
+                    return nodes;
             }
         }
     }

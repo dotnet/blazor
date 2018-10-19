@@ -1,0 +1,11 @@
+Source Location: (2:0,2 [44] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    var a = "a";
+    var teacherId = 5;
+|
+Generated Location: (654:18,2 [44] )
+|
+    var a = "a";
+    var teacherId = 5;
+|
+
