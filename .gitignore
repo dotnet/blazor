@@ -8,3 +8,6 @@ msbuild.binlog
 .vscode/
 BenchmarkDotNet.Artifacts/
 *.binlog
+
+#JetBrains Rider
+.idea/
