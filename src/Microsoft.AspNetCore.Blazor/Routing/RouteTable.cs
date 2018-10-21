@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     public class RouteTable
     {
         private readonly HashSet<RouteCollection> _collections;
-        private RouteEntry[] _routes;
+        internal RouteEntry[] Routes { get; private set; }
 
         /// <summary>
         /// Creates a new empty table.
@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// </summary>
         public void RegenerateRouteCache()
         {
-            _routes = _collections.SelectMany(x => x.Routes).Distinct().OrderBy(id => id, RoutePrecedence).ToArray();
+            Routes = _collections.SelectMany(x => x.Routes).Distinct().OrderBy(id => id, RoutePrecedence).ToArray();
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         internal void Route(RouteContext routeContext)
         {
-            foreach (var route in _routes)
+            foreach (var route in Routes)
             {
                 route.Match(routeContext);
                 if (routeContext.Handler != null)
