@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// <summary>
         /// Gets or sets the base URI of this router.
         /// </summary>
-        protected string BaseUri { get; set; }
+        [Parameter] protected string BaseUri { get; set; }
 
         /// <summary>
         /// Gets or sets the current absolute location URI.
@@ -74,7 +74,10 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void Init(RenderHandle renderHandle)
         {
             RenderHandle = renderHandle;
-            BaseUri = UriHelper.GetBaseUri();
+            if (BaseUri == null)
+            {
+                BaseUri = UriHelper.GetBaseUri();
+            }
             LocationAbsolute = UriHelper.GetAbsoluteUri();
             UriHelper.OnLocationChanged += OnLocationChanged;
         }
