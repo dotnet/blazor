@@ -25,8 +25,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
         {
             var blazorAssembly = typeof(IComponent).Assembly;
 
-            var assemblies = EnumerateAssemblies(appAssembly.GetName(), blazorAssembly,
-                new HashSet<Assembly>(new AssemblyComparer()));
+            var assemblies = new HashSet<Assembly>(new AssemblyComparer());
+            SearchAssemblies(appAssembly.GetName(), blazorAssembly, new HashSet<Assembly>(new AssemblyComparer()),
+                assemblies);
 
             var types = new List<Type>();
             foreach (Assembly assembly in assemblies)
@@ -43,34 +44,40 @@ namespace Microsoft.AspNetCore.Blazor.Components
             return types;
         }
 
-        private static IEnumerable<Assembly> EnumerateAssemblies(
+        private static bool SearchAssemblies(
             AssemblyName assemblyName,
             Assembly blazorAssembly,
-            HashSet<Assembly> visited)
+            HashSet<Assembly> visited,
+            HashSet<Assembly> toScan)
         {
             var assembly = Assembly.Load(assemblyName);
+
             if (visited.Contains(assembly))
             {
                 // Avoid traversing visited assemblies.
-                yield break;
+                return toScan.Contains(assembly);
             }
             visited.Add(assembly);
-            var references = assembly.GetReferencedAssemblies();
-            if (!references.Any(r => string.Equals(r.FullName, blazorAssembly.FullName, StringComparison.Ordinal)))
-            {
-                // Avoid traversing references that don't point to blazor (like netstandard2.0)
-                yield break;
-            }
-            else
-            {
-                yield return assembly;
 
-                // Look at the list of transitive dependencies for more components.
-                foreach (var reference in references.SelectMany(r => EnumerateAssemblies(r, blazorAssembly, visited)))
+            var references = assembly.GetReferencedAssemblies();
+            var needsScanning = false;
+            foreach (var reference in references)
+            {
+                // Check if assembly references blazor either directly or indirectly
+                if (string.Equals(reference.FullName, blazorAssembly.FullName, StringComparison.Ordinal) ||
+                    SearchAssemblies(reference, blazorAssembly, visited, toScan))
                 {
-                    yield return reference;
+                    needsScanning = true;
                 }
             }
+
+            // Marks assembly as needing to be scanned
+            if (needsScanning)
+            {
+                toScan.Add(assembly);
+            }
+
+            return needsScanning;
         }
 
         private class AssemblyComparer : IEqualityComparer<Assembly>
