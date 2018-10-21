@@ -19,9 +19,20 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     {
         static readonly char[] _queryOrHashStartChar = new[] { '?', '#' };
 
-        RenderHandle _renderHandle;
-        string _baseUri;
-        string _locationAbsolute;
+        /// <summary>
+        /// Gets or sets the render handle for this router.
+        /// </summary>
+        protected RenderHandle RenderHandle { get; set; }
+
+        /// <summary>
+        /// Gets or sets the base URI of this router.
+        /// </summary>
+        protected string BaseUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets the current absolute location URI.
+        /// </summary>
+        protected string LocationAbsolute { get; set; }
 
         [Inject] private IUriHelper UriHelper { get; set; }
 
@@ -62,9 +73,9 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// <inheritdoc />
         public void Init(RenderHandle renderHandle)
         {
-            _renderHandle = renderHandle;
-            _baseUri = UriHelper.GetBaseUri();
-            _locationAbsolute = UriHelper.GetAbsoluteUri();
+            RenderHandle = renderHandle;
+            BaseUri = UriHelper.GetBaseUri();
+            LocationAbsolute = UriHelper.GetAbsoluteUri();
             UriHelper.OnLocationChanged += OnLocationChanged;
         }
 
@@ -136,9 +147,12 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             builder.CloseComponent();
         }
 
-        private void Refresh()
+        /// <summary>
+        /// Handles the refreshing of the router and rendering the output.
+        /// </summary>
+        protected virtual void Refresh()
         {
-            var locationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+            var locationPath = UriHelper.ToBaseRelativePath(BaseUri, LocationAbsolute);
             locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
 
             ComponentResult result;
@@ -160,7 +174,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
             if (result != null)
             {
-                _renderHandle.Render(builder => Render(builder, result.Handler, result.ComponentParameters));
+                RenderHandle.Render(builder => Render(builder, result.Handler, result.ComponentParameters));
             }
         }
 
@@ -234,8 +248,8 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         private void OnLocationChanged(object sender, string newAbsoluteUri)
         {
-            _locationAbsolute = newAbsoluteUri;
-            if (_renderHandle.IsInitialized)
+            LocationAbsolute = newAbsoluteUri;
+            if (RenderHandle.IsInitialized)
             {
                 Refresh();
             }
