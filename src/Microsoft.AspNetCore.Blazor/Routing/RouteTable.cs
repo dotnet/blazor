@@ -1,41 +1,65 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Microsoft.AspNetCore.Blazor.Components;
 
 namespace Microsoft.AspNetCore.Blazor.Routing
 {
-    internal class RouteTable
+    /// <summary>
+    /// Stores a list of enabled routes.
+    /// </summary>
+    public class RouteTable
     {
-        public RouteTable(RouteEntry[] routes)
+        private readonly HashSet<RouteCollection> _collections;
+        private RouteEntry[] _routes;
+
+        /// <summary>
+        /// Creates a new empty table.
+        /// </summary>
+        public RouteTable()
         {
-            Routes = routes;
+            _collections = new HashSet<RouteCollection>();
         }
 
-        public RouteEntry[] Routes { get; set; }
-
-        public static RouteTable Create(IEnumerable<Type> types)
+        /// <summary>
+        /// Regenerates the internal ordered route list.
+        /// </summary>
+        public void RegenerateRouteCache()
         {
-            var routes = new List<RouteEntry>();
-            foreach (var type in types)
+            _routes = _collections.SelectMany(x => x.Routes).Distinct().OrderBy(id => id, RoutePrecedence).ToArray();
+        }
+
+        /// <summary>
+        /// Adds a route collection to the table.
+        /// </summary>
+        /// <param name="collection">The routes.</param>
+        /// <param name="regenerateRouteCache">Whether to regenerate the ordered route list.</param>
+        public void AddRoutes(RouteCollection collection, bool regenerateRouteCache = true)
+        {
+            _collections.Add(collection);
+            if (regenerateRouteCache)
             {
-                var routeAttributes = type.GetCustomAttributes<RouteAttribute>(); // Inherit: true?
-                foreach (var routeAttribute in routeAttributes)
-                {
-                    var template = TemplateParser.ParseTemplate(routeAttribute.Template);
-                    var entry = new RouteEntry(template, type);
-                    routes.Add(entry);
-                }
+                RegenerateRouteCache();
             }
-
-            return new RouteTable(routes.OrderBy(id => id, RoutePrecedence).ToArray());
         }
 
-        public static IComparer<RouteEntry> RoutePrecedence { get; } = Comparer<RouteEntry>.Create(RouteComparison);
+        /// <summary>
+        /// Removes a route collection to the table.
+        /// </summary>
+        /// <param name="collection">The routes.</param>
+        /// <param name="regenerateRouteCache">Whether to regenerate the ordered route list.</param>
+        public void RemoveRoutes(RouteCollection collection, bool regenerateRouteCache = true)
+        {
+            _collections.Remove(collection);
+            if (regenerateRouteCache)
+            {
+                RegenerateRouteCache();
+            }
+        }
+
+        private static IComparer<RouteEntry> RoutePrecedence { get; } = Comparer<RouteEntry>.Create(RouteComparison);
 
         /// <summary>
         /// Route precedence algorithm.
@@ -66,7 +90,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// * For parameters with different numbers of constraints, the one with more wins
         /// If we get to the end of the comparison routing we've detected an ambiguous pair of routes.
         /// </summary>
-        internal static int RouteComparison(RouteEntry x, RouteEntry y)
+        private static int RouteComparison(RouteEntry x, RouteEntry y)
         {
             var xTemplate = x.Template;
             var yTemplate = y.Template;
@@ -119,7 +143,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
         internal void Route(RouteContext routeContext)
         {
-            foreach (var route in Routes)
+            foreach (var route in _routes)
             {
                 route.Match(routeContext);
                 if (routeContext.Handler != null)

@@ -31,7 +31,25 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// </summary>
         [Parameter] private Assembly AppAssembly { get; set; }
 
-        private RouteTable Routes { get; set; }
+        [Parameter] private string FallbackRoute { get; set; }
+
+        [Parameter] private string ErrorRoute { get; set; }
+
+        /// <summary>
+        /// Gets the route table containing all enabled routes.
+        /// </summary>
+        public RouteTable RouteTable { get; }
+
+        private readonly IDictionary<Assembly, RouteCollection> _assemblyRoutes;
+
+        /// <summary>
+        /// Creates a new router instance.
+        /// </summary>
+        public Router()
+        {
+            RouteTable = new RouteTable();
+            _assemblyRoutes = new Dictionary<Assembly, RouteCollection>();
+        }
 
         /// <inheritdoc />
         public void Init(RenderHandle renderHandle)
@@ -46,9 +64,45 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public void SetParameters(ParameterCollection parameters)
         {
             parameters.AssignToProperties(this);
-            var types = ComponentResolver.ResolveComponents(AppAssembly);
-            Routes = RouteTable.Create(types);
+
+            if (AppAssembly != null)
+            {
+                AddAssembly(AppAssembly);
+            }
+
             Refresh();
+        }
+
+        /// <summary>
+        /// Adds all routes contained within the assembly to the route table.
+        /// </summary>
+        /// <param name="assembly">The assembly.</param>
+        public void AddAssembly(Assembly assembly)
+        {
+            if (_assemblyRoutes.ContainsKey(assembly))
+            {
+                // Assembly already loaded
+                return;
+            }
+
+            var components = ComponentResolver.ResolveComponents(AppAssembly);
+
+            var routes = RouteCollection.ResolveRoutes(components);
+            _assemblyRoutes.Add(assembly, routes);
+
+            RouteTable.AddRoutes(routes);
+        }
+
+        /// <summary>
+        /// Removes all routes contained within the assembly from the route table.
+        /// </summary>
+        /// <param name="assembly">The assembly.</param>
+        public void RemoveAssembly(Assembly assembly)
+        {
+            if (_assemblyRoutes.TryGetValue(assembly, out RouteCollection routes))
+            {
+                RouteTable.RemoveRoutes(routes);
+            }
         }
 
         /// <inheritdoc />
@@ -78,20 +132,96 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         {
             var locationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
             locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
-            var context = new RouteContext(locationPath);
-            Routes.Route(context);
+
+            ComponentResult result;
+            try
+            {
+                try
+                {
+                    result = GetComponentForPath(locationPath);
+                }
+                catch (RouteNotFoundException)
+                {
+                    result = HandleMissingRoute();
+                }
+            }
+            catch (Exception e)
+            {
+                result = HandleError(e);
+            }
+
+            if (result != null)
+            {
+                _renderHandle.Render(builder => Render(builder, result.Handler, result.ComponentParameters));
+            }
+        }
+
+        /// <summary>
+        /// Resolves a path to the component to be rendered.
+        /// </summary>
+        /// <param name="path">The relative path.</param>
+        /// <returns>The component to be rendered, or null to cancel render.</returns>
+        /// <exception cref="RouteNotFoundException">Thrown when the path can not be resolved to a route.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the path is resolved to an invalid route.</exception>
+        protected virtual ComponentResult GetComponentForPath(string path)
+        {
+            var context = new RouteContext(path);
+
+            RouteTable.Route(context);
+
             if (context.Handler == null)
             {
-                throw new InvalidOperationException($"'{nameof(Router)}' cannot find any component with a route for '/{locationPath}'.");
+                throw new RouteNotFoundException($"'{nameof(Router)}' cannot find any component with a route for '{path}'.");
             }
 
             if (!typeof(IComponent).IsAssignableFrom(context.Handler))
             {
                 throw new InvalidOperationException($"The type {context.Handler.FullName} " +
-                    $"does not implement {typeof(IComponent).FullName}.");
+                                                    $"does not implement {typeof(IComponent).FullName}.");
             }
 
-            _renderHandle.Render(builder => Render(builder, context.Handler, context.Parameters));
+            return new ComponentResult {Handler = context.Handler, ComponentParameters = context.Parameters};
+        }
+
+        /// <summary>
+        /// Handles when a path fails to be resolved to a route.
+        /// </summary>
+        /// <returns>The component to be rendered, or null to cancel render.</returns>
+        /// <exception cref="RouteNotFoundException">Thrown when the fallback route fails to be resolved.</exception>
+        protected virtual ComponentResult HandleMissingRoute()
+        {
+            if (FallbackRoute == null)
+                throw new RouteNotFoundException("No fallback route specified");
+            return GetComponentForPath(FallbackRoute);
+        }
+
+        /// <summary>
+        /// Handles when an error occurs during routing.
+        /// </summary>
+        /// <param name="e">The error that occured.</param>
+        /// <returns>The component to be rendered, or null to cancel render.</returns>
+        /// <exception cref="Exception"></exception>
+        protected virtual ComponentResult HandleError(Exception e)
+        {
+            if (ErrorRoute == null)
+                throw e;
+            return GetComponentForPath(ErrorRoute);
+        }
+
+        /// <summary>
+        /// Represents the result of resolving a component for a given path.
+        /// </summary>
+        public class ComponentResult
+        {
+            /// <summary>
+            /// Gets or sets the handler.
+            /// </summary>
+            public Type Handler { get; set; }
+
+            /// <summary>
+            /// Gets or sets parameters for the selected handler.
+            /// </summary>
+            public IDictionary<string, object> ComponentParameters { get; set; }
         }
 
         private void OnLocationChanged(object sender, string newAbsoluteUri)

@@ -11,8 +11,11 @@ namespace Microsoft.AspNetCore.Blazor.Components
     /// <summary>
     /// Resolves components for an application.
     /// </summary>
-    internal static class ComponentResolver
+    public static class ComponentResolver
     {
+        private static readonly IDictionary<Assembly, IList<Type>> _componentCache =
+            new Dictionary<Assembly, IList<Type>>(new AssemblyComparer());
+
         /// <summary>
         /// Lists all the types 
         /// </summary>
@@ -22,9 +25,22 @@ namespace Microsoft.AspNetCore.Blazor.Components
         {
             var blazorAssembly = typeof(IComponent).Assembly;
 
-            return EnumerateAssemblies(appAssembly.GetName(), blazorAssembly, new HashSet<Assembly>(new AssemblyComparer()))
-                .SelectMany(a => a.ExportedTypes)
-                .Where(t => typeof(IComponent).IsAssignableFrom(t));
+            var assemblies = EnumerateAssemblies(appAssembly.GetName(), blazorAssembly,
+                new HashSet<Assembly>(new AssemblyComparer()));
+
+            var types = new List<Type>();
+            foreach (Assembly assembly in assemblies)
+            {
+                if (!_componentCache.TryGetValue(assembly, out IList<Type> components))
+                {
+                    components = assembly.ExportedTypes.Where(t => typeof(IComponent).IsAssignableFrom(t)).ToList();
+                    _componentCache.Add(assembly, components);
+                }
+
+                types.AddRange(components);
+            }
+
+            return types;
         }
 
         private static IEnumerable<Assembly> EnumerateAssemblies(
