@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         public Router()
         {
             RouteTable = new RouteTable();
-            _assemblyRoutes = new Dictionary<Assembly, RouteCollection>();
+            _assemblyRoutes = new Dictionary<Assembly, RouteCollection>(new AssemblyComparer());
         }
 
         /// <inheritdoc />
@@ -230,6 +230,19 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             if (_renderHandle.IsInitialized)
             {
                 Refresh();
+            }
+        }
+
+        private class AssemblyComparer : IEqualityComparer<Assembly>
+        {
+            public bool Equals(Assembly x, Assembly y)
+            {
+                return string.Equals(x?.FullName, y?.FullName, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode(Assembly obj)
+            {
+                return obj.FullName.GetHashCode();
             }
         }
     }
