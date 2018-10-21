@@ -29,11 +29,19 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// Gets or sets the assembly that should be searched, along with its referenced
         /// assemblies, for components matching the URI.
         /// </summary>
-        [Parameter] private Assembly AppAssembly { get; set; }
+        [Parameter] protected Assembly AppAssembly { get; set; }
 
-        [Parameter] private string FallbackRoute { get; set; }
+        /// <summary>
+        /// Gets or sets the route that should be displayed when another route fails to be
+        /// resolved.
+        /// </summary>
+        [Parameter] protected string FallbackRoute { get; set; }
 
-        [Parameter] private string ErrorRoute { get; set; }
+        /// <summary>
+        /// Gets or sets the route that should be displayed when an error occuring when
+        /// refreshing.
+        /// </summary>
+        [Parameter] protected string ErrorRoute { get; set; }
 
         /// <summary>
         /// Gets the route table containing all enabled routes.
