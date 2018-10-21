@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
     {
         internal IEnumerable<RouteEntry> Routes { get; }
 
-        private RouteCollection(IEnumerable<RouteEntry> routes)
+        internal RouteCollection(IEnumerable<RouteEntry> routes)
         {
             Routes = routes;
         }

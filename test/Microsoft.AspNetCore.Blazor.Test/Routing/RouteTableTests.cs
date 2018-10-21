@@ -311,10 +311,10 @@ namespace Microsoft.AspNetCore.Blazor.Test.Routing
             {
                 try
                 {
-                    return new RouteTable(_routeTemplates
-                        .Select(rt => new RouteEntry(TemplateParser.ParseTemplate(rt.Item1), rt.Item2))
-                        .OrderBy(id => id, RouteTable.RoutePrecedence)
-                        .ToArray());
+                    RouteTable table = new RouteTable();
+                    table.AddRoutes(new RouteCollection(_routeTemplates.Select(rt =>
+                        new RouteEntry(TemplateParser.ParseTemplate(rt.Item1), rt.Item2))));
+                    return table;
                 }
                 catch (InvalidOperationException ex) when (ex.InnerException is InvalidOperationException)
                 {
