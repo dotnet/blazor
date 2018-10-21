@@ -158,9 +158,9 @@ namespace Microsoft.AspNetCore.Blazor.Routing
             var locationPath = UriHelper.ToBaseRelativePath(BaseUri, LocationAbsolute);
             locationPath = StringUntilAny(locationPath, _queryOrHashStartChar);
 
-            ComponentResult result;
             try
             {
+                ComponentResult result;
                 try
                 {
                     result = GetComponentForPath(locationPath);
@@ -169,15 +169,20 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 {
                     result = HandleMissingRoute();
                 }
+
+                if (result != null)
+                {
+                    RenderHandle.Render(builder => Render(builder, result.Handler, result.ComponentParameters));
+                }
             }
             catch (Exception e)
             {
-                result = HandleError(e);
-            }
+                ComponentResult result = HandleError(e);
 
-            if (result != null)
-            {
-                RenderHandle.Render(builder => Render(builder, result.Handler, result.ComponentParameters));
+                if (result != null)
+                {
+                    RenderHandle.Render(builder => Render(builder, result.Handler, result.ComponentParameters));
+                }
             }
         }
 
@@ -225,7 +230,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         /// </summary>
         /// <param name="e">The error that occured.</param>
         /// <returns>The component to be rendered, or null to cancel render.</returns>
-        /// <exception cref="Exception"></exception>
+        /// <exception cref="Exception">If no error route exist, the error is rethrown</exception>
         protected virtual ComponentResult HandleError(Exception e)
         {
             if (ErrorRoute == null)
