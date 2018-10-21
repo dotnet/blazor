@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
         }
 
         /// <summary>
-        /// Removes a route collection to the table.
+        /// Removes a route collection from the table.
         /// </summary>
         /// <param name="collection">The routes.</param>
         /// <param name="regenerateRouteCache">Whether to regenerate the ordered route list.</param>
