@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 return true;
             }
 
-            if (currentUriAbsolute.Length == _hrefAbsolute.Length - 1)
+            if (currentUriAbsolute.Length == _hrefAbsolute?.Length - 1)
             {
                 // Special case: highlight links to http://host/path/ even if you're
                 // at http://host/path (with no trailing slash)
