@@ -1,6 +1,6 @@
 # Blazor
 
-**An experimental .NET web framework using C#/Razor and HTML that runs in the browser via WebAssembly**
+**An experimental ASP .NET web framework using C#/Razor and HTML that runs in the browser via WebAssembly**
 
 [![Gitter](https://badges.gitter.im/aspnet/Blazor.svg)](https://gitter.im/aspnet/Blazor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
