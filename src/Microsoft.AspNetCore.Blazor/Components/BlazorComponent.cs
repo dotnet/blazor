@@ -71,9 +71,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// Override this method if you will perform an asynchronous operation and
         /// want the component to refresh when that operation is completed.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing any asynchronous operation, or <see langword="null"/>.</returns>
+        /// <returns>A <see cref="Task"/> representing any asynchronous operation.</returns>
         protected virtual Task OnInitAsync()
-            => null;
+            => Task.CompletedTask;
 
         /// <summary>
         /// Method invoked when the component has received parameters from its parent in
@@ -87,9 +87,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// Method invoked when the component has received parameters from its parent in
         /// the render tree, and the incoming values have been assigned to properties.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing any asynchronous operation, or <see langword="null"/>.</returns>
+        /// <returns>A <see cref="Task"/> representing any asynchronous operation.</returns>
         protected virtual Task OnParametersSetAsync()
-            => null;
+            => Task.CompletedTask;
 
         /// <summary>
         /// Notifies the component that its state has changed. When applicable, this will
@@ -128,9 +128,9 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// not automatically re-render after the completion of any returned <see cref="Task"/>, because
         /// that would cause an infinite render loop.
         /// </summary>
-        /// <returns>A <see cref="Task"/> representing any asynchronous operation, or <see langword="null"/>.</returns>
+        /// <returns>A <see cref="Task"/> representing any asynchronous operation.</returns>
         protected virtual Task OnAfterRenderAsync()
-            => null;
+            => Task.CompletedTask;
 
         void IComponent.Init(RenderHandle renderHandle)
         {
@@ -158,18 +158,19 @@ namespace Microsoft.AspNetCore.Blazor.Components
                 _hasCalledInit = true;
                 OnInit();
 
-                // If you override OnInitAsync and return a nonnull task, then by default
-                // we automatically re-render once that task completes.
+                // If you override OnInitAsync, then by default we automatically re-render once that task completes.
                 var initTask = OnInitAsync();
-                if (initTask != null && initTask.Status != TaskStatus.RanToCompletion)
+                if (initTask.Status != TaskStatus.RanToCompletion)
                 {
                     initTask.ContinueWith(ContinueAfterLifecycleTask);
                 }
             }
 
             OnParametersSet();
+            
+            // If you override OnParametersSetAsync, then by default we automatically re-render once that task completes.
             var parametersTask = OnParametersSetAsync();
-            if (parametersTask != null && parametersTask.Status != TaskStatus.RanToCompletion)
+            if (parametersTask.Status != TaskStatus.RanToCompletion)
             {
                 parametersTask.ContinueWith(ContinueAfterLifecycleTask);
             }
