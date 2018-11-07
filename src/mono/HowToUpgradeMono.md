@@ -18,75 +18,16 @@
 
 1. Extract the contents of the Mono build .zip file to a temporary directory.
 
-1. In a side-by-side window, look at the contents of `Blazor\src\mono\incoming`
+1. Replace the contents of `Blazor\src\mono\incoming` with the equivalents from the new Mono build:
 
-1. Delete the following from `Blazor\src\mono\incoming`, and then copy in the equivalent files/dirs from the new Mono drop:
+   * In Blazor's `src\mono\incoming\wasm` dir, replace `mono.wasm` and `mono.js` with the new files from Mono's `release` dir
+   * In Blazor's `src\mono\incoming\bcl`, delete all the `.dll` files (including from the `Facades` subdirectory), and copy in all the new `.dll` files from Mono's `wasm-bcl\wasm` dir. **Note:** We *only* need the `.dll` files, so don't include `.pdb`/`.cs`/`.tmp`/`.stamp` or others. Also you can omit `nunitlite.dll` - we don't need that either.
 
-   * `bcl\`
-   * `dotnet_support.js`
-   * `driver.c`
-   * `libmonosgen-2.0.a`
-   * `library_mono.js`
-   * `README.md`
-
-   The net effect is that you're replacing everything with the newer versions. But don't copy any of the other files from the new Mono drop, as in general we don't need the extra stuff.
-
-1. Clean up the `bcl\` directory. The Mono drops include a lot of unwanted files there. Retain *only* the `.dll` files, and **delete everything else**, including from the `facades` subdirectory. We don't need the `.pdb` files or `.tmp` or `.stamp` or anything else. All we want is the `.dll` files.
-
-   You can also delete the `nunitlite.dll` from `bcl\`.
-
-1. Check whether the build flags need to be updated. In the `README.md`, the Mono team provides recommended `emcc` arguments. If the git diff shows they have changed since the last version, figure out whether it's applicable to update the `emcc` arguments we're specifying in our `mono.csproj` file.
+The net effect is that you're replacing everything with the newer versions, including adding any new `.dll` files and removing any older `.dll` files that are no longer involved.
 
 **Commit**
 
-At this stage, make a Git commit with a message similar to `Upgrade Mono to <their-commit-sha> - have not yet rebuilt the binaries`. Their commit SHA can be found in the filename of the Mono drop you downloaded.
-
-This commit is needed because you'll want to have a clean git state before the next step, so you can check the diff from the next step is what you expect.
-
-## Building Mono binaries
-
-We don't use the prebuilt Mono WebAssembly binaries (or `mono.js`) because we also need asm.js builds, which Mono doesn't supply.
-
-We may also have reasons to use custom build flags, e.g., to control the optimization level or change the default heap size. But for now the two points above are reason enough.
-
-To build the Mono WebAssembly binaries, you need a working Emscripten toolchain. Follow the instructions at https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html. You need at least version 1.38.11, though in general it's likely to be preferable to use whatever is the latest version.
-
-On Windows,
-
- * `cd your\emscripten\installation\dir`
- * `emsdk activate`
- * Verify that `emcc --version` returns 1.38.11 or later
- * In the same command prompt, `cd` to `Blazor\src\mono`
- * `dotnet msbuild mono.csproj /t:BuildMonoEmcc`
-
-This will build both the wasm and asm.js binaries.
-
-On the first run for any given command prompt instance, it takes a long time (e.g., 5 minutes). Subsequent builds in the same command prompt instance will be more like 30 seconds.
-
-If you're not on Windows, it should work the same (verified in WSL), though the output files may have different line endings so the `git diff` may be hard to make sense of.
-
-**Expected result**
-
-Currently the build reports these warnings:
-
- * `EXEC : warning : unresolved symbol: putchar` (during both wasm and asm.js builds)
- * `EXEC : warning : root:BINARYEN_ASYNC_COMPILATION disabled due to user options` (during the asm.js build only)
- * `EXEC : warning : unresolved symbol: mono_wasm_invoke_js_with_args / mono_wasm_get_object_property / mono_wasm_set_object_property` (during both wasm and asm.js builds). I expect this is due to us not including Mono's `binding_support.js` in the build, which we could do but don't presently require.
-
-These are OK, but anything other warnings or errors may imply problems like:
-
- * Your Emscripten toolchain isn't set up correctly
- * You need a newer version of Emscripten, because Mono now depends on it
- * You need to change the `emcc` arguments in `mono.csproj`, because something about the incoming binaries now requires it (see whether the Mono drop has changed the recommended args in `incoming\README.md` since the last version)
- * Mono has added some new required files that don't fit into the pattern you used when updating the `incoming` directory. Figure out what you need to change/add/remove, and update these instructions.
-
-Review the resulting Git diff. Check that the `.wasm` and `.js` files inside `src\mono\unoptimized` aren't radically bigger than before.
-
-Note that the contents of `src\mono\optimized` are produced during Blazor's own build and aren't tracked in source control, so don't expect to see any Git diff for that.
-
-**Commit**
-
-Make a Git commit with a message similar to `Built binaries for Mono version <their-commit-sha>`.
+At this stage, make a Git commit with a message similar to `Upgrade Mono binaries to <their-commit-sha>`. Their commit SHA can be found in the filename of the Mono drop you downloaded.
 
 ## Verifying
 
