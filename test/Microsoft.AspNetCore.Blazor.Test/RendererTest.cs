@@ -285,6 +285,36 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
+        public void DispatchesEventToTheDelegateTargetComponent()
+        {
+            // Arrange: Render parent component
+            var renderer = new TestRenderer();
+            var parentComponent = new CustomButtonParentComponent();
+            var parentComponentId = renderer.AssignRootComponentId(parentComponent);
+            parentComponent.TriggerRender();
+
+            // Find nested component's event handler ID
+            var nestedComponentFrame = renderer.Batches.Single()
+                .ReferenceFrames
+                .Single(frame => frame.FrameType == RenderTreeFrameType.Component);
+            var nestedComponentId = nestedComponentFrame.ComponentId;
+            var eventHandlerId = renderer.Batches[0]
+                .ReferenceFrames
+                .First(frame => frame.FrameType == RenderTreeFrameType.Attribute && frame.AttributeName == "oncustomclick")
+                .AttributeEventHandlerId;
+
+            // Assert: Event not yet fired
+            Assert.False(parentComponent.DidCallClickHandler);
+            Assert.False(parentComponent.DidCallHandleEvent);
+
+            // Act/Assert: Event can be fired
+            var eventArgs = new UIEventArgs();
+            renderer.DispatchEvent(nestedComponentId, eventHandlerId, eventArgs);
+            Assert.True(parentComponent.DidCallClickHandler);
+            Assert.True(parentComponent.DidCallHandleEvent);
+        }
+
+        [Fact]
         public void ThrowsIfComponentDoesNotHandleEvents()
         {
             // Arrange: Render a component with an event handler
@@ -1327,6 +1357,42 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
+            }
+        }
+
+        class CustomButtonComponent : AutoRenderComponent
+        {
+            [Parameter] Action OnClick { get; set; }
+
+            protected override void BuildRenderTree(RenderTreeBuilder builder)
+            {
+                builder.OpenElement(0, "some button");
+                builder.AddAttribute(1, "oncustomclick", OnClick);
+                builder.CloseElement();
+            }
+        }
+
+        class CustomButtonParentComponent : AutoRenderComponent, IHandleEvent
+        {
+            public bool DidCallClickHandler { get; private set; }
+            public bool DidCallHandleEvent { get; private set; }
+
+            public void HandleEvent(EventHandlerInvoker binding, UIEventArgs args)
+            {
+                DidCallHandleEvent = true;
+                binding.Invoke(args);
+            }
+
+            protected override void BuildRenderTree(RenderTreeBuilder builder)
+            {
+                builder.OpenComponent<CustomButtonComponent>(0);
+                builder.AddAttribute(1, "OnClick", MyClickHandler);
+                builder.CloseComponent();
+            }
+
+            void MyClickHandler()
+            {
+                DidCallClickHandler = true;
             }
         }
     }
