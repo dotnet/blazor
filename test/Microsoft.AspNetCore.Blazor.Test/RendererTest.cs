@@ -1203,9 +1203,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.AddContent(6, $"Render count: {++renderCount}");
             }
 
-            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> invoker, TArg args)
             {
-                binding.Invoke(args);
+                invoker.Invoke(args);
                 return null;
             }
         }
@@ -1273,9 +1273,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 Render();
             }
 
-            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> invoker, TArg args)
             {
-                var task = binding.Invoke(args);
+                var task = invoker.Invoke(args);
                 Render();
                 return task;
             }
@@ -1318,9 +1318,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public bool CheckboxEnabled;
             public string SomeStringProperty;
 
-            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> invoker, TArg args)
             {
-                binding.Invoke(args);
+                invoker.Invoke(args);
                 TriggerRender();
                 return null;
             }
@@ -1376,10 +1376,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public bool DidCallClickHandler { get; private set; }
             public bool DidCallHandleEvent { get; private set; }
 
-            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> invoker, TArg args)
             {
                 DidCallHandleEvent = true;
-                binding.Invoke(args);
+                invoker.Invoke(args);
                 return null;
             }
 

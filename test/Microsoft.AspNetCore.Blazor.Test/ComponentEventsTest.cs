@@ -174,10 +174,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 return ExpectedTask;
             }
 
-            Task IHandleEvent.HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg eventArgs)
+            Task IHandleEvent.HandleEvent<TArg>(EventHandlerInvoker<TArg> invoker, TArg eventArgs)
             {
                 DidCallHandleEvent = true;
-                return binding.Invoke(eventArgs);
+                return invoker.Invoke(eventArgs);
             }
         }
     }

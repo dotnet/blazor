@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNetCore.Blazor.Components
 {
     /// <summary>
-    /// A bound event handler delegate.
+    /// Provides the ability to invoke an event handler.
     /// </summary>
     public readonly struct EventHandlerInvoker<TArg>
     {
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
         }
 
         /// <summary>
-        /// Invokes the delegate associated with this binding.
+        /// Invokes the associated event handler delegate.
         /// </summary>
         /// <param name="eventArg">The argument for the event handler.</param>
         /// <returns></returns>

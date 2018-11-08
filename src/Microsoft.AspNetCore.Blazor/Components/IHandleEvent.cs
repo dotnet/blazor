@@ -13,8 +13,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// <summary>
         /// Notifies the component that one of its event handlers has been triggered.
         /// </summary>
-        /// <param name="binding">The event binding.</param>
+        /// <param name="invoker">The event invoker.</param>
         /// <param name="eventArgs">Arguments for the event handler.</param>
-        Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg eventArgs);
+        Task HandleEvent<TArg>(EventHandlerInvoker<TArg> invoker, TArg eventArgs);
     }
 }

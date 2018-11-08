@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         private bool _isBatchInProgress;
 
         private int _lastEventHandlerId = 0;
-        private readonly Dictionary<int, MulticastDelegate> _eventBindings = new Dictionary<int, MulticastDelegate>();
+        private readonly Dictionary<int, MulticastDelegate> _eventHandlers = new Dictionary<int, MulticastDelegate>();
 
         /// <summary>
         /// Constructs an instance of <see cref="Renderer"/>.
@@ -87,14 +87,14 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         /// <param name="eventArgs">Arguments to be passed to the event handler.</param>
         public Task DispatchEvent(int eventHandlerId, UIEventArgs eventArgs)
         {
-            if (_eventBindings.TryGetValue(eventHandlerId, out var binding))
+            if (_eventHandlers.TryGetValue(eventHandlerId, out var @delegate))
             {
                 // The event handler might request multiple renders in sequence. Capture them
                 // all in a single batch.
                 try
                 {
                     _isBatchInProgress = true;
-                    return ComponentEvents.InvokeEventHandler(binding, eventArgs);
+                    return ComponentEvents.InvokeEventHandler(@delegate, eventArgs);
                 }
                 finally
                 {
@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
             if (frame.AttributeValue is MulticastDelegate @delegate)
             {
-               _eventBindings.Add(id, @delegate);
+               _eventHandlers.Add(id, @delegate);
             }
 
             frame = frame.WithAttributeEventHandlerId(id);
@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             var count = eventHandlerIds.Count;
             for (var i = 0; i < count; i++)
             {
-                _eventBindings.Remove(array[i]);
+                _eventHandlers.Remove(array[i]);
             }
         }
     }

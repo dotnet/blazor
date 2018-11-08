@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             Console.Error.WriteLine($"[{ex.GetType().FullName}] {ex.Message}\n{ex.StackTrace}");
         }
 
-        Task IHandleEvent.HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
+        Task IHandleEvent.HandleEvent<TArg>(EventHandlerInvoker<TArg> invoker, TArg args)
         {
             // We want to be sure that the handler really is one of this component type's
             // methods/lambdas. When the framework calls this, that invariant is always
@@ -210,14 +210,14 @@ namespace Microsoft.AspNetCore.Blazor.Components
             // equivalent to what the framework would do for a real event handler, and isn't
             // some kind of hack to force arbitrary components to re-render (that's something
             // that components opt into by exposing suitable public methods).
-            if (!binding.CheckDelegateTarget(this))
+            if (!invoker.CheckDelegateTarget(this))
             {
                 throw new InvalidOperationException($"The event handler is not associated with " +
                     $"this component. Application code should not invoke {nameof(IHandleEvent)}" +
                     $".{nameof(IHandleEvent.HandleEvent)} directly.");
             }
 
-            var task = binding.Invoke(args);
+            var task = invoker.Invoke(args);
 
             // After each event, we synchronously re-render (unless !ShouldRender())
             // This just saves the developer the trouble of putting "StateHasChanged();"
