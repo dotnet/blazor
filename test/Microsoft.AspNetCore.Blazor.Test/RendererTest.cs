@@ -173,7 +173,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 OnTest = args => { receivedArgs = args; }
             };
-            var componentId = renderer.AssignRootComponentId(component);
+            renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var eventHandlerId = renderer.Batches.Single()
@@ -186,7 +186,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert: Event can be fired
             var eventArgs = new UIEventArgs();
-            renderer.DispatchEvent(componentId, eventHandlerId, eventArgs);
+            renderer.DispatchEvent(eventHandlerId, eventArgs);
             Assert.Same(eventArgs, receivedArgs);
         }
 
@@ -201,7 +201,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 OnClick = args => { receivedArgs = args; }
             };
-            var componentId = renderer.AssignRootComponentId(component);
+            renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var eventHandlerId = renderer.Batches.Single()
@@ -214,7 +214,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert: Event can be fired
             var eventArgs = new UIMouseEventArgs();
-            renderer.DispatchEvent(componentId, eventHandlerId, eventArgs);
+            renderer.DispatchEvent(eventHandlerId, eventArgs);
             Assert.Same(eventArgs, receivedArgs);
         }
 
@@ -229,7 +229,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
                 OnClickAction = () => { receivedArgs = new object(); }
             };
-            var componentId = renderer.AssignRootComponentId(component);
+            renderer.AssignRootComponentId(component);
             component.TriggerRender();
 
             var eventHandlerId = renderer.Batches.Single()
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert: Event can be fired
             var eventArgs = new UIMouseEventArgs();
-            renderer.DispatchEvent(componentId, eventHandlerId, eventArgs);
+            renderer.DispatchEvent(eventHandlerId, eventArgs);
             Assert.NotNull(receivedArgs);
         }
 
@@ -267,7 +267,6 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 .Single(frame => frame.FrameType == RenderTreeFrameType.Component);
             var nestedComponent = (EventComponent)nestedComponentFrame.Component;
             nestedComponent.OnTest = args => { receivedArgs = args; };
-            var nestedComponentId = nestedComponentFrame.ComponentId;
             nestedComponent.TriggerRender();
 
             // Find nested component's event handler ID
@@ -281,7 +280,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert: Event can be fired
             var eventArgs = new UIEventArgs();
-            renderer.DispatchEvent(nestedComponentId, eventHandlerId, eventArgs);
+            renderer.DispatchEvent(eventHandlerId, eventArgs);
             Assert.Same(eventArgs, receivedArgs);
         }
 
@@ -298,7 +297,6 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var nestedComponentFrame = renderer.Batches.Single()
                 .ReferenceFrames
                 .Single(frame => frame.FrameType == RenderTreeFrameType.Component);
-            var nestedComponentId = nestedComponentFrame.ComponentId;
             var eventHandlerId = renderer.Batches[0]
                 .ReferenceFrames
                 .First(frame => frame.FrameType == RenderTreeFrameType.Attribute && frame.AttributeName == "oncustomclick")
@@ -310,7 +308,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert: Event can be fired
             var eventArgs = new UIEventArgs();
-            renderer.DispatchEvent(nestedComponentId, eventHandlerId, eventArgs);
+            renderer.DispatchEvent(eventHandlerId, eventArgs);
             Assert.True(parentComponent.DidCallClickHandler);
             Assert.True(parentComponent.DidCallHandleEvent);
         }
@@ -331,7 +329,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 numRenders++;
             });
 
-            var componentId = renderer.AssignRootComponentId(component);
+            renderer.AssignRootComponentId(component);
             component.TriggerRender();
             Assert.Equal(1, numRenders);
 
@@ -342,7 +340,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var eventArgs = new UIEventArgs();
 
             // Act: Trigger event
-            renderer.DispatchEvent(componentId, eventHandlerId, eventArgs);
+            renderer.DispatchEvent(eventHandlerId, eventArgs);
 
             // Assert
             Assert.Same(eventArgs, handlerReceivedArgs);
@@ -350,7 +348,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void CannotDispatchEventsToUnknownComponents()
+        public void CannotDispatchEventsToUnknownHandlers()
         {
             // Arrange
             var renderer = new TestRenderer();
@@ -358,7 +356,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Act/Assert
             Assert.Throws<ArgumentException>(() =>
             {
-                renderer.DispatchEvent(123, 0, new UIEventArgs());
+                renderer.DispatchEvent(123, new UIEventArgs());
             });
         }
 
@@ -567,7 +565,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var eventCount = 0;
             Action<UIEventArgs> origEventHandler = args => { eventCount++; };
             var component = new EventComponent { OnTest = origEventHandler };
-            var componentId = renderer.AssignRootComponentId(component);
+            renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -577,7 +575,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert 1: Event handler fires when we trigger it
             Assert.Equal(0, eventCount);
-            renderer.DispatchEvent(componentId, origEventHandlerId, args: null);
+            renderer.DispatchEvent(origEventHandlerId, args: null);
             Assert.Equal(1, eventCount);
 
             // Now change the attribute value
@@ -588,11 +586,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Act/Assert 2: Can no longer fire the original event, but can fire the new event
             Assert.Throws<ArgumentException>(() =>
             {
-                renderer.DispatchEvent(componentId, origEventHandlerId, args: null);
+                renderer.DispatchEvent(origEventHandlerId, args: null);
             });
             Assert.Equal(1, eventCount);
             Assert.Equal(0, newEventCount);
-            renderer.DispatchEvent(componentId, origEventHandlerId + 1, args: null);
+            renderer.DispatchEvent(origEventHandlerId + 1, args: null);
             Assert.Equal(1, newEventCount);
         }
 
@@ -604,7 +602,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var eventCount = 0;
             Action<UIEventArgs> origEventHandler = args => { eventCount++; };
             var component = new EventComponent { OnTest = origEventHandler };
-            var componentId = renderer.AssignRootComponentId(component);
+            renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -614,7 +612,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert 1: Event handler fires when we trigger it
             Assert.Equal(0, eventCount);
-            renderer.DispatchEvent(componentId, origEventHandlerId, args: null);
+            renderer.DispatchEvent(origEventHandlerId, args: null);
             Assert.Equal(1, eventCount);
 
             // Now remove the event attribute
@@ -624,7 +622,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Act/Assert 2: Can no longer fire the original event
             Assert.Throws<ArgumentException>(() =>
             {
-                renderer.DispatchEvent(componentId, origEventHandlerId, args: null);
+                renderer.DispatchEvent(origEventHandlerId, args: null);
             });
             Assert.Equal(1, eventCount);
         }
@@ -653,7 +651,6 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 .Select(e => batch.ReferenceFrames[e.ReferenceFrameIndex])
                 .Where(f => f.FrameType == RenderTreeFrameType.Component)
                 .Single();
-            var childComponentId = childComponentFrame.ComponentId;
             var childComponentDiff = batch.DiffsByComponentId[childComponentFrame.ComponentId].Single();
             var eventHandlerId = batch.ReferenceFrames
                 .Skip(childComponentDiff.Edits[0].ReferenceFrameIndex) // Search from where the child component frames start
@@ -663,7 +660,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert 1: Event handler fires when we trigger it
             Assert.Equal(0, eventCount);
-            renderer.DispatchEvent(childComponentId, eventHandlerId, args: null);
+            renderer.DispatchEvent(eventHandlerId, args: null);
             Assert.Equal(1, eventCount);
 
             // Now remove the EventComponent
@@ -673,7 +670,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Act/Assert 2: Can no longer fire the original event
             Assert.Throws<ArgumentException>(() =>
             {
-                renderer.DispatchEvent(eventHandlerId, eventHandlerId, args: null);
+                renderer.DispatchEvent(eventHandlerId, args: null);
             });
             Assert.Equal(1, eventCount);
         }
@@ -686,7 +683,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             var eventCount = 0;
             Action<UIEventArgs> origEventHandler = args => { eventCount++; };
             var component = new EventComponent { OnTest = origEventHandler };
-            var componentId = renderer.AssignRootComponentId(component);
+            renderer.AssignRootComponentId(component);
             component.TriggerRender();
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -696,7 +693,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act/Assert 1: Event handler fires when we trigger it
             Assert.Equal(0, eventCount);
-            renderer.DispatchEvent(componentId, origEventHandlerId, args: null);
+            renderer.DispatchEvent(origEventHandlerId, args: null);
             Assert.Equal(1, eventCount);
 
             // Now remove the ancestor element
@@ -706,7 +703,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             // Act/Assert 2: Can no longer fire the original event
             Assert.Throws<ArgumentException>(() =>
             {
-                renderer.DispatchEvent(componentId, origEventHandlerId, args: null);
+                renderer.DispatchEvent(origEventHandlerId, args: null);
             });
             Assert.Equal(1, eventCount);
         }
@@ -746,7 +743,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Single(renderer.Batches);
 
             // Act
-            renderer.DispatchEvent(childComponentId, origEventHandlerId, args: null);
+            renderer.DispatchEvent(origEventHandlerId, args: null);
 
             // Assert
             Assert.Equal(2, renderer.Batches.Count);
@@ -926,11 +923,6 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
-            var childComponentId = renderer.Batches.Single()
-                .ReferenceFrames
-                .Where(f => f.ComponentId != 0)
-                .Single()
-                .ComponentId;
             var origEventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
                 .Where(f => f.FrameType == RenderTreeFrameType.Attribute && f.AttributeName == "onclick")
@@ -939,7 +931,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act
             // The fact that there's no error here is the main thing we're testing
-            renderer.DispatchEvent(childComponentId, origEventHandlerId, args: null);
+            renderer.DispatchEvent(origEventHandlerId, args: null);
 
             // Assert: correct render result
             var newBatch = renderer.Batches.Skip(1).Single();
@@ -970,7 +962,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             // Act: Toggle the checkbox
             var eventArgs = new UIChangeEventArgs { Value = true };
-            renderer.DispatchEvent(componentId, checkboxChangeEventHandlerId, eventArgs);
+            renderer.DispatchEvent(checkboxChangeEventHandlerId, eventArgs);
             var latestBatch = renderer.Batches.Last();
             var latestDiff = latestBatch.DiffsInOrder.Single();
             var referenceFrames = latestBatch.ReferenceFrames;

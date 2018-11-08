@@ -83,10 +83,9 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         /// <summary>
         /// Notifies the specified component that an event has occurred.
         /// </summary>
-        /// <param name="componentId">The unique identifier for the component within the scope of this <see cref="Renderer"/>.</param>
         /// <param name="eventHandlerId">The <see cref="RenderTreeFrame.AttributeEventHandlerId"/> value from the original event attribute.</param>
         /// <param name="eventArgs">Arguments to be passed to the event handler.</param>
-        public Task DispatchEvent(int componentId, int eventHandlerId, UIEventArgs eventArgs)
+        public Task DispatchEvent(int eventHandlerId, UIEventArgs eventArgs)
         {
             if (_eventBindings.TryGetValue(eventHandlerId, out var binding))
             {
