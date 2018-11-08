@@ -37,9 +37,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
             _browserRendererId = RendererRegistry.Current.Add(this);
         }
 
-        internal void DispatchBrowserEvent(int componentId, int eventHandlerId, UIEventArgs eventArgs)
-            => DispatchEvent(componentId, eventHandlerId, eventArgs);
-
         /// <summary>
         /// Attaches a new root component to the renderer,
         /// causing it to be displayed in the specified DOM element.

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -9,24 +9,23 @@ namespace Microsoft.AspNetCore.Blazor.Components
     /// <summary>
     /// A bound event handler delegate.
     /// </summary>
-    public readonly struct EventHandlerInvoker
+    public readonly struct EventHandlerInvoker<TArg>
     {
         private readonly MulticastDelegate _delegate;
 
-        /// <summary>
-        /// Creates the new <see cref="EventHandlerInvoker"/>.
-        /// </summary>
-        /// <param name="delegate">The delegate to bind.</param>
-        public EventHandlerInvoker(MulticastDelegate @delegate)
+        // Internal because only the framework needs to create these. External code should
+        // use ComponentEvents.InvokeEventHandler, supplying the delegate.
+        internal EventHandlerInvoker(MulticastDelegate @delegate)
         {
             _delegate = @delegate;
         }
+
         /// <summary>
         /// Invokes the delegate associated with this binding.
         /// </summary>
-        /// <param name="e">The <see cref="UIEventArgs"/>.</param>
+        /// <param name="eventArg">The argument for the event handler.</param>
         /// <returns></returns>
-        public Task Invoke(UIEventArgs e)
+        public Task Invoke(TArg eventArg)
         {
             switch (_delegate)
             {
@@ -34,22 +33,27 @@ namespace Microsoft.AspNetCore.Blazor.Components
                     action.Invoke();
                     return Task.CompletedTask;
 
-                case Action<UIEventArgs> actionEventArgs:
-                    actionEventArgs.Invoke(e);
+                case Action<TArg> actionEventArgs:
+                    actionEventArgs.Invoke(eventArg);
                     return Task.CompletedTask;
 
                 case Func<Task> func:
                     return func.Invoke();
 
-                case Func<UIEventArgs, Task> funcEventArgs:
-                    return funcEventArgs.Invoke(e);
+                case Func<TArg, Task> funcEventArgs:
+                    return funcEventArgs.Invoke(eventArg);
 
                 case MulticastDelegate @delegate:
-                    return @delegate.DynamicInvoke(e) as Task ?? Task.CompletedTask;
+                    return @delegate.DynamicInvoke(eventArg) as Task ?? Task.CompletedTask;
 
                 case null:
                     return Task.CompletedTask;
             }
+        }
+
+        internal bool CheckDelegateTarget(object target)
+        {
+            return _delegate.Target == target;
         }
     }
 }

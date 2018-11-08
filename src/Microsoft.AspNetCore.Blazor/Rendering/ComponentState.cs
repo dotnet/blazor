@@ -95,20 +95,6 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
             }
         }
 
-        public void DispatchEvent(EventHandlerInvoker binding, UIEventArgs eventArgs)
-        {
-            if (_component is IHandleEvent handleEventComponent)
-            {
-                handleEventComponent.HandleEvent(binding, eventArgs);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"The component of type {_component.GetType().FullName} cannot receive " +
-                    $"events because it does not implement {typeof(IHandleEvent).FullName}.");
-            }
-        }
-
         public void NotifyRenderCompleted()
             => (_component as IHandleAfterRender)?.OnAfterRender();
 

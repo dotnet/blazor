@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.RenderTree;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Blazor.Rendering
 {
@@ -23,7 +24,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         private bool _isBatchInProgress;
 
         private int _lastEventHandlerId = 0;
-        private readonly Dictionary<int, EventHandlerInvoker> _eventBindings = new Dictionary<int, EventHandlerInvoker>();
+        private readonly Dictionary<int, MulticastDelegate> _eventBindings = new Dictionary<int, MulticastDelegate>();
 
         /// <summary>
         /// Constructs an instance of <see cref="Renderer"/>.
@@ -85,7 +86,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         /// <param name="componentId">The unique identifier for the component within the scope of this <see cref="Renderer"/>.</param>
         /// <param name="eventHandlerId">The <see cref="RenderTreeFrame.AttributeEventHandlerId"/> value from the original event attribute.</param>
         /// <param name="eventArgs">Arguments to be passed to the event handler.</param>
-        public void DispatchEvent(int componentId, int eventHandlerId, UIEventArgs eventArgs)
+        public Task DispatchEvent(int componentId, int eventHandlerId, UIEventArgs eventArgs)
         {
             if (_eventBindings.TryGetValue(eventHandlerId, out var binding))
             {
@@ -94,7 +95,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
                 try
                 {
                     _isBatchInProgress = true;
-                    GetRequiredComponentState(componentId).DispatchEvent(binding, eventArgs);
+                    return ComponentEvents.InvokeEventHandler(binding, eventArgs);
                 }
                 finally
                 {
@@ -131,7 +132,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
 
             if (frame.AttributeValue is MulticastDelegate @delegate)
             {
-               _eventBindings.Add(id, new EventHandlerInvoker(@delegate));
+               _eventBindings.Add(id, @delegate);
             }
 
             frame = frame.WithAttributeEventHandlerId(id);

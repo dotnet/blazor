@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.RenderTree;
@@ -200,8 +200,23 @@ namespace Microsoft.AspNetCore.Blazor.Components
             Console.Error.WriteLine($"[{ex.GetType().FullName}] {ex.Message}\n{ex.StackTrace}");
         }
 
-        void IHandleEvent.HandleEvent(EventHandlerInvoker binding, UIEventArgs args)
+        Task IHandleEvent.HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
         {
+            // We want to be sure that the handler really is one of this component type's
+            // methods/lambdas. When the framework calls this, that invariant is always
+            // satisfied, because we route the event based on the delegate target.
+            // If developers call this directly (which they shouldn't - only the framework
+            // should call IHandleEvent.HandleEvent), we at least want to ensure that it's
+            // equivalent to what the framework would do for a real event handler, and isn't
+            // some kind of hack to force arbitrary components to re-render (that's something
+            // that components opt into by exposing suitable public methods).
+            if (!binding.CheckDelegateTarget(this))
+            {
+                throw new InvalidOperationException($"The event handler is not associated with " +
+                    $"this component. Application code should not invoke {nameof(IHandleEvent)}" +
+                    $".{nameof(IHandleEvent.HandleEvent)} directly.");
+            }
+
             var task = binding.Invoke(args);
 
             // After each event, we synchronously re-render (unless !ShouldRender())
@@ -211,10 +226,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
             if (task.Status == TaskStatus.RanToCompletion)
             {
-                return;
+                return task;
             }
 
-            task.ContinueWith(ContinueAfterLifecycleTask);
+            return task.ContinueWith(ContinueAfterLifecycleTask);
         }
 
         void IHandleAfterRender.OnAfterRender()

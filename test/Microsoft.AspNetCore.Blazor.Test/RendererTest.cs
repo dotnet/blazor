@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
@@ -315,20 +316,24 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void ThrowsIfComponentDoesNotHandleEvents()
+        public void IfComponentDoesNotHandleEvents_JustInvokesHandler()
         {
             // Arrange: Render a component with an event handler
             var renderer = new TestRenderer();
-            Action<UIEventArgs> handler = args => throw new NotImplementedException();
+            UIEventArgs handlerReceivedArgs = null;
+            Action<UIEventArgs> handler = args => { handlerReceivedArgs = args; };
+            var numRenders = 0;
             var component = new TestComponent(builder =>
             {
                 builder.OpenElement(0, "mybutton");
                 builder.AddAttribute(1, "onclick", handler);
                 builder.CloseElement();
+                numRenders++;
             });
 
             var componentId = renderer.AssignRootComponentId(component);
             component.TriggerRender();
+            Assert.Equal(1, numRenders);
 
             var eventHandlerId = renderer.Batches.Single()
                 .ReferenceFrames
@@ -336,13 +341,12 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 .AttributeEventHandlerId;
             var eventArgs = new UIEventArgs();
 
-            // Act/Assert
-            var ex = Assert.Throws<InvalidOperationException>(() =>
-            {
-                renderer.DispatchEvent(componentId, eventHandlerId, eventArgs);
-            });
-            Assert.Equal($"The component of type {typeof(TestComponent).FullName} cannot receive " +
-                $"events because it does not implement {typeof(IHandleEvent).FullName}.", ex.Message);
+            // Act: Trigger event
+            renderer.DispatchEvent(componentId, eventHandlerId, eventArgs);
+
+            // Assert
+            Assert.Same(eventArgs, handlerReceivedArgs);
+            Assert.Equal(1, numRenders); // No auto re-render because that's not a feature of TestComponent
         }
 
         [Fact]
@@ -1207,9 +1211,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 builder.AddContent(6, $"Render count: {++renderCount}");
             }
 
-            public void HandleEvent(EventHandlerInvoker binding, UIEventArgs args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
             {
                 binding.Invoke(args);
+                return null;
             }
         }
 
@@ -1276,10 +1281,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 Render();
             }
 
-            public void HandleEvent(EventHandlerInvoker binding, UIEventArgs args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
             {
                 var task = binding.Invoke(args);
                 Render();
+                return task;
             }
 
             private void Render()
@@ -1320,10 +1326,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public bool CheckboxEnabled;
             public string SomeStringProperty;
 
-            public void HandleEvent(EventHandlerInvoker binding, UIEventArgs args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
             {
                 binding.Invoke(args);
                 TriggerRender();
+                return null;
             }
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -1377,10 +1384,11 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public bool DidCallClickHandler { get; private set; }
             public bool DidCallHandleEvent { get; private set; }
 
-            public void HandleEvent(EventHandlerInvoker binding, UIEventArgs args)
+            public Task HandleEvent<TArg>(EventHandlerInvoker<TArg> binding, TArg args)
             {
                 DidCallHandleEvent = true;
                 binding.Invoke(args);
+                return null;
             }
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)

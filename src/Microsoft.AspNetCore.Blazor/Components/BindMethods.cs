@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -74,7 +74,17 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<string> setter, string existingValue)
         {
-            return _ => setter((string)((UIChangeEventArgs)_).Value);
+            return _ =>
+            {
+                // Each of the SetValueHandler overloads needs to call the setter with event handler
+                // semantics, rather than just invoking the setter directly. This allows the receipient
+                // to run its own event-handler logic around the setter (for example, automatically
+                // re-rendering components after the setter is executed).
+                // This is something that both framework and developer code needs to do when calling
+                // event handler callbacks manually (e.g., child component invoking a callback passed
+                // to it as a parameter).
+                ComponentEvents.InvokeEventHandler(setter, (string)((UIChangeEventArgs)_).Value);
+            };
         }
 
         /// <summary>
@@ -82,7 +92,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<bool> setter, bool existingValue)
         {
-            return _ => setter((bool)((UIChangeEventArgs)_).Value);
+            return _ =>
+            {
+                ComponentEvents.InvokeEventHandler(setter, (bool)((UIChangeEventArgs)_).Value);
+            };
         }
 
         /// <summary>
@@ -90,7 +103,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<int> setter, int existingValue)
         {
-            return _ => setter(int.Parse((string)((UIChangeEventArgs)_).Value));
+            return _ =>
+            {
+                ComponentEvents.InvokeEventHandler(setter, int.Parse((string)((UIChangeEventArgs)_).Value));
+            };
         }
 
         /// <summary>
@@ -98,7 +114,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<long> setter, long existingValue)
         {
-            return _ => setter(long.Parse((string)((UIChangeEventArgs)_).Value));
+            return _ =>
+            {
+                ComponentEvents.InvokeEventHandler(setter, long.Parse((string)((UIChangeEventArgs)_).Value));
+            };
         }
 
         /// <summary>
@@ -106,7 +125,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<float> setter, float existingValue)
         {
-            return _ => setter(float.Parse((string)((UIChangeEventArgs)_).Value));
+            return _ =>
+            {
+                ComponentEvents.InvokeEventHandler(setter, float.Parse((string)((UIChangeEventArgs)_).Value));
+            };
         }
 
         /// <summary>
@@ -114,7 +136,10 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<double> setter, double existingValue)
         {
-            return _ => setter(double.Parse((string)((UIChangeEventArgs)_).Value));
+            return _ =>
+            {
+                ComponentEvents.InvokeEventHandler(setter, double.Parse((string)((UIChangeEventArgs)_).Value));
+            };
         }
 
         /// <summary>
@@ -122,23 +147,31 @@ namespace Microsoft.AspNetCore.Blazor.Components
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<decimal> setter, decimal existingValue)
         {
-            return _ => setter(decimal.Parse((string)((UIChangeEventArgs)_).Value));
+            return _ =>
+            {
+                ComponentEvents.InvokeEventHandler(setter, decimal.Parse((string)((UIChangeEventArgs)_).Value));
+            };
         }
 
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<DateTime> setter, DateTime existingValue)
-        {
-            return _ => SetDateTimeValue(setter, ((UIChangeEventArgs)_).Value, null);
-        }
+            => SetValueHandler(setter, existingValue, null);
 
         /// <summary>
         /// Not intended to be used directly.
         /// </summary>
         public static Action<UIEventArgs> SetValueHandler(Action<DateTime> setter, DateTime existingValue, string format)
         {
-            return _ => SetDateTimeValue(setter, ((UIChangeEventArgs)_).Value, format);
+            return _ =>
+            {
+                var stringValue = (string)((UIChangeEventArgs)_).Value;
+                var dateTimeValue = string.IsNullOrEmpty(stringValue) ? default
+                    : format != null && DateTime.TryParseExact(stringValue, format, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedExact) ? parsedExact
+                    : DateTime.Parse(stringValue);
+                ComponentEvents.InvokeEventHandler(setter, dateTimeValue);
+            };
         }
 
         /// <summary>
@@ -155,17 +188,8 @@ namespace Microsoft.AspNetCore.Blazor.Components
             {
                 var value = (string)((UIChangeEventArgs)_).Value;
                 var parsed = (T)Enum.Parse(typeof(T), value);
-                setter(parsed);
+                ComponentEvents.InvokeEventHandler(setter, parsed);
             };
-        }
-
-        private static void SetDateTimeValue(Action<DateTime> setter, object objValue, string format)
-        {
-            var stringValue = (string)objValue;
-            var parsedValue = string.IsNullOrEmpty(stringValue) ? default
-                : format != null && DateTime.TryParseExact(stringValue, format, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsedExact) ? parsedExact
-                : DateTime.Parse(stringValue);
-            setter(parsedValue);
         }
     }
 }
