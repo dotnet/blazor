@@ -1070,6 +1070,58 @@ namespace Microsoft.AspNetCore.Blazor.Test
             Assert.Equal(1, childComponents[2].OnAfterRenderCallCount); // Disposed
         }
 
+        [Fact]
+        public void CanTriggerEventHandlerDisposedInEarlierPendingBatch()
+        {
+            // This represents the scenario where the same event handler is being triggered
+            // rapidly, such as an input event while typing. It only applies to asynchronous
+            // batch updates, i.e., server-side Blazor.
+            // Sequence:
+            // 1. The client dispatches event X twice (say) in quick succession
+            // 2. The server receives the first instance, handles the event, and re-renders
+            //    some component. The act of re-rendering causes the old event handler to be
+            //    replaced by a new one, so the old one is flagged to be disposed.
+            // 3. The server receives the second instance. Even though the corresponding event
+            //    handler is flagged to be disposed, we have to still be able to find and
+            //    execute it without errors.
+
+            // Arrange
+            var renderer = new TestRenderer();
+            var numEventsFired = 0;
+            EventComponent component = null;
+            Action<UIEventArgs> eventHandler = null;
+
+            eventHandler = _ =>
+            {
+                numEventsFired++;
+
+                // Replace the old event handler with a different one,
+                // (old the old handler ID will be disposed) then re-render.
+                component.OnTest = args => eventHandler(args);
+                component.TriggerRender();
+            };
+
+            component = new EventComponent { OnTest = eventHandler };
+            var componentId = renderer.AssignRootComponentId(component);
+            component.TriggerRender();
+
+            var eventHandlerId = renderer.Batches.Single()
+                .ReferenceFrames
+                .First(frame => frame.AttributeValue != null)
+                .AttributeEventHandlerId;
+
+            // Act/Assert 1: Event can be fired for the first time
+            renderer.DispatchEvent(componentId, eventHandlerId, new UIEventArgs());
+            Assert.Equal(1, numEventsFired);
+
+            // Act/Assert 2: *Same* event handler ID can be reused
+            renderer.DispatchEvent(componentId, eventHandlerId, new UIEventArgs());
+            Assert.Equal(2, numEventsFired);
+
+            // TODO: Add further test code to show we can no longer call the event
+            // after all the pending render batches have been processed
+        }
+
         private class NoOpRenderer : Renderer
         {
             public NoOpRenderer() : base(new TestServiceProvider())
