@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
         }
 
         /// <inheritdoc />
-        protected override void UpdateDisplay(in RenderBatch batch)
+        protected override Task UpdateDisplay(in RenderBatch batch)
         {
             // Send the render batch to the client
             // Note that we have to capture the data as a byte[] synchronously here, because
@@ -99,6 +99,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
             var batchBytes = MessagePackSerializer.Serialize(batch, RenderBatchFormatterResolver.Instance);
             var task = _client.SendAsync("JS.RenderBatch", _id, batchBytes);
             CaptureAsyncExceptions(task);
+            return task;
         }
 
         private void CaptureAsyncExceptions(Task task)

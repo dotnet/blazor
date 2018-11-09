@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Blazor.Components;
 using Microsoft.AspNetCore.Blazor.Rendering;
 using Microsoft.AspNetCore.Blazor.RenderTree;
@@ -1071,7 +1072,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
         }
 
         [Fact]
-        public void CanTriggerEventHandlerDisposedInEarlierPendingBatch()
+        public async Task CanTriggerEventHandlerDisposedInEarlierPendingBatch()
         {
             // This represents the scenario where the same event handler is being triggered
             // rapidly, such as an input event while typing. It only applies to asynchronous
@@ -1086,7 +1087,10 @@ namespace Microsoft.AspNetCore.Blazor.Test
             //    execute it without errors.
 
             // Arrange
-            var renderer = new TestRenderer();
+            var renderer = new TestAsyncRenderer
+            {
+                NextUpdateDisplayReturnTask = Task.CompletedTask
+            };
             var numEventsFired = 0;
             EventComponent component = null;
             Action<UIEventArgs> eventHandler = null;
@@ -1111,15 +1115,28 @@ namespace Microsoft.AspNetCore.Blazor.Test
                 .AttributeEventHandlerId;
 
             // Act/Assert 1: Event can be fired for the first time
+            var render1TCS = new TaskCompletionSource<object>();
+            renderer.NextUpdateDisplayReturnTask = render1TCS.Task;
             renderer.DispatchEvent(componentId, eventHandlerId, new UIEventArgs());
             Assert.Equal(1, numEventsFired);
 
-            // Act/Assert 2: *Same* event handler ID can be reused
+            // Act/Assert 2: *Same* event handler ID can be reused prior to completion of
+            // preceding UI update
+            var render2TCS = new TaskCompletionSource<object>();
+            renderer.NextUpdateDisplayReturnTask = render2TCS.Task;
             renderer.DispatchEvent(componentId, eventHandlerId, new UIEventArgs());
             Assert.Equal(2, numEventsFired);
 
-            // TODO: Add further test code to show we can no longer call the event
-            // after all the pending render batches have been processed
+            // Act/Assert 3: After we complete the first UI update in which a given
+            // event handler ID is disposed, we can no longer reuse that event handler ID
+            render1TCS.SetResult(null);
+            await Task.Delay(100); // From here we can't see when the async disposal is completed. Just give it plenty of time (Task.Yield isn't enough).
+            var ex = Assert.Throws<ArgumentException>(() =>
+            {
+                renderer.DispatchEvent(componentId, eventHandlerId, new UIEventArgs());
+            });
+            Assert.Equal($"There is no event handler with ID {eventHandlerId}", ex.Message);
+            Assert.Equal(2, numEventsFired);
         }
 
         private class NoOpRenderer : Renderer
@@ -1131,9 +1148,8 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public new int AssignRootComponentId(IComponent component)
                 => base.AssignRootComponentId(component);
 
-            protected override void UpdateDisplay(in RenderBatch renderBatch)
-            {
-            }
+            protected override Task UpdateDisplay(in RenderBatch renderBatch)
+                => Task.CompletedTask;
         }
 
         private class TestComponent : IComponent
@@ -1379,6 +1395,17 @@ namespace Microsoft.AspNetCore.Blazor.Test
 
             protected override void BuildRenderTree(RenderTreeBuilder builder)
             {
+            }
+        }
+
+        class TestAsyncRenderer : TestRenderer
+        {
+            public Task NextUpdateDisplayReturnTask { get; set; }
+
+            protected override Task UpdateDisplay(in RenderBatch renderBatch)
+            {
+                base.UpdateDisplay(renderBatch);
+                return NextUpdateDisplayReturnTask;
             }
         }
     }
