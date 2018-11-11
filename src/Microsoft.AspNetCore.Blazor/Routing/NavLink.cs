@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
 
             // Update computed state and render
             _hrefAbsolute = href == null ? null : UriHelper.ToAbsoluteUri(href).AbsoluteUri;
-            _isActive = ShouldMatch(UriHelper.GetAbsoluteUri());
+            _isActive = !string.IsNullOrEmpty(href) && this.ShouldMatch(this.UriHelper.GetAbsoluteUri());
             _renderHandle.Render(Render);
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Blazor.Routing
                 return true;
             }
 
-            if (currentUriAbsolute.Length == _hrefAbsolute?.Length - 1)
+            if (currentUriAbsolute.Length == _hrefAbsolute.Length - 1)
             {
                 // Special case: highlight links to http://host/path/ even if you're
                 // at http://host/path (with no trailing slash)
