@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.AspNetCore.Blazor.Components;
@@ -14,10 +16,17 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
 {
     internal class RemoteRenderer : Renderer
     {
+        // The purpose of the timeout is just to ensure server resources are released at some
+        // point if the client disconnects without sending back an ACK after a render
+        private const int TimeoutMilliseconds = 60 * 1000;
+
         private readonly int _id;
         private readonly IClientProxy _client;
         private readonly IJSRuntime _jsRuntime;
         private readonly RendererRegistry _rendererRegistry;
+        private readonly ConcurrentDictionary<long, AutoCancelTaskCompletionSource<object>> _pendingRenders
+            = new ConcurrentDictionary<long, AutoCancelTaskCompletionSource<object>>();
+        private long _nextRenderId = 1;
 
         /// <summary>
         /// Notifies when a rendering exception occured.
@@ -89,7 +98,13 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
         /// <inheritdoc />
         protected override Task UpdateDisplay(in RenderBatch batch)
         {
+            // Prepare to track the render process with a timeout
+            var renderId = Interlocked.Increment(ref _nextRenderId);
+            var pendingRenderInfo = new AutoCancelTaskCompletionSource<object>(TimeoutMilliseconds);
+            _pendingRenders[renderId] = pendingRenderInfo;
+
             // Send the render batch to the client
+            // If the "send" operation fails, abort the whole render with that exception
             // Note that we have to capture the data as a byte[] synchronously here, because
             // SignalR's SendAsync can wait an arbitrary duration before serializing the params.
             // The RenderBatch buffer will get reused by subsequent renders, so we need to
@@ -97,9 +112,39 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
             // TODO: Consider using some kind of array pool instead of allocating a new
             //       buffer on every render.
             var batchBytes = MessagePackSerializer.Serialize(batch, RenderBatchFormatterResolver.Instance);
-            var task = _client.SendAsync("JS.RenderBatch", _id, batchBytes);
-            CaptureAsyncExceptions(task);
-            return task;
+            _client.SendAsync("JS.RenderBatch", _id, renderId, batchBytes).ContinueWith(sendTask =>
+            {
+                if (sendTask.IsFaulted)
+                {
+                    pendingRenderInfo.TrySetException(sendTask.Exception);
+                }
+            });
+
+            // When the render is completed (success, fail, or timeout), stop tracking it
+            return pendingRenderInfo.Task.ContinueWith(task =>
+            {
+                _pendingRenders.TryRemove(renderId, out var ignored);
+                if (task.IsFaulted)
+                {
+                    UnhandledException?.Invoke(this, task.Exception);
+                }
+            });
+        }
+
+        public void OnRenderCompleted(long renderId, string errorMessageOrNull)
+        {
+            if (_pendingRenders.TryGetValue(renderId, out var pendingRenderInfo))
+            {
+                if (errorMessageOrNull == null)
+                {
+                    pendingRenderInfo.TrySetResult(null);
+                }
+                else
+                {
+                    pendingRenderInfo.TrySetException(
+                        new RemoteRendererException(errorMessageOrNull));
+                }
+            }
         }
 
         private void CaptureAsyncExceptions(Task task)
