@@ -1148,7 +1148,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             public new int AssignRootComponentId(IComponent component)
                 => base.AssignRootComponentId(component);
 
-            protected override Task UpdateDisplay(in RenderBatch renderBatch)
+            protected override Task UpdateDisplayAsync(in RenderBatch renderBatch)
                 => Task.CompletedTask;
         }
 
@@ -1402,9 +1402,9 @@ namespace Microsoft.AspNetCore.Blazor.Test
         {
             public Task NextUpdateDisplayReturnTask { get; set; }
 
-            protected override Task UpdateDisplay(in RenderBatch renderBatch)
+            protected override Task UpdateDisplayAsync(in RenderBatch renderBatch)
             {
-                base.UpdateDisplay(renderBatch);
+                base.UpdateDisplayAsync(renderBatch);
                 return NextUpdateDisplayReturnTask;
             }
         }

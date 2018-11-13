@@ -377,7 +377,7 @@ namespace Microsoft.AspNetCore.Blazor.Server
             {
             }
 
-            protected override Task UpdateDisplay(in RenderBatch renderBatch)
+            protected override Task UpdateDisplayAsync(in RenderBatch renderBatch)
                 => throw new NotImplementedException();
         }
     }

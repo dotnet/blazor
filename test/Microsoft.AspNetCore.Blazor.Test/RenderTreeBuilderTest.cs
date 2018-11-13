@@ -1061,7 +1061,7 @@ namespace Microsoft.AspNetCore.Blazor.Test
             {
             }
 
-            protected override Task UpdateDisplay(in RenderBatch renderBatch)
+            protected override Task UpdateDisplayAsync(in RenderBatch renderBatch)
                 => throw new NotImplementedException();
         }
     }

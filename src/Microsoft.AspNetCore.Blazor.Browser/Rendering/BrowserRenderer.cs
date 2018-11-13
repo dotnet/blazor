@@ -65,8 +65,8 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
             var componentId = AssignRootComponentId(component);
 
             // The only reason we're calling this synchronously is so that, if it throws,
-            // we get the exception back *before* attempting the first UpdateDisplay
-            // (otherwise the logged exception will come from UpdateDisplay instead of here)
+            // we get the exception back *before* attempting the first UpdateDisplayAsync
+            // (otherwise the logged exception will come from UpdateDisplayAsync instead of here)
             // When implementing support for out-of-process runtimes, we'll need to call this
             // asynchronously and ensure we surface any exceptions correctly.
             ((IJSInProcessRuntime)JSRuntime.Current).Invoke<object>(
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
         }
 
         /// <inheritdoc />
-        protected override Task UpdateDisplay(in RenderBatch batch)
+        protected override Task UpdateDisplayAsync(in RenderBatch batch)
         {
             if (JSRuntime.Current is MonoWebAssemblyJSRuntime mono)
             {

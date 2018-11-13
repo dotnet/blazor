@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
         }
 
         /// <inheritdoc />
-        protected override Task UpdateDisplay(in RenderBatch batch)
+        protected override Task UpdateDisplayAsync(in RenderBatch batch)
         {
             // Prepare to track the render process with a timeout
             var renderId = Interlocked.Increment(ref _nextRenderId);

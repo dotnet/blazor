@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Blazor.Test.Helpers
         public T InstantiateComponent<T>() where T : IComponent
             => (T)InstantiateComponent(typeof(T));
 
-        protected override Task UpdateDisplay(in RenderBatch renderBatch)
+        protected override Task UpdateDisplayAsync(in RenderBatch renderBatch)
         {
             OnUpdateDisplay?.Invoke(renderBatch);
 
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Blazor.Test.Helpers
             capturedBatch.DisposedComponentIDs = renderBatch.DisposedComponentIDs.ToList();
 
             // This renderer updates the UI synchronously, like the WebAssembly one.
-            // To test async UI updates, subclass TestRenderer and override UpdateDisplay.
+            // To test async UI updates, subclass TestRenderer and override UpdateDisplayAsync.
             return Task.CompletedTask;
         }
     }

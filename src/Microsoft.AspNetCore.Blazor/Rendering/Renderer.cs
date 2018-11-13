@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
         /// </summary>
         /// <param name="renderBatch">The changes to the UI since the previous call.</param>
         /// <returns>A <see cref="Task"/> to represent the UI update process.</returns>
-        protected abstract Task UpdateDisplay(in RenderBatch renderBatch);
+        protected abstract Task UpdateDisplayAsync(in RenderBatch renderBatch);
 
         /// <summary>
         /// Notifies the specified component that an event has occurred.
@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Blazor.Rendering
                 }
 
                 var batch = _batchBuilder.ToBatch();
-                updateDisplayTask = UpdateDisplay(batch);
+                updateDisplayTask = UpdateDisplayAsync(batch);
                 InvokeRenderCompletedCalls(batch.UpdatedComponents);
             }
             finally

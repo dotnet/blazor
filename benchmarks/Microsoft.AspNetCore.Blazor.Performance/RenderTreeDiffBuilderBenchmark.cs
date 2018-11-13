@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Blazor.Performance
             {
             }
 
-            protected override Task UpdateDisplay(in RenderBatch renderBatch)
+            protected override Task UpdateDisplayAsync(in RenderBatch renderBatch)
                 => Task.CompletedTask;
         }
 
