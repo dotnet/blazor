@@ -98,13 +98,6 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
         /// <inheritdoc />
         protected override Task UpdateDisplayAsync(in RenderBatch batch)
         {
-            // Prepare to track the render process with a timeout
-            var renderId = Interlocked.Increment(ref _nextRenderId);
-            var pendingRenderInfo = new AutoCancelTaskCompletionSource<object>(TimeoutMilliseconds);
-            _pendingRenders[renderId] = pendingRenderInfo;
-
-            // Send the render batch to the client
-            // If the "send" operation fails, abort the whole render with that exception
             // Note that we have to capture the data as a byte[] synchronously here, because
             // SignalR's SendAsync can wait an arbitrary duration before serializing the params.
             // The RenderBatch buffer will get reused by subsequent renders, so we need to
@@ -112,13 +105,29 @@ namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
             // TODO: Consider using some kind of array pool instead of allocating a new
             //       buffer on every render.
             var batchBytes = MessagePackSerializer.Serialize(batch, RenderBatchFormatterResolver.Instance);
-            _client.SendAsync("JS.RenderBatch", _id, renderId, batchBytes).ContinueWith(sendTask =>
+
+            // Prepare to track the render process with a timeout
+            var renderId = Interlocked.Increment(ref _nextRenderId);
+            var pendingRenderInfo = new AutoCancelTaskCompletionSource<object>(TimeoutMilliseconds);
+            _pendingRenders[renderId] = pendingRenderInfo;
+
+            // Send the render batch to the client
+            // If the "send" operation fails (synchronously or asynchronously), abort
+            // the whole render with that exception
+            try
             {
-                if (sendTask.IsFaulted)
+                _client.SendAsync("JS.RenderBatch", _id, renderId, batchBytes).ContinueWith(sendTask =>
                 {
-                    pendingRenderInfo.TrySetException(sendTask.Exception);
-                }
-            });
+                    if (sendTask.IsFaulted)
+                    {
+                        pendingRenderInfo.TrySetException(sendTask.Exception);
+                    }
+                });
+            }
+            catch (Exception syncException)
+            {
+                pendingRenderInfo.TrySetException(syncException);
+            }
 
             // When the render is completed (success, fail, or timeout), stop tracking it
             return pendingRenderInfo.Task.ContinueWith(task =>
