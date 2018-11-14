@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
 
                 // If you override OnInitAsync, then by default we automatically re-render once that task completes.
                 var initTask = OnInitAsync();
-                if (initTask.Status != TaskStatus.RanToCompletion)
+                if (initTask != null && initTask.Status != TaskStatus.RanToCompletion)
                 {
                     initTask.ContinueWith(ContinueAfterLifecycleTask);
                 }
@@ -170,7 +170,7 @@ namespace Microsoft.AspNetCore.Blazor.Components
             
             // If you override OnParametersSetAsync, then by default we automatically re-render once that task completes.
             var parametersTask = OnParametersSetAsync();
-            if (parametersTask.Status != TaskStatus.RanToCompletion)
+            if (parametersTask != null && parametersTask.Status != TaskStatus.RanToCompletion)
             {
                 parametersTask.ContinueWith(ContinueAfterLifecycleTask);
             }
