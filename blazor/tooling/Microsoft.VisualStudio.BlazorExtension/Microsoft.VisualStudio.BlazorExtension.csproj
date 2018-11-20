@@ -121,7 +121,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Templates.pkgdef" />
-    <ProjectReference Include="$(RepositoryRoot)src\Microsoft.AspNetCore.Blazor.Templates\Microsoft.AspNetCore.Blazor.Templates.csproj">
+    <ProjectReference Include="$(RepositoryRoot)blazor\src\Microsoft.AspNetCore.Blazor.Templates\Microsoft.AspNetCore.Blazor.Templates.csproj">
       <Project>{edd21533-c6e6-4f85-be4f-10e06756e24c}</Project>
       <Name>Microsoft.AspNetCore.Blazor.Templates</Name>
       <Private>False</Private>
