@@ -30,8 +30,8 @@
     <ProjectReference Include="..\..\blazor\benchmarks\Microsoft.AspNetCore.Blazor.E2EPerformance\Microsoft.AspNetCore.Blazor.E2EPerformance.csproj" />
     <ProjectReference Include="..\..\samples\HostedInAspNet.Client\HostedInAspNet.Client.csproj" />
     <ProjectReference Include="..\..\samples\HostedInAspNet.Server\HostedInAspNet.Server.csproj" />
-    <ProjectReference Include="..\..\samples\MonoSanityClient\MonoSanityClient.csproj" />
-    <ProjectReference Include="..\..\samples\MonoSanity\MonoSanity.csproj" />
+    <ProjectReference Include="..\..\blazor\samples\MonoSanityClient\MonoSanityClient.csproj" />
+    <ProjectReference Include="..\..\blazor\samples\MonoSanity\MonoSanity.csproj" />
     <ProjectReference Include="..\..\samples\ServerSideBlazor.Client\ServerSideBlazor.Client.csproj" />
     <ProjectReference Include="..\..\samples\ServerSideBlazor.Server\ServerSideBlazor.Server.csproj" />
     <ProjectReference Include="..\..\blazor\samples\StandaloneApp\StandaloneApp.csproj" />

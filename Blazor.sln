@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B867E038-B3C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mono", "mono", "{7B5CAAB1-A3EB-44F7-87E3-A13ED89FC17D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoSanity", "samples\MonoSanity\MonoSanity.csproj", "{7C53BB6B-5906-4753-B507-C9FCC2F7E5B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoSanity", "blazor\samples\MonoSanity\MonoSanity.csproj", "{7C53BB6B-5906-4753-B507-C9FCC2F7E5B7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Server", "src\Microsoft.AspNetCore.Components.Server\Microsoft.AspNetCore.Blazor.Server.csproj", "{5A694793-3257-4D37-BB74-4A41B3894685}"
 EndProject
@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{ADA3AE29-F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.E2ETest", "test\Microsoft.AspNetCore.Components.E2ETest\Microsoft.AspNetCore.Blazor.E2ETest.csproj", "{5BC2A10D-B6CA-43AE-B73C-2A41AE1039F9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoSanityClient", "samples\MonoSanityClient\MonoSanityClient.csproj", "{06AAAE9E-96DE-4574-97DA-9C4C7D9FE990}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoSanityClient", "blazor\samples\MonoSanityClient\MonoSanityClient.csproj", "{06AAAE9E-96DE-4574-97DA-9C4C7D9FE990}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.BuildTools", "src\Microsoft.AspNetCore.Blazor.BuildTools\Microsoft.AspNetCore.Blazor.BuildTools.csproj", "{BB34336F-E68E-4411-9805-CAAA919F5EA1}"
 EndProject
