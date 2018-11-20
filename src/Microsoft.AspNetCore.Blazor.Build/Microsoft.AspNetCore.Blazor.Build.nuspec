@@ -21,6 +21,6 @@
     <file src="$publishdir$netcoreapp2.1\**\*" target="tools/" />
     <file src="..\mono\dist\**\*" target="tools\mono"  />
     <file src="..\mono\tools\binaries\illink\**\*.*" target="tools\illink" />
-    <file src="..\Microsoft.AspNetCore.Blazor.Browser.JS\dist\blazor.*.js" target="tools\blazor" />
+    <file src="..\Microsoft.AspNetCore.Components.Browser.JS\dist\blazor.*.js" target="tools\blazor" />
   </files>
 </package>
