@@ -41,7 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Browser", "src\Microsoft.AspNetCore.Components.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj", "{4874AFF4-335D-4037-8858-BBBB987C124B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Test", "test\Microsoft.AspNetCore.Blazor.Test\Microsoft.AspNetCore.Blazor.Test.csproj", "{8FD8636E-AFA5-434D-8857-06D02686741A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Test", "test\Microsoft.AspNetCore.Components.Test\Microsoft.AspNetCore.Blazor.Test.csproj", "{8FD8636E-AFA5-434D-8857-06D02686741A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "testapps", "testapps", "{4AE0D35B-D97A-44D0-8392-C9240377DCCE}"
 EndProject
