@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandaloneApp", "samples\St
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MonoSanity", "MonoSanity", "{2A076721-6081-4517-8329-B9E5110D6DAC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Build.Test", "test\Microsoft.AspNetCore.Blazor.Build.Test\Microsoft.AspNetCore.Blazor.Build.Test.csproj", "{709C7EBE-EB93-4F6D-9491-D714B0D2E898}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Build.Test", "test\Microsoft.AspNetCore.Components.Build.Test\Microsoft.AspNetCore.Blazor.Build.Test.csproj", "{709C7EBE-EB93-4F6D-9491-D714B0D2E898}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Build", "src\Microsoft.AspNetCore.Components.Build\Microsoft.AspNetCore.Blazor.Build.csproj", "{8B3D0F1C-0E38-4E6D-BFF1-C4FDA0CD9815}"
 EndProject
