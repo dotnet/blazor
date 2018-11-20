@@ -49,7 +49,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicTestApp", "test\testap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Razor.Extensions", "src\Microsoft.AspNetCore.Components.Razor.Extensions\Microsoft.AspNetCore.Blazor.Razor.Extensions.csproj", "{D652A019-B765-4922-B7B8-3AB1C58338D7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Browser.Test", "test\Microsoft.AspNetCore.Blazor.Browser.Test\Microsoft.AspNetCore.Blazor.Browser.Test.csproj", "{EC2A38BF-6E77-4A8E-A731-15929544F29C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Browser.Test", "test\Microsoft.AspNetCore.Components.Browser.Test\Microsoft.AspNetCore.Blazor.Browser.Test.csproj", "{EC2A38BF-6E77-4A8E-A731-15929544F29C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestServer", "test\testapps\TestServer\TestServer.csproj", "{29CD3FC6-49E3-4756-B5DF-E03B46E5CD45}"
 EndProject
