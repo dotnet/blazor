@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostedInAspNet.Server", "sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor", "src\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Blazor.csproj", "{7FD8C650-74B3-4153-AEA1-00F4F6AF393D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandaloneApp", "samples\StandaloneApp\StandaloneApp.csproj", "{B241434A-1642-44CC-AE9A-2012B5C5BD02}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandaloneApp", "blazor\samples\StandaloneApp\StandaloneApp.csproj", "{B241434A-1642-44CC-AE9A-2012B5C5BD02}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MonoSanity", "MonoSanity", "{2A076721-6081-4517-8329-B9E5110D6DAC}"
 EndProject
