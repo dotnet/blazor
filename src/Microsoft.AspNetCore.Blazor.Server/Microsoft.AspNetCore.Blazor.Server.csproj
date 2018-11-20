@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.AspNetCore.Blazor.Browser\Hosting\ConventionBasedStartup.cs" Link="Hosting\ConventionBasedStartup.cs" />
-    <Compile Include="..\Microsoft.AspNetCore.Blazor.Browser\Hosting\IBlazorStartup.cs" Link="Hosting\IBlazorStartup.cs" />
-    <Compile Include="..\Microsoft.AspNetCore.Blazor.Browser\Services\BrowserUriHelperInterop.cs" Link="Circuits\BrowserUriHelperInterop.cs" />
+    <Compile Include="..\Microsoft.AspNetCore.Components.Browser\Hosting\ConventionBasedStartup.cs" Link="Hosting\ConventionBasedStartup.cs" />
+    <Compile Include="..\Microsoft.AspNetCore.Components.Browser\Hosting\IBlazorStartup.cs" Link="Hosting\IBlazorStartup.cs" />
+    <Compile Include="..\Microsoft.AspNetCore.Components.Browser\Services\BrowserUriHelperInterop.cs" Link="Circuits\BrowserUriHelperInterop.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Blazor.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Components.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Blazor.csproj" />
   </ItemGroup>
 

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
 
     <!-- Shared sources -->
     <Compile Include="..\shared\**\*.cs" Link="Helpers\%(Filename)%(Extension)" />
