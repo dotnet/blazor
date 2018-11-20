@@ -23,9 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HostedInAspNet", "HostedInAspNet", "{4D367450-96E9-4C8C-8B56-EED8ADE3A20D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostedInAspNet.Client", "samples\HostedInAspNet.Client\HostedInAspNet.Client.csproj", "{B4335F7C-4E86-4559-821F-F1B1C75F5FAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostedInAspNet.Client", "blazor\samples\HostedInAspNet.Client\HostedInAspNet.Client.csproj", "{B4335F7C-4E86-4559-821F-F1B1C75F5FAE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostedInAspNet.Server", "samples\HostedInAspNet.Server\HostedInAspNet.Server.csproj", "{F8996835-41F7-4663-91DF-3B5652ADC37D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostedInAspNet.Server", "blazor\samples\HostedInAspNet.Server\HostedInAspNet.Server.csproj", "{F8996835-41F7-4663-91DF-3B5652ADC37D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor", "src\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Blazor.csproj", "{7FD8C650-74B3-4153-AEA1-00F4F6AF393D}"
 EndProject
