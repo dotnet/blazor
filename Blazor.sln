@@ -105,7 +105,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorServerSide-CSharp.Ser
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.E2EPerformance", "benchmarks\Microsoft.AspNetCore.Blazor.E2EPerformance\Microsoft.AspNetCore.Blazor.E2EPerformance.csproj", "{CCEC81C4-1A3C-40DC-952F-074712C46180}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.TagHelperWorkaround", "src\Microsoft.AspNetCore.Blazor.TagHelperWorkaround\Microsoft.AspNetCore.Blazor.TagHelperWorkaround.csproj", "{F71D78AB-A07E-415D-BF3F-1B9991628214}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.TagHelperWorkaround", "src\Microsoft.AspNetCore.Components.TagHelperWorkaround\Microsoft.AspNetCore.Blazor.TagHelperWorkaround.csproj", "{F71D78AB-A07E-415D-BF3F-1B9991628214}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mono.WebAssembly.Interop", "modules\jsinterop\src\Mono.WebAssembly.Interop\Mono.WebAssembly.Interop.csproj", "{37856984-9702-4062-B8B7-91A38AD8F2BF}"
 EndProject
