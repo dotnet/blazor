@@ -36,7 +36,7 @@
     <!-- Ensures these projects are built before the consuming project, but without
          adding a runtime dependency on the .dll (to be equivalent to a <PackageDependency>
          given that the packed version of this project wouldn't add a .dll reference) -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Microsoft.AspNetCore.Blazor.BuildTools\Microsoft.AspNetCore.Blazor.BuildTools.csproj" Targets="Build" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\blazor\src\Microsoft.AspNetCore.Blazor.BuildTools\Microsoft.AspNetCore.Blazor.BuildTools.csproj" Targets="Build" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\mono\mono.csproj" Targets="Build" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)Microsoft.AspNetCore.Blazor.Build.csproj" Targets="Build" />
   </Target>
