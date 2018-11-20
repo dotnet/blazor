@@ -130,7 +130,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Razor.Extensions\Microsoft.AspNetCore.Blazor.Razor.Extensions.csproj">
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Razor.Extensions\Microsoft.AspNetCore.Blazor.Razor.Extensions.csproj">
       <Name>Microsoft.AspNetCore.Blazor.Razor.Extensions</Name>
       <Private>False</Private>
       <IncludeOutputGroupsInVSIX>
@@ -138,7 +138,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Blazor.Razor.Extensions\net461\Microsoft.AspNetCore.Blazor.Razor.Extensions.dll">
+    <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Components.Razor.Extensions\net461\Microsoft.AspNetCore.Blazor.Razor.Extensions.dll">
       <Link>Microsoft.AspNetCore.Blazor.Razor.Extensions.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
