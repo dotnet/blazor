@@ -73,9 +73,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tooling", "tooling", "{F563ABB6-85FB-4CFC-B0D2-1D5130E8246D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.Blazor", "tooling\Microsoft.VisualStudio.LanguageServices.Blazor\Microsoft.VisualStudio.LanguageServices.Blazor.csproj", "{43E39257-7DC1-46BD-9BD9-2319A1313D07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.Blazor", "blazor\tooling\Microsoft.VisualStudio.LanguageServices.Blazor\Microsoft.VisualStudio.LanguageServices.Blazor.csproj", "{43E39257-7DC1-46BD-9BD9-2319A1313D07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.BlazorExtension", "tooling\Microsoft.VisualStudio.BlazorExtension\Microsoft.VisualStudio.BlazorExtension.csproj", "{9088E4E4-B855-457F-AE9E-D86709A5E1F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.BlazorExtension", "blazor\tooling\Microsoft.VisualStudio.BlazorExtension\Microsoft.VisualStudio.BlazorExtension.csproj", "{9088E4E4-B855-457F-AE9E-D86709A5E1F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestContentPackage", "test\testapps\TestContentPackage\TestContentPackage.csproj", "{C57382BC-EE93-49D5-BC40-5C98AF8AA048}"
 EndProject
