@@ -37,6 +37,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures
             var possibleLocations = new[]
             {
                 Path.Combine(solutionDir, "benchmarks", projectName),
+                Path.Combine(solutionDir, "blazor", "benchmarks", projectName),
                 Path.Combine(solutionDir, "samples", projectName),
                 Path.Combine(solutionDir, "test", "testapps", projectName)
             };
