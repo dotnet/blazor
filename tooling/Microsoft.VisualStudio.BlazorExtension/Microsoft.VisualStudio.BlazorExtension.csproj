@@ -138,7 +138,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Components.Razor.Extensions\net461\Microsoft.AspNetCore.Blazor.Razor.Extensions.dll">
+    <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Blazor.Razor.Extensions\net461\Microsoft.AspNetCore.Blazor.Razor.Extensions.dll">
       <Link>Microsoft.AspNetCore.Blazor.Razor.Extensions.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
