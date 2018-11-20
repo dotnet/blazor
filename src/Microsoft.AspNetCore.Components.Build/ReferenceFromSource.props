@@ -10,7 +10,7 @@
   -->
   <PropertyGroup>
     <BlazorBuildReferenceFromSource>true</BlazorBuildReferenceFromSource>
-    <BlazorMonoRuntimeBasePath>$(MSBuildThisFileDirectory)../mono/</BlazorMonoRuntimeBasePath>
+    <BlazorMonoRuntimeBasePath>$(MSBuildThisFileDirectory)../../blazor/src/mono/</BlazorMonoRuntimeBasePath>
     <MonoLinkerPath>$(BlazorMonoRuntimeBasePath)tools/binaries/illink/illink.dll</MonoLinkerPath>
     <MonoBaseClassLibraryPath>$(BlazorMonoRuntimeBasePath)dist/bcl/</MonoBaseClassLibraryPath>
     <MonoBaseClassLibraryFacadesPath>$(BlazorMonoRuntimeBasePath)dist/bcl/Facades/</MonoBaseClassLibraryFacadesPath>
@@ -37,7 +37,7 @@
          adding a runtime dependency on the .dll (to be equivalent to a <PackageDependency>
          given that the packed version of this project wouldn't add a .dll reference) -->
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\blazor\src\Microsoft.AspNetCore.Blazor.BuildTools\Microsoft.AspNetCore.Blazor.BuildTools.csproj" Targets="Build" />
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\mono\mono.csproj" Targets="Build" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\blazor\src\mono\mono.csproj" Targets="Build" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)Microsoft.AspNetCore.Blazor.Build.csproj" Targets="Build" />
   </Target>
 

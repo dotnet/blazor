@@ -10,7 +10,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <Import Project="..\..\blazor\src\Microsoft.AspNetCore.Blazor.BuildTools\BuildToolsExe.props" />
+  <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\BuildToolsExe.props" />
 
   <PropertyGroup>
     <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming\</MonoIncomingDir>

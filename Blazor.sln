@@ -119,7 +119,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{F380
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.JSInterop.Test", "modules\jsinterop\test\Microsoft.JSInterop.Test\Microsoft.JSInterop.Test.csproj", "{ECF02708-4CA4-44B3-B23F-274F4B417FA5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mono", "src\mono\mono.csproj", "{DEEAE26E-D00C-4A3C-BE12-7A51A63CE55E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mono", "blazor\src\mono\mono.csproj", "{DEEAE26E-D00C-4A3C-BE12-7A51A63CE55E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "blazor", "blazor", "{E5DDF29D-DFC9-43E3-AC3A-5B6D54B786D5}"
 EndProject
