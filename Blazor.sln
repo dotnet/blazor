@@ -69,7 +69,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted-CSharp.Server"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorHosted-CSharp.Shared", "src\Microsoft.AspNetCore.Blazor.Templates\content\BlazorHosted-CSharp\BlazorHosted-CSharp.Shared\BlazorHosted-CSharp.Shared.csproj", "{F3E02B21-1127-431A-B832-0E53CB72097B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Razor.Extensions.Test", "test\Microsoft.AspNetCore.Components.Razor.Extensions.TestMicrosoft.AspNetCore.Blazor.Razor.Extensions.Test.csproj", "{FF25111E-5A3E-48A3-96D8-08A2C5A2A91C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Razor.Extensions.Test", "test\Microsoft.AspNetCore.Components.Razor.Extensions.Test\Microsoft.AspNetCore.Blazor.Razor.Extensions.Test.csproj", "{FF25111E-5A3E-48A3-96D8-08A2C5A2A91C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tooling", "tooling", "{F563ABB6-85FB-4CFC-B0D2-1D5130E8246D}"
 EndProject
