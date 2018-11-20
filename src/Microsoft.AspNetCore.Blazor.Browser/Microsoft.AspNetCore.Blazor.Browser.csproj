@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Blazor\Microsoft.AspNetCore.Blazor.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Blazor.csproj" />
     <ProjectReference Include="..\..\modules\jsinterop\src\Mono.WebAssembly.Interop\Mono.WebAssembly.Interop.csproj" />
   </ItemGroup>
 
