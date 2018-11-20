@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\samples\StandaloneApp\StandaloneApp.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Build\Microsoft.AspNetCore.Blazor.Build.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Build\Microsoft.AspNetCore.Blazor.Build.csproj" />
 
     <!-- Shared sources -->
     <Compile Include="..\shared\**\*.cs" Link="Helpers\%(Filename)%(Extension)" />
