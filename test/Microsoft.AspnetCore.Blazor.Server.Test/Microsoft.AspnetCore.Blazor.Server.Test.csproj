@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Blazor.Server\Microsoft.AspNetCore.Blazor.Server.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Server\Microsoft.AspNetCore.Blazor.Server.csproj" />
   </ItemGroup>
 
 </Project>
