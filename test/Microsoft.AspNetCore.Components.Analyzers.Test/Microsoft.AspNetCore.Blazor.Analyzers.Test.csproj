@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Analyzers\Microsoft.AspNetCore.Blazor.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Blazor.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Components.csproj" />
   </ItemGroup>
 
 </Project>

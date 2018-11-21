@@ -79,7 +79,7 @@ namespace Test.AnotherNamespace
             // Arrange
 
             // Act
-            var result = CompileToCSharp("@addTagHelper *, Microsoft.AspNetCore.Blazor");
+            var result = CompileToCSharp("@addTagHelper *, Microsoft.AspNetCore.Components");
 
             // Assert
             var bindings = result.CodeDocument.GetTagHelperContext();

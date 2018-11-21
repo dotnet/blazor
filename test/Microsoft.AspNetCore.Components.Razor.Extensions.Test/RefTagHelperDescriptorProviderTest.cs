@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 "Populates the specified field or property with a reference to the element or component.",
                 item.Documentation);
 
-            Assert.Equal("Microsoft.AspNetCore.Blazor", item.AssemblyName);
+            Assert.Equal("Microsoft.AspNetCore.Components", item.AssemblyName);
             Assert.Equal("Ref", item.Name);
             Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Ref", item.DisplayName);
             Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Ref", item.GetTypeName());

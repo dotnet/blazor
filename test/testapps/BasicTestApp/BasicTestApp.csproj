@@ -12,7 +12,7 @@
   <Import Project="..\..\..\src\Microsoft.AspNetCore.Components.Build\ReferenceFromSource.props" />
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Components.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
-    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Blazor.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Components.csproj" />
     <ProjectReference Include="..\TestContentPackage\TestContentPackage.csproj" />
   </ItemGroup>
   

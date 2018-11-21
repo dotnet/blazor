@@ -7,7 +7,7 @@ namespace Microsoft.AspNetCore.Blazor.Shared
     // Keep these in sync with the actual definitions
     internal static class BlazorApi
     {
-        public static readonly string AssemblyName = "Microsoft.AspNetCore.Blazor";
+        public static readonly string AssemblyName = "Microsoft.AspNetCore.Components";
 
         public static class BlazorComponent
         {

@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             var imports = new List<RazorProjectItem>()
             {
                  new VirtualProjectItem(DefaultUsingImportContent),
-                 new VirtualProjectItem(@"@addTagHelper ""*, Microsoft.AspNetCore.Blazor"""),
+                 new VirtualProjectItem(@"@addTagHelper ""*, Microsoft.AspNetCore.Components"""),
             };
 
             // Try and infer a namespace from the project directory. We don't yet have the ability to pass

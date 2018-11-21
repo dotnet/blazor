@@ -587,7 +587,7 @@ namespace Test
                 bind.Documentation);
 
             // These are all trivially derived from the assembly/namespace/type name
-            Assert.Equal("Microsoft.AspNetCore.Blazor", bind.AssemblyName);
+            Assert.Equal("Microsoft.AspNetCore.Components", bind.AssemblyName);
             Assert.Equal("Bind", bind.Name);
             Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Bind", bind.DisplayName);
             Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Bind", bind.GetTypeName());
