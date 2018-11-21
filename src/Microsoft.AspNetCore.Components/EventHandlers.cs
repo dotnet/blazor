@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Holds <see cref="EventHandler"/> attributes to configure the mappings between event names and

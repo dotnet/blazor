@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components.RenderTree;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Represents a collection of parameters supplied to an <see cref="IComponent"/>

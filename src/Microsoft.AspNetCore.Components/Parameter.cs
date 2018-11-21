@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Represents a single parameter supplied to an <see cref="IComponent"/>

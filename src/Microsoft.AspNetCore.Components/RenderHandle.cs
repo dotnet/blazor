@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Blazor.Rendering;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.RenderTree;
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Allows a component to notify the renderer that it should be rendered.

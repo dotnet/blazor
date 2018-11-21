@@ -1,11 +1,11 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components.RenderTree;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// An enumerator that iterates through a <see cref="ParameterCollection"/>.

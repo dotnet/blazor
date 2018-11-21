@@ -5,7 +5,7 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Methods used internally by @bind syntax. Not intended to be used directly.

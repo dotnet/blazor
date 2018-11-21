@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Denotes the target member as a component parameter.

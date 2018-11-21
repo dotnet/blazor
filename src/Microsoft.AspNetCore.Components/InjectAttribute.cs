@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Indicates that the associated property should have a value injected from the

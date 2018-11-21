@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Indicates that the associated component should match the specified route template pattern.

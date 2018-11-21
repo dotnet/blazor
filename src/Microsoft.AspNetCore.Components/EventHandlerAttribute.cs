@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Components
+namespace Microsoft.AspNetCore.Components
 {
     /// <summary>
     /// Associates an event argument type with an event attribute name.
