@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Blazor.Shared;
+using Microsoft.AspNetCore.Components.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
                 return;
             }
 
-            var bindMethods = compilation.GetTypeByMetadataName(BlazorApi.BindMethods.FullTypeName);
+            var bindMethods = compilation.GetTypeByMetadataName(ComponentsApi.BindMethods.FullTypeName);
             if (bindMethods == null)
             {
                 // If we can't find BindMethods, then just bail. We won't be able to compile the
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private TagHelperDescriptor CreateFallbackBindTagHelper()
         {
-            var builder = TagHelperDescriptorBuilder.Create(BlazorMetadata.Bind.TagHelperKind, "Bind", BlazorApi.AssemblyName);
+            var builder = TagHelperDescriptorBuilder.Create(BlazorMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName);
             builder.Documentation = Resources.BindTagHelper_Fallback_Documentation;
 
             builder.Metadata.Add(BlazorMetadata.SpecialKindKey, BlazorMetadata.Bind.TagHelperKind);
@@ -171,8 +171,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private List<ElementBindData> GetElementBindData(Compilation compilation)
         {
-            var bindElement = compilation.GetTypeByMetadataName(BlazorApi.BindElementAttribute.FullTypeName);
-            var bindInputElement = compilation.GetTypeByMetadataName(BlazorApi.BindInputElementAttribute.FullTypeName);
+            var bindElement = compilation.GetTypeByMetadataName(ComponentsApi.BindElementAttribute.FullTypeName);
+            var bindInputElement = compilation.GetTypeByMetadataName(ComponentsApi.BindInputElementAttribute.FullTypeName);
 
             if (bindElement == null || bindInputElement == null)
             {

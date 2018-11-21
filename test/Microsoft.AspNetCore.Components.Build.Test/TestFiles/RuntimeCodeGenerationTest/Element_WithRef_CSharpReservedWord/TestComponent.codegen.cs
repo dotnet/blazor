@@ -7,7 +7,7 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Components.BlazorComponent
+    public class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Components.RenderTree.RenderTreeBuilder builder)

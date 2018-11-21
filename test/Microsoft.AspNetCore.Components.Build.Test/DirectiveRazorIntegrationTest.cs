@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
 
         public interface ITestInterface2 { }
 
-        public class TestBaseClass : BlazorComponent { }
+        public class TestBaseClass : ComponentBase { }
 
         public interface IMyService1 { }
         public interface IMyService2 { }

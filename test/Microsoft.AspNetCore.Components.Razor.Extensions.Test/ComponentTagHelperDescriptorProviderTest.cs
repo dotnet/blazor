@@ -201,7 +201,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         string MyProperty { get; set; }
@@ -242,7 +242,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         bool MyProperty { get; set; }
@@ -294,7 +294,7 @@ namespace Test
         Two
     }
 
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         MyEnum MyProperty { get; set; }
@@ -340,7 +340,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<T> : BlazorComponent
+    public class MyComponent<T> : ComponentBase
     {
         [Parameter]
         T MyProperty { get; set; }
@@ -397,7 +397,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<T, U, V> : BlazorComponent
+    public class MyComponent<T, U, V> : ComponentBase
     {
         [Parameter]
         T MyProperty1 { get; set; }
@@ -477,7 +477,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         Action<UIMouseEventArgs> OnClick { get; set; }
@@ -526,7 +526,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<T> : BlazorComponent
+    public class MyComponent<T> : ComponentBase
     {
         [Parameter]
         Action<T> OnClick { get; set; }
@@ -587,7 +587,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment ChildContent2 { get; set; }
@@ -643,7 +643,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment<string> ChildContent2 { get; set; }
@@ -714,7 +714,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment<string> ChildContent2 { get; set; }
@@ -788,7 +788,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<T> : BlazorComponent
+    public class MyComponent<T> : ComponentBase
     {
         [Parameter]
         RenderFragment<T> ChildContent2 { get; set; }
@@ -869,7 +869,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<T> : BlazorComponent
+    public class MyComponent<T> : ComponentBase
     {
         [Parameter]
         RenderFragment<List<string>> ChildContent2 { get; set; }
@@ -950,7 +950,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<T> : BlazorComponent
+    public class MyComponent<T> : ComponentBase
     {
         [Parameter]
         RenderFragment<List<T>> ChildContent2 { get; set; }
@@ -1030,7 +1030,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<T> : BlazorComponent
+    public class MyComponent<T> : ComponentBase
     {
         [Parameter]
         RenderFragment<Context> ChildContent2 { get; set; }
@@ -1114,7 +1114,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment ChildContent { get; set; }
@@ -1191,7 +1191,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public abstract class MyBase : BlazorComponent
+    public abstract class MyBase : ComponentBase
     {
         [Parameter]
         protected string Hidden { get; set; }

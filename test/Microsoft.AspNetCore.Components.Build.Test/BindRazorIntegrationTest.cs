@@ -22,7 +22,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         int Value { get; set; }
@@ -60,7 +60,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent, IComponent
+    public class MyComponent : ComponentBase, IComponent
     {
         void IComponent.SetParameters(ParameterCollection parameters)
         {
@@ -96,7 +96,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         int Value { get; set; }
@@ -134,7 +134,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent, IComponent
+    public class MyComponent : ComponentBase, IComponent
     {
         void IComponent.SetParameters(ParameterCollection parameters)
         {

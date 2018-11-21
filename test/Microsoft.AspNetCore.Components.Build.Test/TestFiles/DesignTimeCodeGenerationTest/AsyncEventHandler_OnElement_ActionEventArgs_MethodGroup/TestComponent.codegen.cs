@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 #line default
 #line hidden
     using Microsoft.AspNetCore.Components;
-    public class TestComponent : Microsoft.AspNetCore.Components.BlazorComponent
+    public class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

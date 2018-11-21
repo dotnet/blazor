@@ -27,7 +27,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter] int Value { get; set; }
         [Parameter] Action<int> ValueChanged { get; set; }

@@ -10,20 +10,20 @@ namespace Microsoft.AspNetCore.Components
     // IMPORTANT
     //
     // Many of these names are used in code generation. Keep these in sync with the code generation code
-    // See: src/Microsoft.AspNetCore.Components.Razor.Extensions/BlazorApi.cs
+    // See: src/Microsoft.AspNetCore.Components.Razor.Extensions/ComponentsApi.cs
 
     // Most of the developer-facing component lifecycle concepts are encapsulated in this
-    // base class. The core Blazor rendering system doesn't know about them (it only knows
+    // base class. The core components rendering system doesn't know about them (it only knows
     // about IComponent). This gives us flexibility to change the lifecycle concepts easily,
     // or for developers to design their own lifecycles as different base classes.
 
-    // TODO: When the component lifecycle design stabilises, add proper unit tests for BlazorComponent.
+    // TODO: When the component lifecycle design stabilises, add proper unit tests for ComponentBase.
 
     /// <summary>
-    /// Optional base class for Blazor components. Alternatively, Blazor components may
+    /// Optional base class for components. Alternatively, components may
     /// implement <see cref="IComponent"/> directly.
     /// </summary>
-    public abstract class BlazorComponent : IComponent, IHandleEvent, IHandleAfterRender
+    public abstract class ComponentBase : IComponent, IHandleEvent, IHandleAfterRender
     {
         /// <summary>
         /// Specifies the name of the <see cref="RenderTree"/>-building method.
@@ -37,9 +37,9 @@ namespace Microsoft.AspNetCore.Components
         private bool _hasPendingQueuedRender;
 
         /// <summary>
-        /// Constructs an instance of <see cref="BlazorComponent"/>.
+        /// Constructs an instance of <see cref="ComponentBase"/>.
         /// </summary>
-        public BlazorComponent()
+        public ComponentBase()
         {
             _renderFragment = BuildRenderTree;
         }
@@ -134,12 +134,12 @@ namespace Microsoft.AspNetCore.Components
 
         void IComponent.Init(RenderHandle renderHandle)
         {
-            // This implicitly means a BlazorComponent can only be associated with a single
+            // This implicitly means a ComponentBase can only be associated with a single
             // renderer. That's the only use case we have right now. If there was ever a need,
             // a component could hold a collection of render handles.
             if (_renderHandle.IsInitialized)
             {
-                throw new InvalidOperationException($"The render handle is already set. Cannot initialize a {nameof(BlazorComponent)} more than once.");
+                throw new InvalidOperationException($"The render handle is already set. Cannot initialize a {nameof(ComponentBase)} more than once.");
             }
 
             _renderHandle = renderHandle;

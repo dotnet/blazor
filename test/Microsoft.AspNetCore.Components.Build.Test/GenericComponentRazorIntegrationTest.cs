@@ -23,7 +23,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
-    public class GenericContext<TItem> : BlazorComponent
+    public class GenericContext<TItem> : ComponentBase
     {
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
@@ -62,7 +62,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
-    public class MultipleGenericParameter<TItem1, TItem2, TItem3> : BlazorComponent
+    public class MultipleGenericParameter<TItem1, TItem2, TItem3> : ComponentBase
     {
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {

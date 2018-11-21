@@ -126,7 +126,7 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
-    public class TestComponent : Microsoft.AspNetCore.Components.BlazorComponent
+    public class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Components.RenderTree.RenderTreeBuilder builder)
@@ -157,7 +157,7 @@ namespace Test
             Assert.Equal(1, position.StartLinePosition.Line);
         }
 
-        public class BaseClass : BlazorComponent
+        public class BaseClass : ComponentBase
         {
         }
 

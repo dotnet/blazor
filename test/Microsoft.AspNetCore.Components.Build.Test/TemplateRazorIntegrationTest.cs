@@ -47,7 +47,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
     }
 }
@@ -71,7 +71,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
     }
 }

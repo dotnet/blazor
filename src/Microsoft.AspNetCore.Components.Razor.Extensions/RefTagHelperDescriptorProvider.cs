@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Blazor.Shared;
+using Microsoft.AspNetCore.Components.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using System;
 
@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
 
         private TagHelperDescriptor CreateRefTagHelper()
         {
-            var builder = TagHelperDescriptorBuilder.Create(BlazorMetadata.Ref.TagHelperKind, "Ref", BlazorApi.AssemblyName);
+            var builder = TagHelperDescriptorBuilder.Create(BlazorMetadata.Ref.TagHelperKind, "Ref", ComponentsApi.AssemblyName);
             builder.Documentation = Resources.RefTagHelper_Documentation;
 
             builder.Metadata.Add(BlazorMetadata.SpecialKindKey, BlazorMetadata.Ref.TagHelperKind);

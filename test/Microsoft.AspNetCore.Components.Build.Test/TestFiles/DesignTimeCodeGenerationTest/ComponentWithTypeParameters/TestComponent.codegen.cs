@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Components;
 
 #line default
 #line hidden
-    public class TestComponent<TItem1, TItem2> : Microsoft.AspNetCore.Components.BlazorComponent
+    public class TestComponent<TItem1, TItem2> : Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

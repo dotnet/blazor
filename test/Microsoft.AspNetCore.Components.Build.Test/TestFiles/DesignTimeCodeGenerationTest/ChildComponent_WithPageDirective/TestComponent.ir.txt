@@ -7,7 +7,7 @@ Document -
         UsingDirective - (144:6,1 [37] ) - Microsoft.AspNetCore.Components
         RouteAttributeExtensionNode -  - /MyPage
         RouteAttributeExtensionNode -  - /AnotherRoute/{id}
-        ClassDeclaration -  - public - TestComponent - Microsoft.AspNetCore.Components.BlazorComponent - 
+        ClassDeclaration -  - public - TestComponent - Microsoft.AspNetCore.Components.ComponentBase - 
             DesignTimeDirective - 
                 DirectiveToken - (14:0,14 [36] ) - "*, Microsoft.AspNetCore.Components"
                 DirectiveToken - (14:0,14 [9] ) - "*, Test"

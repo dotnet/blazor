@@ -26,7 +26,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
     }
 }
@@ -56,7 +56,7 @@ namespace Test
     {
     }
 
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter] int IntProperty { get; set; }
         [Parameter] bool BoolProperty { get; set; }
@@ -120,7 +120,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         string StringProperty { get; set; }
@@ -148,7 +148,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
     }
 }
@@ -174,7 +174,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class CoolnessMeter : BlazorComponent
+    public class CoolnessMeter : ComponentBase
     {
         [Parameter] private int Coolness { get; set; }
     }
@@ -212,7 +212,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         int Value { get; set; }
@@ -246,7 +246,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         int Value { get; set; }
@@ -286,7 +286,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent, IComponent
+    public class MyComponent : ComponentBase, IComponent
     {
         void IComponent.SetParameters(ParameterCollection parameters)
         {
@@ -318,7 +318,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         int Value { get; set; }
@@ -351,7 +351,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent, IComponent
+    public class MyComponent : ComponentBase, IComponent
     {
         void IComponent.SetParameters(ParameterCollection parameters)
         {
@@ -580,7 +580,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         string MyAttr { get; set; }
@@ -612,7 +612,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         string MyAttr { get; set; }
@@ -645,7 +645,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         string MyAttr { get; set; }
@@ -681,7 +681,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         string MyAttr { get; set; }
@@ -717,7 +717,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment ChildContent { get; set; }
@@ -746,7 +746,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment ChildContent { get; set; }
@@ -775,7 +775,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment<string> ChildContent { get; set; }
@@ -804,7 +804,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment Header { get; set; }
@@ -839,7 +839,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment<string> Header { get; set; }
@@ -876,7 +876,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         RenderFragment<string> Header { get; set; }
@@ -918,7 +918,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
     }
 }
@@ -952,7 +952,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         Action<UIEventArgs> OnClick { get; set; }
@@ -991,7 +991,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class DynamicElement : BlazorComponent
+    public class DynamicElement : ComponentBase
     {
     }
 }
@@ -1023,7 +1023,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter]
         Action<UIEventArgs> OnClick { get; set; }
@@ -1276,7 +1276,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
     }
@@ -1303,7 +1303,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
     }
@@ -1330,7 +1330,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
     }
@@ -1359,7 +1359,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
     }
@@ -1386,7 +1386,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
     }
@@ -1414,7 +1414,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter]
         TItem Item { get; set; }
@@ -1449,7 +1449,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter]
         TItem Item { get; set; }
@@ -1484,7 +1484,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
     }
 }
@@ -1514,7 +1514,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Value { get; set; }
     }
@@ -1545,7 +1545,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
 
@@ -1577,7 +1577,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
 
@@ -1609,7 +1609,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem1, TItem2> : BlazorComponent
+    public class MyComponent<TItem1, TItem2> : ComponentBase
     {
         [Parameter] TItem1 Item { get; set; }
 
@@ -1652,7 +1652,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem1, TItem2> : BlazorComponent
+    public class MyComponent<TItem1, TItem2> : ComponentBase
     {
         [Parameter] TItem1 Item { get; set; }
 
@@ -1696,7 +1696,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
     }
@@ -1730,7 +1730,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent<TItem> : BlazorComponent
+    public class MyComponent<TItem> : ComponentBase
     {
         [Parameter] TItem Item { get; set; }
     }
@@ -1786,7 +1786,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
     }
 }
@@ -1818,7 +1818,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
     }
 }
@@ -1943,7 +1943,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter] string Name { get; set; }
     }
@@ -1979,7 +1979,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter] string Name { get; set; }
     }
@@ -2019,7 +2019,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter] RenderFragment Template { get; set; }
     }
@@ -2049,7 +2049,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter] RenderFragment<Person> PersonTemplate { get; set; }
     }
@@ -2084,7 +2084,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class MyComponent : BlazorComponent
+    public class MyComponent : ComponentBase
     {
         [Parameter] RenderFragment<Context> Template { get; set; }
     }
@@ -2155,7 +2155,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class SomeOtherComponent : BlazorComponent
+    public class SomeOtherComponent : ComponentBase
     {
     }
 }
@@ -2218,7 +2218,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class SomeOtherComponent : BlazorComponent
+    public class SomeOtherComponent : ComponentBase
     {
     }
 }
@@ -2288,7 +2288,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class Counter : BlazorComponent
+    public class Counter : ComponentBase
     {
         public int Count { get; set; }
     }
@@ -2320,7 +2320,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class User : BlazorComponent
+    public class User : ComponentBase
     {
         public string Name { get; set; }
         public Action<string> NameChanged { get; set; }
@@ -2356,7 +2356,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class SurveyPrompt : BlazorComponent
+    public class SurveyPrompt : ComponentBase
     {
         [Parameter] private string Title { get; set; }
     }
@@ -2395,7 +2395,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
-    public class SurveyPrompt : BlazorComponent
+    public class SurveyPrompt : ComponentBase
     {
         [Parameter] private string Title { get; set; }
     }

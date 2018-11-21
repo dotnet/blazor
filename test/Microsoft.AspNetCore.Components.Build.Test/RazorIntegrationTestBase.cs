@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             var referenceAssemblyRoots = new[]
             {
                 typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly, // System.Runtime
-                typeof(BlazorComponent).Assembly,
+                typeof(ComponentBase).Assembly,
                 typeof(RazorIntegrationTestBase).Assembly, // Reference this assembly, so that we can refer to test component types
             };
 

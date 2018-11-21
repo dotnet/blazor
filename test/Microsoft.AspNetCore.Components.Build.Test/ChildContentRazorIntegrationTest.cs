@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
-    public class RenderChildContent : BlazorComponent
+    public class RenderChildContent : ComponentBase
     {
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
@@ -38,7 +38,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
-    public class RenderChildContentString : BlazorComponent
+    public class RenderChildContentString : ComponentBase
     {
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {
@@ -60,7 +60,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
-    public class RenderMultipleChildContent : BlazorComponent
+    public class RenderMultipleChildContent : ComponentBase
     {
         protected override void BuildRenderTree(RenderTreeBuilder builder)
         {

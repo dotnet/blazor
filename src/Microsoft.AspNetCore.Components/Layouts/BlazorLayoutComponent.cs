@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Components.Layouts
     /// Alternatively, Blazor components may implement <see cref="IComponent"/> directly
     /// and declare their own parameter named <see cref="BlazorLayoutComponent.Body"/>.
     /// </summary>
-    public abstract class BlazorLayoutComponent : BlazorComponent
+    public abstract class BlazorLayoutComponent : ComponentBase
     {
         internal const string BodyPropertyName = nameof(Body);
 

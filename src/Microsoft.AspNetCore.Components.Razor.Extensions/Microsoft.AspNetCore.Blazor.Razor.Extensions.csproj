@@ -31,6 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\shared\BlazorApi.cs" Link="shared\%(Filename)%(Extension)" />
+    <Compile Include="..\shared\ComponentsApi.cs" Link="shared\%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

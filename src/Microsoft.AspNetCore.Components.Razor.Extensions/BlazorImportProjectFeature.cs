@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.AspNetCore.Blazor.Shared;
+using Microsoft.AspNetCore.Components.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Blazor.Razor
@@ -24,8 +24,8 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             "@using System.Collections.Generic\r\n" +
             "@using System.Linq\r\n" +
             "@using System.Threading.Tasks\r\n" +
-            "@using " + BlazorApi.RenderFragment.Namespace + "\r\n" + // Microsoft.AspNetCore.Blazor
-            "@using " + BlazorApi.BlazorComponent.Namespace + "\r\n"; // Microsoft.AspNetCore.Blazor.Components
+            "@using " + ComponentsApi.RenderFragment.Namespace + "\r\n" + // Microsoft.AspNetCore.Blazor
+            "@using " + ComponentsApi.ComponentBase.Namespace + "\r\n"; // Microsoft.AspNetCore.Blazor.Components
 
         public RazorProjectEngine ProjectEngine { get; set; }
 
