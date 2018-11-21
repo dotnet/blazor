@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -48,7 +48,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -116,7 +116,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -144,7 +144,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -170,7 +170,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -208,7 +208,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -242,7 +242,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -282,7 +282,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -314,7 +314,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -347,7 +347,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -378,7 +378,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -408,7 +408,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -576,7 +576,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -608,7 +608,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -641,7 +641,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -677,7 +677,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -713,7 +713,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -742,7 +742,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -771,7 +771,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -800,7 +800,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -835,7 +835,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -872,7 +872,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -914,7 +914,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -948,7 +948,7 @@ namespace Test
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -987,7 +987,7 @@ namespace Test
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1019,7 +1019,7 @@ namespace Test
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1272,7 +1272,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1299,7 +1299,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1326,7 +1326,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1355,7 +1355,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1382,7 +1382,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1410,7 +1410,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1445,7 +1445,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1480,7 +1480,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1510,7 +1510,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1541,7 +1541,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1573,7 +1573,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1605,7 +1605,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1648,7 +1648,7 @@ namespace Test
             AdditionalSyntaxTrees.Add(Parse(@"
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1692,7 +1692,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1726,7 +1726,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1766,7 +1766,7 @@ namespace Test
 <elem attributebefore=""before"" ref=""myElem"" attributeafter=""after"">Hello</elem>
 
 @functions {
-    private Microsoft.AspNetCore.Blazor.ElementRef myElem;
+    private Microsoft.AspNetCore.Components.ElementRef myElem;
     public void Foo() { System.GC.KeepAlive(myElem); }
 }
 ");
@@ -1782,7 +1782,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1814,7 +1814,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1939,7 +1939,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1975,7 +1975,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2015,7 +2015,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2045,7 +2045,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2080,7 +2080,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2151,7 +2151,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2214,7 +2214,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2284,7 +2284,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2316,7 +2316,7 @@ namespace Test
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2352,7 +2352,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -2391,7 +2391,7 @@ Welcome to your new app.
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {

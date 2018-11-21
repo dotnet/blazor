@@ -308,7 +308,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                 @functions {
                     public bool HandlerWasCalled { get; set; } = false;
 
-                    void MyHandleEvent(Microsoft.AspNetCore.Blazor.UIEventArgs eventArgs)
+                    void MyHandleEvent(Microsoft.AspNetCore.Components.UIEventArgs eventArgs)
                     {
                         HandlerWasCalled = true;
                     }

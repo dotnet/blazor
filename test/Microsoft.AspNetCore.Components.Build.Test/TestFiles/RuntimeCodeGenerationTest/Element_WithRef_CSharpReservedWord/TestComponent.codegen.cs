@@ -7,10 +7,10 @@ namespace Test
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    public class TestComponent : Microsoft.AspNetCore.Blazor.Components.BlazorComponent
+    public class TestComponent : Microsoft.AspNetCore.Components.BlazorComponent
     {
         #pragma warning disable 1998
-        protected override void BuildRenderTree(Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder builder)
+        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.RenderTree.RenderTreeBuilder builder)
         {
             base.BuildRenderTree(builder);
             builder.OpenElement(0, "elem");

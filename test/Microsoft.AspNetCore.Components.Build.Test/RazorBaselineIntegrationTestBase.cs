@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
 #else
         protected bool GenerateBaselines { get; } = false;
 #endif
-
+        
         protected string TestProjectRoot { get; }
 
         // For consistent line endings because the character counts are going to be recorded in files.

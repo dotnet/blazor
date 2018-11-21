@@ -15,8 +15,8 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
     {
         private readonly CSharpSyntaxTree RenderChildContentComponent = Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
     public class RenderChildContent : BlazorComponent
@@ -34,8 +34,8 @@ namespace Test
 
         private readonly CSharpSyntaxTree RenderChildContentStringComponent = Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
     public class RenderChildContentString : BlazorComponent
@@ -56,8 +56,8 @@ namespace Test
 
         private readonly CSharpSyntaxTree RenderMultipleChildContent = Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
     public class RenderMultipleChildContent : BlazorComponent

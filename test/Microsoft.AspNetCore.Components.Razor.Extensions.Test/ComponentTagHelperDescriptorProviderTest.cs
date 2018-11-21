@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Blazor.Razor
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -130,7 +130,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -197,7 +197,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -238,7 +238,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -284,7 +284,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -336,7 +336,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -393,7 +393,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -473,8 +473,7 @@ namespace Test
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -506,7 +505,7 @@ namespace Test
 
             var attribute = Assert.Single(component.BoundAttributes);
             Assert.Equal("OnClick", attribute.Name);
-            Assert.Equal("System.Action<Microsoft.AspNetCore.Blazor.UIMouseEventArgs>", attribute.TypeName);
+            Assert.Equal("System.Action<Microsoft.AspNetCore.Components.UIMouseEventArgs>", attribute.TypeName);
 
             Assert.False(attribute.HasIndexer);
             Assert.False(attribute.IsBooleanProperty);
@@ -523,7 +522,7 @@ namespace Test
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
 using System;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -584,8 +583,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -617,7 +615,7 @@ namespace Test
 
             var attribute = Assert.Single(component.BoundAttributes);
             Assert.Equal("ChildContent2", attribute.Name);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment", attribute.TypeName);
+            Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment", attribute.TypeName);
 
             Assert.False(attribute.HasIndexer);
             Assert.False(attribute.IsBooleanProperty);
@@ -641,8 +639,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -677,7 +674,7 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("ChildContent2", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.String>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<System.String>", a.TypeName);
 
                     Assert.False(a.HasIndexer);
                     Assert.False(a.IsBooleanProperty);
@@ -713,8 +710,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -752,7 +748,7 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("ChildContent2", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.String>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<System.String>", a.TypeName);
 
                     Assert.False(a.HasIndexer);
                     Assert.False(a.IsBooleanProperty);
@@ -788,8 +784,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -824,7 +819,7 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("ChildContent2", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<T>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<T>", a.TypeName);
 
                     Assert.False(a.HasIndexer);
                     Assert.False(a.IsBooleanProperty);
@@ -870,8 +865,7 @@ namespace Test
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -906,7 +900,7 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("ChildContent2", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.Collections.Generic.List<System.String>>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<System.Collections.Generic.List<System.String>>", a.TypeName);
 
                     Assert.False(a.HasIndexer);
                     Assert.False(a.IsBooleanProperty);
@@ -952,8 +946,7 @@ namespace Test
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -988,7 +981,7 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("ChildContent2", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.Collections.Generic.List<T>>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<System.Collections.Generic.List<T>>", a.TypeName);
 
                     Assert.False(a.HasIndexer);
                     Assert.False(a.IsBooleanProperty);
@@ -1033,8 +1026,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1074,7 +1066,7 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("ChildContent2", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<Test.MyComponent<T>.Context>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<Test.MyComponent<T>.Context>", a.TypeName);
 
                     Assert.False(a.HasIndexer);
                     Assert.False(a.IsBooleanProperty);
@@ -1118,8 +1110,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -1160,7 +1151,7 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("ChildContent", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment", a.TypeName);
                     Assert.True(a.IsChildContentProperty());
                 },
                 a =>
@@ -1171,13 +1162,13 @@ namespace Test
                 a =>
                 {
                     Assert.Equal("Footer", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.String>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<System.String>", a.TypeName);
                     Assert.True(a.IsChildContentProperty());
                 },
                 a =>
                 {
                     Assert.Equal("Header", a.Name);
-                    Assert.Equal("Microsoft.AspNetCore.Blazor.RenderFragment<System.String>", a.TypeName);
+                    Assert.Equal("Microsoft.AspNetCore.Components.RenderFragment<System.String>", a.TypeName);
                     Assert.True(a.IsChildContentProperty());
                 });
 
@@ -1196,7 +1187,7 @@ namespace Test
             // Arrange
 
             var compilation = BaseCompilation.AddSyntaxTrees(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {

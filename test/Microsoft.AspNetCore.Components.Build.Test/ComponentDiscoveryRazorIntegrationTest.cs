@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test
 {
@@ -42,7 +42,7 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Test.AnotherNamespace
 {
@@ -83,7 +83,7 @@ namespace Test.AnotherNamespace
 
             // Assert
             var bindings = result.CodeDocument.GetTagHelperContext();
-            Assert.Single(bindings.TagHelpers, t => t.Name == "Microsoft.AspNetCore.Blazor.Routing.NavLink");
+            Assert.Single(bindings.TagHelpers, t => t.Name == "Microsoft.AspNetCore.Components.Routing.NavLink");
         }
 
         [Fact]

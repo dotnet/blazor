@@ -19,8 +19,8 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
     public class GenericContext<TItem> : BlazorComponent
@@ -58,8 +58,8 @@ namespace Test
 
         private readonly CSharpSyntaxTree MultipleGenericParameterComponent = Parse(@"
 using Microsoft.AspNetCore.Blazor;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.AspNetCore.Blazor.RenderTree;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
 {
     public class MultipleGenericParameter<TItem1, TItem2, TItem3> : BlazorComponent
