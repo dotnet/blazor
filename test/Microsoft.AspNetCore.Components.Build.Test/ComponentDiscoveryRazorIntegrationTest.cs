@@ -3,7 +3,7 @@
 
 using System.IO;
 using System.Text;
-using Microsoft.AspNetCore.Blazor.Test.Helpers;
+using Microsoft.AspNetCore.Components.Test.Helpers;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;

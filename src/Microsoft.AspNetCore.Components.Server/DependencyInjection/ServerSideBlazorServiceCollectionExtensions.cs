@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Blazor.Hosting;
 using Microsoft.AspNetCore.Blazor.Server;
 using Microsoft.AspNetCore.Blazor.Server.Circuits;
-using Microsoft.AspNetCore.Blazor.Services;
+using Microsoft.AspNetCore.Components.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.JSInterop;
 

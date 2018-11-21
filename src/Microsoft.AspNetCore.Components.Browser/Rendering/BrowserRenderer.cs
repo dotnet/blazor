@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Blazor.Browser.Services;
-using Microsoft.AspNetCore.Blazor.Components;
-using Microsoft.AspNetCore.Blazor.Rendering;
+using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Mono.WebAssembly.Interop;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Blazor.Rendering;
 
 namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
 {

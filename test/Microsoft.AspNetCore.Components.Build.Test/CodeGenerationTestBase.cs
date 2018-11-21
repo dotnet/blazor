@@ -88,7 +88,7 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@using Microsoft.AspNetCore.Blazor;
+@using Microsoft.AspNetCore.Components;
 @typeparam TItem1
 @typeparam TItem2
 

@@ -4,6 +4,7 @@
 using MessagePack;
 using MessagePack.Formatters;
 using Microsoft.AspNetCore.Blazor.Rendering;
+using Microsoft.AspNetCore.Components.Rendering;
 using System;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Circuits

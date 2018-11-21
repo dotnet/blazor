@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Blazor.Shared
 
         public static class BlazorComponent
         {
-            public static readonly string Namespace = "Microsoft.AspNetCore.Blazor.Components";
+            public static readonly string Namespace = "Microsoft.AspNetCore.Components";
             public static readonly string FullTypeName = Namespace + ".BlazorComponent";
             public static readonly string MetadataName = FullTypeName;
 
@@ -20,18 +20,23 @@ namespace Microsoft.AspNetCore.Blazor.Shared
 
         public static class ParameterAttribute
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.ParameterAttribute";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.ParameterAttribute";
             public static readonly string MetadataName = FullTypeName;
         }
 
         public static class LayoutAttribute
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Layouts.LayoutAttribute";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.Layouts.LayoutAttribute";
+        }
+
+        public static class InjectAttribute
+        {
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.InjectAttribute";
         }
 
         public static class IComponent
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.IComponent";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.IComponent";
 
             public static readonly string MetadataName = FullTypeName;
         }
@@ -43,21 +48,21 @@ namespace Microsoft.AspNetCore.Blazor.Shared
 
         public static class RenderFragment
         {
-            public static readonly string Namespace = "Microsoft.AspNetCore.Blazor";
+            public static readonly string Namespace = "Microsoft.AspNetCore.Components";
             public static readonly string FullTypeName = Namespace + ".RenderFragment";
             public static readonly string MetadataName = FullTypeName;
         }
 
         public static class RenderFragmentOfT
         {
-            public static readonly string Namespace = "Microsoft.AspNetCore.Blazor";
+            public static readonly string Namespace = "Microsoft.AspNetCore.Components";
             public static readonly string FullTypeName = Namespace + ".RenderFragment<>";
             public static readonly string MetadataName = Namespace + ".RenderFragment`1";
         }
 
         public static class RenderTreeBuilder
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.RenderTree.RenderTreeBuilder";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.RenderTree.RenderTreeBuilder";
 
             public static readonly string OpenElement = nameof(OpenElement);
 
@@ -86,43 +91,43 @@ namespace Microsoft.AspNetCore.Blazor.Shared
 
         public static class RuntimeHelpers
         {
-            public static readonly string TypeCheck = "Microsoft.AspNetCore.Blazor.Components.RuntimeHelpers.TypeCheck";
+            public static readonly string TypeCheck = "Microsoft.AspNetCore.Components.RuntimeHelpers.TypeCheck";
         }
 
         public static class RouteAttribute
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.RouteAttribute";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.RouteAttribute";
         }
 
         public static class BindElementAttribute
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.BindElementAttribute";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.BindElementAttribute";
         }
 
         public static class BindInputElementAttribute
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.BindInputElementAttribute";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.BindInputElementAttribute";
         }
 
         public static class BindMethods
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.BindMethods";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.BindMethods";
 
-            public static readonly string GetValue = "Microsoft.AspNetCore.Blazor.Components.BindMethods.GetValue";
+            public static readonly string GetValue = "Microsoft.AspNetCore.Components.BindMethods.GetValue";
 
-            public static readonly string GetEventHandlerValue = "Microsoft.AspNetCore.Blazor.Components.BindMethods.GetEventHandlerValue";
+            public static readonly string GetEventHandlerValue = "Microsoft.AspNetCore.Components.BindMethods.GetEventHandlerValue";
 
-            public static readonly string SetValueHandler = "Microsoft.AspNetCore.Blazor.Components.BindMethods.SetValueHandler";
+            public static readonly string SetValueHandler = "Microsoft.AspNetCore.Components.BindMethods.SetValueHandler";
         }
 
         public static class EventHandlerAttribute
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.Components.EventHandlerAttribute";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.EventHandlerAttribute";
         }
 
         public static class ElementRef
         {
-            public static readonly string FullTypeName = "Microsoft.AspNetCore.Blazor.ElementRef";
+            public static readonly string FullTypeName = "Microsoft.AspNetCore.Components.ElementRef";
         }
     }
 }
