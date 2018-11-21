@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         public static string GetProjectDirectory(Type type)
         {
-            var solutionDir = GetSolutionRootDirectory("Blazor");
+            var solutionDir = GetSolutionRootDirectory("Components");
 
             var assemblyName = type.Assembly.GetName().Name;
 
