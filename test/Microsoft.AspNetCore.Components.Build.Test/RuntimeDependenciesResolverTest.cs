@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
             var references = new[]
             {
                 "Microsoft.AspNetCore.Blazor.Browser.dll",
-                "Microsoft.AspNetCore.Blazor.dll",
+                "Microsoft.AspNetCore.Components.dll",
                 "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
                 "Microsoft.Extensions.DependencyInjection.dll",
                 "Microsoft.JSInterop.dll",
@@ -59,8 +59,8 @@ namespace Microsoft.AspNetCore.Blazor.Build.Test
                  */
                 "Microsoft.AspNetCore.Blazor.Browser.dll",
                 "Microsoft.AspNetCore.Blazor.Browser.pdb",
-                "Microsoft.AspNetCore.Blazor.dll",
-                "Microsoft.AspNetCore.Blazor.pdb",
+                "Microsoft.AspNetCore.Components.dll",
+                "Microsoft.AspNetCore.Components.pdb",
                 "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
                 "Microsoft.Extensions.DependencyInjection.dll",
                 "Microsoft.JSInterop.dll",
