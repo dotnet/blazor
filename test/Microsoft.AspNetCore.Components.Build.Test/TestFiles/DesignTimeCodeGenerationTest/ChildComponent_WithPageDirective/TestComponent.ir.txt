@@ -10,7 +10,7 @@ Document -
         RouteAttributeExtensionNode -  - /AnotherRoute/{id}
         ClassDeclaration -  - public - TestComponent - Microsoft.AspNetCore.Blazor.Components.BlazorComponent - 
             DesignTimeDirective - 
-                DirectiveToken - (14:0,14 [32] ) - "*, Microsoft.AspNetCore.Blazor"
+                DirectiveToken - (14:0,14 [36] ) - "*, Microsoft.AspNetCore.Components"
                 DirectiveToken - (14:0,14 [9] ) - "*, Test"
                 DirectiveToken - (14:0,14 [15] x:\dir\subdir\Test\TestComponent.cshtml) - *, TestAssembly
                 DirectiveToken - (37:1,6 [9] x:\dir\subdir\Test\TestComponent.cshtml) - "/MyPage"

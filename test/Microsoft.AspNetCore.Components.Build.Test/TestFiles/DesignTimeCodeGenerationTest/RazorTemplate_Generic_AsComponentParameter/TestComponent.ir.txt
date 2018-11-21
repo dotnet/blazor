@@ -8,7 +8,7 @@ Document -
         UsingDirective - (140:6,1 [44] ) - Microsoft.AspNetCore.Blazor.Components
         ClassDeclaration -  - public - TestComponent - Microsoft.AspNetCore.Blazor.Components.BlazorComponent - 
             DesignTimeDirective - 
-                DirectiveToken - (14:0,14 [32] ) - "*, Microsoft.AspNetCore.Blazor"
+                DirectiveToken - (14:0,14 [36] ) - "*, Microsoft.AspNetCore.Components"
                 DirectiveToken - (14:0,14 [9] ) - "*, Test"
                 DirectiveToken - (14:0,14 [17] x:\dir\subdir\Test\TestComponent.cshtml) - "*, TestAssembly"
             CSharpCode - 
