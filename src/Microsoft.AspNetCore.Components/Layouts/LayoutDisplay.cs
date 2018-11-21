@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Components.Layouts
             builder.OpenComponent(0, componentType);
             if (bodyParam != null)
             {
-                builder.AddAttribute(1, BlazorLayoutComponent.BodyPropertyName, bodyParam);
+                builder.AddAttribute(1, LayoutComponentBase.BodyPropertyName, bodyParam);
             }
             else
             {

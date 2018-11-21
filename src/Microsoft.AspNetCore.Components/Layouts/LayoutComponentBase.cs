@@ -1,16 +1,14 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using Microsoft.AspNetCore.Components;
 
 namespace Microsoft.AspNetCore.Components.Layouts
 {
     /// <summary>
     /// Optional base class for components that represent a layout.
-    /// Alternatively, Blazor components may implement <see cref="IComponent"/> directly
-    /// and declare their own parameter named <see cref="BlazorLayoutComponent.Body"/>.
+    /// Alternatively, components may implement <see cref="IComponent"/> directly
+    /// and declare their own parameter named <see cref="Body"/>.
     /// </summary>
-    public abstract class BlazorLayoutComponent : ComponentBase
+    public abstract class LayoutComponentBase : ComponentBase
     {
         internal const string BodyPropertyName = nameof(Body);
 
