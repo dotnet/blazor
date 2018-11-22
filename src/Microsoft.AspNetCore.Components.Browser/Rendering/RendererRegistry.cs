@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Microsoft.AspNetCore.Blazor.Rendering
+namespace Microsoft.AspNetCore.Components.Rendering
 {
     // Provides mechanisms for locating <see cref="Renderer"/> instances
     // by ID. This is used when receiving incoming events. It also implicitly

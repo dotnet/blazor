@@ -3,7 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Components.Browser.Rendering;
-using Microsoft.AspNetCore.Blazor.Rendering;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;

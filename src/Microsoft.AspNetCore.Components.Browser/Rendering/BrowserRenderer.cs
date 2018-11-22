@@ -3,12 +3,10 @@
 
 using Microsoft.AspNetCore.Components.Browser.Services;
 using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Mono.WebAssembly.Interop;
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Blazor.Rendering;
 
 namespace Microsoft.AspNetCore.Components.Browser.Rendering
 {

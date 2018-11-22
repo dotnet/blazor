@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.JSInterop;
-using Microsoft.AspNetCore.Blazor.Rendering;
+using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Microsoft.AspNetCore.Components.Browser.Rendering
 {
