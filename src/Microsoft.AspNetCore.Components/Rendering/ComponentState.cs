@@ -109,6 +109,8 @@ namespace Microsoft.AspNetCore.Components.Rendering
             }
         }
 
+        public void NotifyRenderStart()
+            => (_component as IHandleBeforeRender)?.OnBeforeRender();
         public void NotifyRenderCompleted()
             => (_component as IHandleAfterRender)?.OnAfterRender();
 

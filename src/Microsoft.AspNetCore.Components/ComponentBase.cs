@@ -23,7 +23,8 @@ namespace Microsoft.AspNetCore.Components
     /// Optional base class for components. Alternatively, components may
     /// implement <see cref="IComponent"/> directly.
     /// </summary>
-    public abstract class ComponentBase : IComponent, IHandleEvent, IHandleAfterRender
+    public abstract class ComponentBase : IComponent, IHandleEvent,
+        IHandleBeforeRender, IHandleAfterRender
     {
         /// <summary>
         /// Specifies the name of the <see cref="RenderTree"/>-building method.
@@ -115,6 +116,22 @@ namespace Microsoft.AspNetCore.Components
         /// <returns></returns>
         protected virtual bool ShouldRender()
             => true;
+
+        /// <summary>
+        /// Method invoked just prior to the component is rendered.
+        /// </summary>
+        protected virtual void OnBeforeRender()
+        {
+        }
+
+        /// <summary>
+        /// Method invoked just prior to the component is rendered. Note that the component does
+        /// not automatically re-render after the completion of any returned <see cref="Task"/>, because
+        /// that would cause an infinite render loop.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing any asynchronous operation.</returns>
+        protected virtual Task OnBeforeRenderAsync()
+            => Task.CompletedTask;
 
         /// <summary>
         /// Method invoked after each time the component has been rendered.
@@ -217,6 +234,24 @@ namespace Microsoft.AspNetCore.Components
             task.ContinueWith(ContinueAfterLifecycleTask);
         }
 
+
+        void IHandleBeforeRender.OnBeforeRender()
+        {
+            OnBeforeRender();
+
+            var onBeforeRenderTask = OnBeforeRenderAsync();
+            if (onBeforeRenderTask != null && onBeforeRenderTask.Status != TaskStatus.RanToCompletion)
+            {
+                onBeforeRenderTask.ContinueWith(task =>
+                {
+                    if (task.Exception != null)
+                    {
+                        HandleException(task.Exception);
+                    }
+                });
+            }
+        }
+
         void IHandleAfterRender.OnAfterRender()
         {
             OnAfterRender();
@@ -239,5 +274,6 @@ namespace Microsoft.AspNetCore.Components
                 });
             }
         }
+
     }
 }

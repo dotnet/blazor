@@ -190,6 +190,8 @@ namespace Microsoft.AspNetCore.Components.Rendering
                 }
 
                 var batch = _batchBuilder.ToBatch();
+
+                InvokeRenderStartCalls(batch.UpdatedComponents);
                 updateDisplayTask = UpdateDisplayAsync(batch);
                 InvokeRenderCompletedCalls(batch.UpdatedComponents);
             }
@@ -198,6 +200,15 @@ namespace Microsoft.AspNetCore.Components.Rendering
                 RemoveEventHandlerIds(_batchBuilder.DisposedEventHandlerIds.ToRange(), updateDisplayTask);
                 _batchBuilder.Clear();
                 _isBatchInProgress = false;
+            }
+        }
+
+        private void InvokeRenderStartCalls(ArrayRange<RenderTreeDiff> updatedComponents)
+        {
+            var array = updatedComponents.Array;
+            for (var i = 0; i < updatedComponents.Count; i++)
+            {
+                GetOptionalComponentState(array[i].ComponentId)?.NotifyRenderStart();
             }
         }
 
