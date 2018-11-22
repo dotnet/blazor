@@ -4,7 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Blazor.Browser.Rendering;
+using Microsoft.AspNetCore.Components.Browser.Rendering;
 using Microsoft.AspNetCore.Blazor.Builder;
 using Microsoft.AspNetCore.Blazor.Hosting;
 using Microsoft.AspNetCore.Blazor.Rendering;

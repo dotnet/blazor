@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Components.Browser\Microsoft.AspNetCore.Blazor.Browser.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Components.Browser\Microsoft.AspNetCore.Components.Browser.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Components.csproj" />
   </ItemGroup>
 

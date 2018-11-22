@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
+namespace Microsoft.AspNetCore.Components.Browser.Rendering
 {
     /// <summary>
     /// Provides mechanisms for dispatching events to components in a <see cref="BrowserRenderer"/>.

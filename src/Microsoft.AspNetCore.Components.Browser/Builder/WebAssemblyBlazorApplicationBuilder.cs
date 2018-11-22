@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Blazor.Browser.Rendering;
+using Microsoft.AspNetCore.Components.Browser.Rendering;
 using Microsoft.AspNetCore.Blazor.Builder;
 
 namespace Microsoft.AspNetCore.Blazor.Hosting

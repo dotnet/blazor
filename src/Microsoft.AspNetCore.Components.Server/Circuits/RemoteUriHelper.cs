@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Components.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
-using Interop = Microsoft.AspNetCore.Blazor.Browser.Services.BrowserUriHelperInterop;
+using Interop = Microsoft.AspNetCore.Components.Browser.Services.BrowserUriHelperInterop;
 
 namespace Microsoft.AspNetCore.Blazor.Server.Circuits
 {

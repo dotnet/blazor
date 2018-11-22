@@ -4,9 +4,9 @@
 using System;
 using Microsoft.AspNetCore.Components.Services;
 using Microsoft.JSInterop;
-using Interop = Microsoft.AspNetCore.Blazor.Browser.Services.BrowserUriHelperInterop;
+using Interop = Microsoft.AspNetCore.Components.Browser.Services.BrowserUriHelperInterop;
 
-namespace Microsoft.AspNetCore.Blazor.Browser.Services
+namespace Microsoft.AspNetCore.Components.Browser.Services
 {
     /// <summary>
     /// Default browser implementation of <see cref="IUriHelper"/>.

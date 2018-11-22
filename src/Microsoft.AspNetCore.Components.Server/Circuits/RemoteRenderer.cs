@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Blazor.Rendering;
 
-namespace Microsoft.AspNetCore.Blazor.Browser.Rendering
+namespace Microsoft.AspNetCore.Components.Browser.Rendering
 {
     internal class RemoteRenderer : Renderer
     {
