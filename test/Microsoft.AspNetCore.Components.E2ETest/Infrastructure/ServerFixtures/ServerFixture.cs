@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.AspNetCore.Blazor.E2ETest.Infrastructure.ServerFixtures
+namespace Microsoft.AspNetCore.Components.E2ETest.Infrastructure.ServerFixtures
 {
     public abstract class ServerFixture : IDisposable
     {
