@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.AspNetCore.Blazor.Server.Circuits
+namespace Microsoft.AspNetCore.Components.Server.Circuits
 {
     // TODO: We should consider *not* having this type of infrastructure in the .Server
     // project, but instead in some new project called .Remote or similar, since it

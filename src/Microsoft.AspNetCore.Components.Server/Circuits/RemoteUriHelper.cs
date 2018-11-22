@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Interop = Microsoft.AspNetCore.Components.Browser.Services.BrowserUriHelperInterop;
 
-namespace Microsoft.AspNetCore.Blazor.Server.Circuits
+namespace Microsoft.AspNetCore.Components.Server.Circuits
 {
     /// <summary>
     /// A Server-Side Blazor implementation of <see cref="IUriHelper"/>.

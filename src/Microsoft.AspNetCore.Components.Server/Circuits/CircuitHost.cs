@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
-namespace Microsoft.AspNetCore.Blazor.Server.Circuits
+namespace Microsoft.AspNetCore.Components.Server.Circuits
 {
     internal class CircuitHost : IDisposable
     {

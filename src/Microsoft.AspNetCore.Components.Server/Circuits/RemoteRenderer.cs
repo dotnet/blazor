@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Blazor.Server.Circuits;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Blazor.Rendering;
