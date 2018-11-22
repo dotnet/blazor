@@ -3,7 +3,7 @@
     {
       "certificate": "Microsoft400",
       "values": [
-        "bin/Microsoft.AspNetCore.Blazor.Analyzers/netstandard1.3/Microsoft.AspNetCore.Blazor.Analyzers.dll",
+        "bin/Microsoft.AspNetCore.Components.Analyzers/netstandard1.3/Microsoft.AspNetCore.Components.Analyzers.dll",
         "bin/Microsoft.AspNetCore.Components.Browser.JS/netcoreapp2.1/Microsoft.AspNetCore.Components.Browser.JS.dll",
         "bin/Microsoft.AspNetCore.Components.Browser/netstandard2.0/Microsoft.AspNetCore.Components.Browser.dll",
         "bin/Microsoft.AspNetCore.Blazor.Server/netstandard2.0/Microsoft.AspNetCore.Blazor.Server.dll",
