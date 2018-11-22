@@ -10,7 +10,7 @@
         <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components\Microsoft.AspNetCore.Components.csproj" />
     </ItemGroup>
 
-    <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" /> -->
+    <!-- Local alternative to <PackageReference Include="Microsoft.AspNetCore.Components.Build" /> -->
     <Import Project="..\..\src\Microsoft.AspNetCore.Components.Build\ReferenceFromSource.props" />
 
 </Project>

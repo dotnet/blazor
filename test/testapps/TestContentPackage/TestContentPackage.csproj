@@ -22,7 +22,7 @@
     <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.Components.Browser\Microsoft.AspNetCore.Components.Browser.csproj" />
   </ItemGroup>
 
-  <!-- In real content packages, use a <PackageReference> to Microsoft.AspNetCore.Blazor.Build instead. -->
+  <!-- In real content packages, use a <PackageReference> to Microsoft.AspNetCore.Components.Build instead. -->
   <Import Project="..\..\..\src\Microsoft.AspNetCore.Components.Build\ReferenceFromSource.props" />
 
 </Project>

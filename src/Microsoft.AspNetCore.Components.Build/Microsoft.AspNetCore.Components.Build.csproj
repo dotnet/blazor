@@ -9,7 +9,7 @@
   <!-- Pack settings -->
   <PropertyGroup>
     <NoPackageAnalysis>true</NoPackageAnalysis>
-    <NuspecFile>Microsoft.AspNetCore.Blazor.Build.nuspec</NuspecFile>
+    <NuspecFile>Microsoft.AspNetCore.Components.Build.nuspec</NuspecFile>
     <IntermediatePackDir>$(OutputPath)publish\</IntermediatePackDir>
     <PublishDir>$(IntermediatePackDir)$(TargetFramework)/</PublishDir>
   </PropertyGroup>

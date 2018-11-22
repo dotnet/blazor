@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Components.Layouts;
 using Microsoft.AspNetCore.Components.Test.Helpers;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Test
+namespace Microsoft.AspNetCore.Components.Build.Test
 {
     // Integration tests for Blazor's directives
     public class DirectiveRazorIntegrationTest : RazorIntegrationTestBase

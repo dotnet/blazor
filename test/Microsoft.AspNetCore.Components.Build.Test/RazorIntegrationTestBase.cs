@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Xunit;
 using Xunit.Sdk;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Test
+namespace Microsoft.AspNetCore.Components.Build.Test
 {
     public class RazorIntegrationTestBase
     {

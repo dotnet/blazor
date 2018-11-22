@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Components;
 
-namespace Microsoft.AspNetCore.Blazor.Builder
+namespace Microsoft.AspNetCore.Components.Builder
 {
     /// <summary>
     /// A builder for constructing a Blazor application.

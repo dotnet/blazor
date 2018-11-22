@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.AspNetCore.Components.Test.Helpers;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Test
+namespace Microsoft.AspNetCore.Components.Build.Test
 {
     // Integration tests for the end-to-end of successful Razor compilation of component definitions
     // Includes running the component code to verify the output.

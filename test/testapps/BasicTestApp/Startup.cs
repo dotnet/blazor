@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Components.Browser.Http;
 using Microsoft.AspNetCore.Components.Browser.Services;
-using Microsoft.AspNetCore.Blazor.Builder;
+using Microsoft.AspNetCore.Components.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Runtime.InteropServices;

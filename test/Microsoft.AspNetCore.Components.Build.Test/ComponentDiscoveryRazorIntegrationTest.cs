@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Test
+namespace Microsoft.AspNetCore.Components.Build.Test
 {
     public class ComponentDiscoveryRazorIntegrationTest : RazorIntegrationTestBase
     {

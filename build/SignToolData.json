@@ -8,7 +8,7 @@
         "bin/Microsoft.AspNetCore.Components.Browser/netstandard2.0/Microsoft.AspNetCore.Components.Browser.dll",
         "bin/Microsoft.AspNetCore.Components.Server/netstandard2.0/Microsoft.AspNetCore.Components.Server.dll",
         "bin/Microsoft.AspNetCore.Components.TagHelperWorkaround/netstandard1.0/Microsoft.AspNetCore.Components.TagHelperWorkaround.dll",
-        "bin/Microsoft.AspNetCore.Blazor.Build/netcoreapp2.1/Microsoft.AspNetCore.Blazor.Build.dll",
+        "bin/Microsoft.AspNetCore.Components.Build/netcoreapp2.1/Microsoft.AspNetCore.Components.Build.dll",
         "bin/Microsoft.AspNetCore.Blazor.Cli/netcoreapp2.1/dotnet-blazor.dll",
         "bin/Microsoft.AspNetCore.Components.Razor.Extensions/net461/Microsoft.AspNetCore.Components.Razor.Extensions.dll",
         "bin/Microsoft.AspNetCore.Components.Razor.Extensions/netstandard2.0/Microsoft.AspNetCore.Components.Razor.Extensions.dll",
@@ -22,7 +22,7 @@
     {
       "certificate": "3PartySHA2",
       "values": [
-        "bin/Microsoft.AspNetCore.Blazor.Build/netcoreapp2.1/AngleSharp.dll",
+        "bin/Microsoft.AspNetCore.Components.Build/netcoreapp2.1/AngleSharp.dll",
         "bin/Microsoft.VisualStudio.BlazorExtension/AngleSharp.dll"
       ]
     },

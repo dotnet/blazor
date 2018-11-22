@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Components.Test.Helpers;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Test
+namespace Microsoft.AspNetCore.Components.Build.Test
 {
     public class ChildContentRazorIntegrationTest : RazorIntegrationTestBase
     {

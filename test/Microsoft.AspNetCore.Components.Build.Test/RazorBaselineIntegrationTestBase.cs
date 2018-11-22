@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Xunit;
 using Xunit.Sdk;
 
-namespace Microsoft.AspNetCore.Blazor.Build.Test
+namespace Microsoft.AspNetCore.Components.Build.Test
 {
     [InitializeTestFile]
     public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBase

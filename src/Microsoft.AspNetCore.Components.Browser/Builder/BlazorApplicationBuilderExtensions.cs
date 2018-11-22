@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Components;
 
-namespace Microsoft.AspNetCore.Blazor.Builder
+namespace Microsoft.AspNetCore.Components.Builder
 {
     /// <summary>
     /// Provides extension methods for <see cref="IBlazorApplicationBuilder"/>.
