@@ -14,7 +14,6 @@ namespace Microsoft.AspNetCore.Components.Build.Test
     public class ChildContentRazorIntegrationTest : RazorIntegrationTestBase
     {
         private readonly CSharpSyntaxTree RenderChildContentComponent = Parse(@"
-using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
@@ -33,7 +32,6 @@ namespace Test
 ");
 
         private readonly CSharpSyntaxTree RenderChildContentStringComponent = Parse(@"
-using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
@@ -55,7 +53,6 @@ namespace Test
 ");
 
         private readonly CSharpSyntaxTree RenderMultipleChildContent = Parse(@"
-using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test

@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Components.Build.Test
         private readonly CSharpSyntaxTree GenericContextComponent = Parse(@"
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test
@@ -57,7 +56,6 @@ namespace Test
 ");
 
         private readonly CSharpSyntaxTree MultipleGenericParameterComponent = Parse(@"
-using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 namespace Test

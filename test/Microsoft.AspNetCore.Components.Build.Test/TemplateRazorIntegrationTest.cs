@@ -42,7 +42,6 @@ namespace Microsoft.AspNetCore.Components.Build.Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Components;
 
 namespace Test
@@ -66,7 +65,6 @@ namespace Test
         {
             // Arrange
             AdditionalSyntaxTrees.Add(Parse(@"
-using Microsoft.AspNetCore.Blazor;
 using Microsoft.AspNetCore.Components;
 
 namespace Test
