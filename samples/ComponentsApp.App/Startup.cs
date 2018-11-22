@@ -4,7 +4,7 @@
 using Microsoft.AspNetCore.Components.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ServerSideBlazor.Client
+namespace ComponentsApp.App
 {
     public class Startup
     {

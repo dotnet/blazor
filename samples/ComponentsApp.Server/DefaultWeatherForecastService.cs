@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Newtonsoft.Json;
 
-namespace ServerSideBlazor.Server
+namespace ComponentsApp.Server
 {
     public class DefaultWeatherForecastService : WeatherForecastService
     {

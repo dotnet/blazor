@@ -81,11 +81,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Compon
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Components.Server.Test", "test\Microsoft.AspNetCore.Components.Server.Test\Microsoft.AspNetCore.Components.Server.Test.csproj", "{142AA6BC-5110-486B-A34D-6878E5E2CE95}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServerSideBlazor", "ServerSideBlazor", "{3173A9C0-4F66-4064-83EC-3C206F1430FB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ComponentsApp", "ComponentsApp", "{3173A9C0-4F66-4064-83EC-3C206F1430FB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerSideBlazor.Server", "samples\ServerSideBlazor.Server\ServerSideBlazor.Server.csproj", "{5655AFF9-612C-4947-8221-7DB6949A6CA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComponentsApp.Server", "samples\ComponentsApp.Server\ComponentsApp.Server.csproj", "{5655AFF9-612C-4947-8221-7DB6949A6CA4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerSideBlazor.Client", "samples\ServerSideBlazor.Client\ServerSideBlazor.Client.csproj", "{33C361D8-CAF1-47C0-A344-251AEF4FE1FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComponentsApp.App", "samples\ComponentsApp.App\ComponentsApp.App.csproj", "{33C361D8-CAF1-47C0-A344-251AEF4FE1FE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BlazorServerSide-CSharp", "BlazorServerSide-CSharp", "{6BDD3018-3961-488E-97D3-1FB7320A8AC6}"
 EndProject

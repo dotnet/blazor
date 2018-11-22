@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Components.Hosting;
 
-namespace ServerSideBlazor.Client
+namespace ComponentsApp.App
 {
     public class Program
     {

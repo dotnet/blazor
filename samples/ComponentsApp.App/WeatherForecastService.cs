@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace ServerSideBlazor
+namespace ComponentsApp
 {
     public abstract class WeatherForecastService
     {

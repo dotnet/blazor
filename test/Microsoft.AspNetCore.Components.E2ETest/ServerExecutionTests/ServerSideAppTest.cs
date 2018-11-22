@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Components.E2ETest.ServerExecutionTests
             : base(browserFixture, serverFixture, output)
         {
             _serverFixture.Environment = AspNetEnvironment.Development;
-            _serverFixture.BuildWebHostMethod = ServerSideBlazor.Server.Program.BuildWebHost;
+            _serverFixture.BuildWebHostMethod = ComponentsApp.Server.Program.BuildWebHost;
 
             Navigate("/", noReload: false);
             WaitUntilLoaded();
