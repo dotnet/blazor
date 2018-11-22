@@ -73,7 +73,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestContentPackage", "test\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{36A7DEB7-5F88-4BFB-B57E-79EEC9950E25}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Performance", "benchmarks\Microsoft.AspNetCore.Components.Performance\Microsoft.AspNetCore.Blazor.Performance.csproj", "{50F6820F-D058-4E68-9E15-801F893F514E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Components.Performance", "benchmarks\Microsoft.AspNetCore.Components.Performance\Microsoft.AspNetCore.Components.Performance.csproj", "{50F6820F-D058-4E68-9E15-801F893F514E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Components.Analyzers", "src\Microsoft.AspNetCore.Components.Analyzers\Microsoft.AspNetCore.Components.Analyzers.csproj", "{6DDD6A29-0A3E-417F-976C-5FE3FDA74055}"
 EndProject

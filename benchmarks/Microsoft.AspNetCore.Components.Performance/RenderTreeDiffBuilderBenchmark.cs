@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.RenderTree;
 
-namespace Microsoft.AspNetCore.Blazor.Performance
+namespace Microsoft.AspNetCore.Components.Performance
 {
     public class RenderTreeDiffBuilderBenchmark
     {
