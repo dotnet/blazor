@@ -33,6 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\blazor\samples\StandaloneApp\StandaloneApp.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Build\Microsoft.AspNetCore.Blazor.Build.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Razor.Extensions\Microsoft.AspNetCore.Components.Razor.Extensions.csproj" />
 
     <!-- Shared sources -->
     <Compile Include="..\shared\**\*.cs" Link="Helpers\%(Filename)%(Extension)" />
@@ -42,9 +43,5 @@
   <Target Name="CreateReferenceHintPathsList" AfterTargets="Build">
     <WriteLinesToFile Lines="@(ReferencePath)" File="$(TargetDir)referenceHints.txt" WriteOnlyWhenDifferent="true" Overwrite="true" />
   </Target>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Components.Razor.Extensions\Microsoft.AspNetCore.Blazor.Razor.Extensions.csproj" />
-  </ItemGroup>
 
 </Project>
