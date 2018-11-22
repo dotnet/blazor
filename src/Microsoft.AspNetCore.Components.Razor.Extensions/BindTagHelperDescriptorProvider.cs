@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Components.Razor
 
             // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
             // a C# property will crash trying to create the toolips.
-            builder.SetTypeName("Microsoft.AspNetCore.Blazor.Components.Bind");
+            builder.SetTypeName("Microsoft.AspNetCore.Components.Bind");
 
             builder.TagMatchingRule(rule =>
             {

@@ -589,8 +589,8 @@ namespace Test
             // These are all trivially derived from the assembly/namespace/type name
             Assert.Equal("Microsoft.AspNetCore.Components", bind.AssemblyName);
             Assert.Equal("Bind", bind.Name);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Bind", bind.DisplayName);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Bind", bind.GetTypeName());
+            Assert.Equal("Microsoft.AspNetCore.Components.Bind", bind.DisplayName);
+            Assert.Equal("Microsoft.AspNetCore.Components.Bind", bind.GetTypeName());
 
             // The tag matching rule for a bind-Component is always the component name + the attribute name
             var rule = Assert.Single(bind.TagMatchingRules);
@@ -632,7 +632,7 @@ namespace Test
             Assert.Equal("bind-...", attribute.Name);
             Assert.Equal("Bind", attribute.GetPropertyName());
             Assert.Equal(
-                "System.Collections.Generic.Dictionary<string, object> Microsoft.AspNetCore.Blazor.Components.Bind.Bind",
+                "System.Collections.Generic.Dictionary<string, object> Microsoft.AspNetCore.Components.Bind.Bind",
                 attribute.DisplayName);
 
             // Defined from the property type
@@ -664,7 +664,7 @@ namespace Test
             Assert.Equal("format-...", attribute.Name);
             Assert.Equal("Format", attribute.GetPropertyName());
             Assert.Equal(
-                "System.Collections.Generic.Dictionary<string, string> Microsoft.AspNetCore.Blazor.Components.Bind.Format",
+                "System.Collections.Generic.Dictionary<string, string> Microsoft.AspNetCore.Components.Bind.Format",
                 attribute.DisplayName);
 
             // Defined from the property type

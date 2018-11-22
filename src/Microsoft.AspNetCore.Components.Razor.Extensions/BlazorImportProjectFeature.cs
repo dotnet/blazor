@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -24,8 +24,7 @@ namespace Microsoft.AspNetCore.Components.Razor
             "@using System.Collections.Generic\r\n" +
             "@using System.Linq\r\n" +
             "@using System.Threading.Tasks\r\n" +
-            "@using " + ComponentsApi.RenderFragment.Namespace + "\r\n" + // Microsoft.AspNetCore.Blazor
-            "@using " + ComponentsApi.ComponentBase.Namespace + "\r\n"; // Microsoft.AspNetCore.Blazor.Components
+            "@using " + ComponentsApi.RenderFragment.Namespace + "\r\n"; // Microsoft.AspNetCore.Components
 
         public RazorProjectEngine ProjectEngine { get; set; }
 

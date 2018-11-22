@@ -38,8 +38,8 @@ namespace Microsoft.AspNetCore.Components.Razor
 
             Assert.Equal("Microsoft.AspNetCore.Components", item.AssemblyName);
             Assert.Equal("Ref", item.Name);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Ref", item.DisplayName);
-            Assert.Equal("Microsoft.AspNetCore.Blazor.Components.Ref", item.GetTypeName());
+            Assert.Equal("Microsoft.AspNetCore.Components.Ref", item.DisplayName);
+            Assert.Equal("Microsoft.AspNetCore.Components.Ref", item.GetTypeName());
 
             // The tag matching rule for a ref is just the attribute name "ref"
             var rule = Assert.Single(item.TagMatchingRules);
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Components.Razor
 
             Assert.Equal("ref", attribute.Name);
             Assert.Equal("Ref", attribute.GetPropertyName());
-            Assert.Equal("object Microsoft.AspNetCore.Blazor.Components.Ref.Ref", attribute.DisplayName);
+            Assert.Equal("object Microsoft.AspNetCore.Components.Ref.Ref", attribute.DisplayName);
             Assert.Equal("System.Object", attribute.TypeName);
             Assert.False(attribute.IsStringProperty);
             Assert.False(attribute.IsBooleanProperty);
