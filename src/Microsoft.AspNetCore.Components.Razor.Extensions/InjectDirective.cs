@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.AspNetCore.Blazor.Razor
+namespace Microsoft.AspNetCore.Components.Razor
 {
     // Much of the following is equivalent to Microsoft.AspNetCore.Mvc.Razor.Extensions's InjectDirective,
     // but this one outputs properties annotated for Blazor's property injector, plus it doesn't need to

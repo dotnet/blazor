@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.AspNetCore.Blazor.Razor
+namespace Microsoft.AspNetCore.Components.Razor
 {
     // This pass:
     // 1. Adds diagnostics for missing generic type arguments

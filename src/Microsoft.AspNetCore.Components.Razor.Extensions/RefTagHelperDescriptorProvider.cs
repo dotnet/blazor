@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 using System;
 
-namespace Microsoft.AspNetCore.Blazor.Razor
+namespace Microsoft.AspNetCore.Components.Razor
 {
     internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
     {

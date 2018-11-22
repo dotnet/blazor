@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Components.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.AspNetCore.Blazor.Hosting
+namespace Microsoft.AspNetCore.Components.Hosting
 {
     internal interface IBlazorStartup
     {

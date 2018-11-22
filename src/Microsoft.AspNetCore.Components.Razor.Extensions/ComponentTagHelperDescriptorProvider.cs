@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Blazor.Razor
+namespace Microsoft.AspNetCore.Components.Razor
 {
     internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, ITagHelperDescriptorProvider
     {

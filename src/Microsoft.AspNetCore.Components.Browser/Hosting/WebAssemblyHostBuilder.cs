@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Mono.WebAssembly.Interop;
 
-namespace Microsoft.AspNetCore.Blazor.Hosting
+namespace Microsoft.AspNetCore.Components.Hosting
 {
     //
     // This code was taken virtually as-is from the Microsoft.Extensions.Hosting project in aspnet/Hosting and then

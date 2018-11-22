@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Razor
+namespace Microsoft.AspNetCore.Components.Razor
 {
     public class RefTagHelperDescriptorProviderTest : BaseTagHelperDescriptorProviderTest
     {

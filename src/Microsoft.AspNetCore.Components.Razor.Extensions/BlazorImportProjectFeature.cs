@@ -9,7 +9,7 @@ using System.Text;
 using Microsoft.AspNetCore.Components.Shared;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Blazor.Razor
+namespace Microsoft.AspNetCore.Components.Razor
 {
     internal class BlazorImportProjectFeature : IImportProjectFeature
     {

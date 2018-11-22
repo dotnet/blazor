@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Blazor.Razor;
+using Microsoft.AspNetCore.Components.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 
 // These should match the configuration names specified by the Blazor MSBuild files.

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
-    <RootNamespace>Microsoft.AspNetCore.Blazor.Razor</RootNamespace>
+    <RootNamespace>Microsoft.AspNetCore.Components.Razor</RootNamespace>
     
     <!-- Copy package references to output, needed so the build project can find them -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

@@ -4,7 +4,7 @@
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Blazor.Razor;
+using Microsoft.AspNetCore.Components.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
 

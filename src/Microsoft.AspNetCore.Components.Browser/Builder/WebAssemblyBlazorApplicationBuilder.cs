@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Components.Browser.Rendering;
 using Microsoft.AspNetCore.Components.Builder;
 
-namespace Microsoft.AspNetCore.Blazor.Hosting
+namespace Microsoft.AspNetCore.Components.Hosting
 {
     internal class WebAssemblyBlazorApplicationBuilder : IBlazorApplicationBuilder
     {

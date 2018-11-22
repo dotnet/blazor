@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Razor
+namespace Microsoft.AspNetCore.Components.Razor
 {
     public class ComponentTagHelperDescriptorProviderTest : BaseTagHelperDescriptorProviderTest
     {

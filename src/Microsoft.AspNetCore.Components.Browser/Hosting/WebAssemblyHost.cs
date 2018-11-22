@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Components.Browser.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
-namespace Microsoft.AspNetCore.Blazor.Hosting
+namespace Microsoft.AspNetCore.Components.Hosting
 {
     internal class WebAssemblyHost : IWebAssemblyHost
     {

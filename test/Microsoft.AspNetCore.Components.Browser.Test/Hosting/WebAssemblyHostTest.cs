@@ -9,7 +9,7 @@ using Microsoft.JSInterop;
 using Mono.WebAssembly.Interop;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Blazor.Hosting
+namespace Microsoft.AspNetCore.Components.Hosting
 {
     public class WebAssemblyHostTest
     {
