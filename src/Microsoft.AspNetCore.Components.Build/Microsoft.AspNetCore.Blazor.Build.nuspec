@@ -15,7 +15,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="$publishdir$netcoreapp2.1\Microsoft.AspNetCore.Blazor.TagHelperWorkaround.dll" target="lib/netstandard1.0/" />
+    <file src="$publishdir$netcoreapp2.1\Microsoft.AspNetCore.Components.TagHelperWorkaround.dll" target="lib/netstandard1.0/" />
     <file src="build\**" target="build" />
     <file src="targets\**" target="targets" />
     <file src="$publishdir$netcoreapp2.1\**\*" target="tools/" />

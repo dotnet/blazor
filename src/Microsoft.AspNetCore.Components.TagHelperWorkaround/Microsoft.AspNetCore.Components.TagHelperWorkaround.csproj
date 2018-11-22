@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- This assembly ships in Blazor.Build -->
+  <!-- This assembly ships in Components.Build -->
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
     <IsPackable>false</IsPackable> 
