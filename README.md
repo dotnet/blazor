@@ -13,13 +13,13 @@ Blazor will have all the features of a modern web framework, including:
 - [Routing](https://blazor.net/docs/routing.html) 
 - [Layouts](https://blazor.net/docs/layouts.html) 
 - Forms and validation 
-- Dependency injection 
+- [Dependency injection](https://blazor.net/docs/dependency-injection.html) 
 - [JavaScript interop](https://blazor.net/docs/javascript-interop.html) 
 - Live reloading in the browser during development 
 - Server-side rendering 
 - Full .NET debugging both in browsers and in the IDE
 - Rich IntelliSense and tooling
-- Publishing and app size trimming 
+- [Publishing and app size trimming](https://blazor.net/docs/host-and-deploy/index.html) 
 
 > Note: Blazor is an *experimental* project. It's not (yet) a committed product. This is to allow time to fully investigate the technical issues associated with running .NET in the browser and to ensure we can build something that developers love and can be productive with. During this experimental phase, we expect to engage deeply with early Blazor adopters like you to hear your feedback and suggestions.
 
