@@ -1,14 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <!--
-    This project is not really a .NET package. It's just defined as a csproj to simplify
-    the build config. In reality the output assembly is empty and ignored.
-  -->
-
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <!-- Pack settings -->
+  <Target Name="_SetNuSpecProperties" BeforeTargets="_IntermediatePack">
+    <PropertyGroup>
+      <NoPackageAnalysis>true</NoPackageAnalysis>
+      <NuspecFile>Microsoft.AspNetCore.Blazor.Mono.nuspec</NuspecFile>
+      <NuspecProperties>
+        version=$(PackageVersion);
+      </NuspecProperties>
+    </PropertyGroup>
+  </Target>
 
   <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\BuildToolsExe.props" />
 
