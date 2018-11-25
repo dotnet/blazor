@@ -6,7 +6,7 @@
 
 Blazor is a .NET web framework that runs in any browser. You author Blazor apps using C#/Razor and HTML.
 
-Blazor uses only the latest web standards. No plugins or transpilation needed. It runs in the browser on a real .NET runtime ([Mono](http://www.mono-project.com/news/2017/08/09/hello-webassembly/)) implemented in [WebAssembly](http://webassembly.org) that executes normal .NET assemblies. It works in older browsers too by falling back to an [asm.js](http://asmjs.org/) based .NET runtime.
+Blazor uses only the latest web standards. No plugins or transpilation needed. It runs in the browser on a real .NET runtime ([Mono](http://www.mono-project.com/news/2017/08/09/hello-webassembly/)) implemented in [WebAssembly](http://webassembly.org) that executes normal .NET assemblies.
 
 Blazor will have all the features of a modern web framework, including: 
 - [A component model for building composable UI](https://blazor.net/docs/components/index.html) 
@@ -19,7 +19,6 @@ Blazor will have all the features of a modern web framework, including:
 - Server-side rendering 
 - Full .NET debugging both in browsers and in the IDE
 - Rich IntelliSense and tooling
-- Ability to run on older (non-WebAssembly) browsers via asm.js
 - Publishing and app size trimming 
 
 > Note: Blazor is an *experimental* project. It's not (yet) a committed product. This is to allow time to fully investigate the technical issues associated with running .NET in the browser and to ensure we can build something that developers love and can be productive with. During this experimental phase, we expect to engage deeply with early Blazor adopters like you to hear your feedback and suggestions.
@@ -75,7 +74,7 @@ Before attempting to open the Blazor repo in Visual Studio, restore Git submodul
 
     git submodule update --init --recursive
 
-If you have problems using Visual Studio with `Blazor.sln` please refer to the [developer documentation](https://github.com/aspnet/Home/wiki/Building-from-source).
+If you have problems using Visual Studio with `Components.sln` please refer to the [developer documentation](https://github.com/aspnet/Home/wiki/Building-from-source).
 
 ## Developing the Blazor VS Tooling
 
@@ -113,8 +112,8 @@ You can browse https://dotnet.myget.org/gallery/blazor-dev to find the current v
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Browser" Version="0.3.0-preview1-10220" />
-    <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.3.0-preview1-10220" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Browser" Version="0.3.0-preview1-10220" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Build" Version="0.3.0-preview1-10220" PrivateAssets="all" />
     <DotNetCliToolReference Include="Microsoft.AspNetCore.Blazor.Cli" Version="0.3.0-preview1-10220" />
 </ItemGroup>
 ```
