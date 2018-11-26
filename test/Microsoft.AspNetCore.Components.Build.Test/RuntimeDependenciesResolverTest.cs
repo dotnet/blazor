@@ -16,11 +16,13 @@ namespace Microsoft.AspNetCore.Components.Build.Test
             // Arrange
             var standaloneAppAssembly = typeof(StandaloneApp.Program).Assembly;
             var mainAssemblyLocation = standaloneAppAssembly.Location;
+            var mainAssemblyDirectory = Path.GetDirectoryName(mainAssemblyLocation);
             // This list of hints is populated by MSBuild so it will be on the output
             // folder.
             var hintPaths = File.ReadAllLines(Path.Combine(
-                Path.GetDirectoryName(mainAssemblyLocation),
-                "referenceHints.txt"));
+                mainAssemblyDirectory, "referenceHints.txt"));
+            var bclLocations = File.ReadAllLines(Path.Combine(
+                mainAssemblyDirectory, "bclLocations.txt"));
             var references = new[]
             {
                 "Microsoft.AspNetCore.Components.Browser.dll",
@@ -31,13 +33,6 @@ namespace Microsoft.AspNetCore.Components.Build.Test
                 "Mono.WebAssembly.Interop.dll",
             }.Select(a => hintPaths.Single(p => Path.GetFileName(p) == a))
             .ToArray();
-
-            var basePath = Path.GetDirectoryName(typeof(RuntimeDependenciesResolverTest).Assembly.Location);
-            var bclLocations = new []
-            {
-                Path.Combine(basePath, "../../../../../blazor/src/Microsoft.AspNetCore.Blazor.Mono/dist/bcl/"),
-                Path.Combine(basePath, "../../../../../blazor/src/Microsoft.AspNetCore.Blazor.Mono/dist/bcl/Facades/"),
-            };
 
             var expectedContents = new[]
             {
