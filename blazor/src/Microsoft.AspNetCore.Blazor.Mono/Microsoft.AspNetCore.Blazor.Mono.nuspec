@@ -11,6 +11,7 @@
     <repository type="git" url="https://github.com/aspnet/Blazor" />
   </metadata>
   <files>
+    <file src="..\..\..\THIRD-PARTY-NOTICES.txt" />
     <file src="build\**" target="build" />
     <file src="dist\**\*" target="tools\mono"  />
     <file src="tools\binaries\illink\**\*.*" target="tools\illink" />
