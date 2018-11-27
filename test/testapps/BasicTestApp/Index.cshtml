@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Blazor.RenderTree
+@using Microsoft.AspNetCore.Components.RenderTree
 <div id="test-selector">
   Select test:
     <select bind=@SelectedComponentTypeName>
@@ -13,6 +13,7 @@
         <option value="BasicTestApp.KeyPressEventComponent">Key press event</option>
         <option value="BasicTestApp.MouseEventComponent">Mouse events</option>
         <option value="BasicTestApp.TouchEventComponent">Touch events</option>
+        <option value="BasicTestApp.InputEventComponent">Input events</option>
         <option value="BasicTestApp.ParentChildComponent">Parent component with child</option>
         <option value="BasicTestApp.PropertiesChangedHandlerParent">Parent component that changes parameters on child</option>
         <option value="BasicTestApp.RedTextComponent">Red text</option>
@@ -41,6 +42,8 @@
         <option value="BasicTestApp.HtmlEncodedChildContent">ChildContent HTML Encoded Block</option>
         <option value="BasicTestApp.RazorTemplates">Razor Templates</option>
         <option value="BasicTestApp.MultipleChildContent">Multiple child content</option>
+        <option value="BasicTestApp.CascadingValueTest.CascadingValueSupplier">Cascading values</option>
+        <option value="BasicTestApp.ConcurrentRenderParent">Concurrent rendering</option>
     </select>
 
   @if (SelectedComponentType != null)
