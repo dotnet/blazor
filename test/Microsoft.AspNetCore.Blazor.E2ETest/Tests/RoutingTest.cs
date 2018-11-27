@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Blazor.E2ETest.Tests
             SetUrlViaPushState("/Oopsie_Daisies%20%This_Aint_A_Real_Page");
 
             var app = MountTestComponent<TestRouter>();
-            Assert.Equal("This is the default page.", app.FindElement(By.Id("test-info")).Text);
+            Assert.Equal("Oops, that component wasn't found!", app.FindElement(By.Id("test-info")).Text);
         }
 
         [Fact]
