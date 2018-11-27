@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Components.RenderTree;
+using Microsoft.AspNetCore.Blazor.RenderTree;
 
-namespace Microsoft.AspNetCore.Components.Test.Helpers
+namespace Microsoft.AspNetCore.Blazor.Test.Helpers
 {
     public class CapturedBatch
     {

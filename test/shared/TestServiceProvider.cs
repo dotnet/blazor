@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Components.Test.Helpers
+namespace Microsoft.AspNetCore.Blazor.Test.Helpers
 {
     public class TestServiceProvider : IServiceProvider
     {
