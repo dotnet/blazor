@@ -19,6 +19,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Mono", "src\Microsoft.AspNetCore.Blazor.Mono\Microsoft.AspNetCore.Blazor.Mono.csproj", "{E74CC0F5-876C-4DB3-A01F-5D81D5772440}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{0DAFFBFD-B3F8-4E18-865D-1AC871912FCE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.JSInterop.Test", "modules\jsinterop\test\Microsoft.JSInterop.Test\Microsoft.JSInterop.Test.csproj", "{727EA75F-ED12-43DD-8193-5159B3372C5B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,10 @@ Global
 		{E74CC0F5-876C-4DB3-A01F-5D81D5772440}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E74CC0F5-876C-4DB3-A01F-5D81D5772440}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E74CC0F5-876C-4DB3-A01F-5D81D5772440}.Release|Any CPU.Build.0 = Release|Any CPU
+		{727EA75F-ED12-43DD-8193-5159B3372C5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{727EA75F-ED12-43DD-8193-5159B3372C5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{727EA75F-ED12-43DD-8193-5159B3372C5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{727EA75F-ED12-43DD-8193-5159B3372C5B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -56,6 +64,7 @@ Global
 		{1386F99B-3862-40C2-B24D-796C07DC7921} = {F380B6B6-9486-42BC-9B24-C388F8BF13A3}
 		{AC3B5C2C-B935-4A64-8CDB-B8217EE26DC6} = {B867E038-B3CE-43E3-9292-61568C46CDEB}
 		{E74CC0F5-876C-4DB3-A01F-5D81D5772440} = {B867E038-B3CE-43E3-9292-61568C46CDEB}
+		{727EA75F-ED12-43DD-8193-5159B3372C5B} = {0DAFFBFD-B3F8-4E18-865D-1AC871912FCE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {504DA352-6788-4DC0-8705-82167E72A4D3}
