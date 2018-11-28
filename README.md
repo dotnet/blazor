@@ -10,7 +10,7 @@ This is in preparation for shipping Razor Components as a built-in feature of AS
 
 ### Where should I post issues and PRs now?
 
-New issues and PRs should be posted at the [central ASP.NET Core repo](https://github.com/aspnet/AspNetCore) repo.
+New issues and PRs should be posted at the [central ASP.NET Core repo](https://github.com/aspnet/AspNetCore).
 
 Please don't post new issues or PRs in this repo.
 
