@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.AspNetCore.Blazor.Mono</id>
+    <version>$version$</version>
+    <authors>Microsoft</authors>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <description>Binaries for the Mono WebAssembly runtime and build tools used in Blazor applications.</description>
+    <licenseUrl>https://raw.githubusercontent.com/aspnet/Home/2.0.0/LICENSE.txt</licenseUrl>
+    <projectUrl>https://asp.net/</projectUrl>
+    <repository type="git" url="https://github.com/aspnet/Blazor" />
+  </metadata>
+  <files>
+    <file src="..\..\THIRD-PARTY-NOTICES.txt" />
+    <file src="build\**" target="build" />
+    <file src="dist\**\*" target="tools\mono"  />
+    <file src="tools\binaries\illink\**\*.*" target="tools\illink" />
+  </files>
+</package>
