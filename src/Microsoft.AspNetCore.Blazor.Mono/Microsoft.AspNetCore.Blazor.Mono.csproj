@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
+    <BlazorBuildToolsExe>$(ArtifactsBinDir)Microsoft.AspNetCore.Blazor.BuildTools/netcoreapp2.1/Microsoft.AspNetCore.Blazor.BuildTools.dll</BlazorBuildToolsExe>
   </PropertyGroup>
 
   <!-- Pack settings -->
@@ -14,8 +15,6 @@
       </NuspecProperties>
     </PropertyGroup>
   </Target>
-
-  <Import Project="..\Microsoft.AspNetCore.Blazor.BuildTools\BuildToolsExe.props" />
 
   <PropertyGroup>
     <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming\</MonoIncomingDir>
@@ -38,11 +37,14 @@
   </Target>
 
   <Target Name="OptimizeBcl" Inputs="@(BclItemsToCopy);@(BclWipeSpecFiles)" Outputs="@(BclItemsToCopy->'$(MonoDistDir)bcl\%(RecursiveDir)%(FileName)%(Extension)')">
+    <!-- Ensure the buildtools project builds first so we can use the resulting executable -->
+    <MSBuild Projects="..\Microsoft.AspNetCore.Blazor.BuildTools\Microsoft.AspNetCore.Blazor.BuildTools.csproj" />
+
     <Message Importance="High" Text="Creating optimized BCL build" />
     <Copy SourceFiles="@(BclItemsToCopy)" DestinationFiles="@(BclItemsToCopy->'$(MonoDistDir)bcl\%(RecursiveDir)%(FileName)%(Extension)')">
       <Output TaskParameter="CopiedFiles" ItemName="_BclFilesCopied" />
     </Copy>
-    <Exec Command="$(BlazorBuildToolsExe) ilwipe -s &quot;$(BclWipeSpecDir.TrimEnd('\'))&quot; -i &quot;$(MonoIncomingDir)bcl&quot; -o &quot;$(MonoDistDir)bcl&quot;" />
+    <Exec Command="dotnet &quot;$(BlazorBuildToolsExe)&quot; ilwipe -s &quot;$(BclWipeSpecDir.TrimEnd('\'))&quot; -i &quot;$(MonoIncomingDir)bcl&quot; -o &quot;$(MonoDistDir)bcl&quot;" />
     <Touch Files="@(_BclFilesCopied)" /> <!-- Make incremental builds work -->
   </Target>
 
