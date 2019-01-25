@@ -1,13 +1,6 @@
 {
   "sign": [
     {
-      "certificate": "Microsoft400",
-      "values": [
-        "bin/Microsoft.JSInterop/netstandard2.0/Microsoft.JSInterop.dll",
-        "bin/Mono.WebAssembly.Interop/netstandard2.0/Mono.WebAssembly.Interop.dll"
-      ]
-    },
-    {
       "certificate": "NuGet",
       "strongName": null,
       "values": [
