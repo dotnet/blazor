@@ -4,10 +4,10 @@
 * `cd linker`
 * `git submodule update --init --recursive`
 * `cd corebuild`
-* `set VS150COMNTOOLS=c:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\Tools\` (or whatever is your installation path for VS2017, though not strictly certain you need this step)
-* `./dotnet.{sh/cmd} restore ./integration/linker.sln`
-* `./dotnet.{sh/cmd} pack ./integration/ILLink.Tasks/ILLink.Tasks.csproj -c Release`
-* `cd integration/bin/nupkgs`
+* `set VS150COMNTOOLS=c:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\Common7\Tools\` (or whatever is your installation path for VS - note that it claims you need VS2015/17, but actually 2019 works too)
+* `./restore.{cmd|sh}`
+* `./build.{cmd|sh} -c Release`
+* `cd ../src/ILLink.Tasks/bin/nupkgs`
 
 In here you'll now have a `.nupkg` file. Extract its files (i.e., treating it as a `.zip` file), open its `tools/netcoreapp2.0` directory, and copy the following to `(blazorroot)/mono/tools/binaries/illink`:
 
