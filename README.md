@@ -1,6 +1,6 @@
 # Blazor
 
-For information about using Blazor, see [blazor.net](http://blazor.net).
+For information about using Blazor, see [blazor.net](https://blazor.net).
 
 # Sources moved
 
