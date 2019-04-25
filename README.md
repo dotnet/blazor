@@ -6,7 +6,7 @@ For information about using Blazor, see [blazor.net](https://blazor.net).
 
 Almost all the sources for Blazor and the Razor Components programming model have moved [here in the central ASP.NET Core repo](https://github.com/aspnet/AspNetCore/tree/master/src/Components). We are also in the process of migrating open issues from here to there.
 
-This is in preparation for shipping Razor Components as a built-in feature of ASP.NET Core 3.0. *Note: client-side Blazor remains experimental while we continue to work on making the WebAssembly runtime complete.*
+This is in preparation for shipping Razor Components as a built-in feature of ASP.NET Core 3.0.
 
 ### Where should I post issues and PRs now?
 
