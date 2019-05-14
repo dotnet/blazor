@@ -1,20 +1,15 @@
 # Upgrading Mono Linker
 
-* `git clone https://github.com/mono/linker.git`
-* `cd linker`
-* `git submodule update --init --recursive`
-* `cd corebuild`
-* `set VS150COMNTOOLS=c:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\Common7\Tools\` (or whatever is your installation path for VS - note that it claims you need VS2015/17, but actually 2019 works too)
-* `./restore.{cmd|sh}`
-* `./build.{cmd|sh} -c Release`
-* `cd ../src/ILLink.Tasks/bin/nupkgs`
-
-In here you'll now have a `.nupkg` file. Extract its files (i.e., treating it as a `.zip` file), open its `tools/netcoreapp2.0` directory, and copy the following to `(blazorroot)/mono/tools/binaries/illink`:
-
-* `illink.dll`
-* `Mono.Cecil.dll`
-* `Mono.Cecil.Mdb.dll`
-* `Mono.Cecil.Pdb.dll`
+ * Download the latest build from CI on dnceng
+   * Go to build pipeline on dnceng internal
+   * Read the build logs for the latest good build to find the URL of the last-pushed package, e.g., https://dotnetfeed.blob.core.windows.net/dotnet-core/flatcontainer/illink.tasks/0.1.6-prerelease.19263.1/illink.tasks.0.1.6-prerelease.19263.1.nupkg and download it
+ * Unzip the nupkg
+ * Open its `tools\netcoreapp2.0` directory
+ * Copy the following to `(blazorroot)/mono/tools/binaries/illink`:
+    * `illink.dll`
+    * `Mono.Cecil.dll`
+    * `Mono.Cecil.Mdb.dll`
+    * `Mono.Cecil.Pdb.dll`
 
 Presumably you should also copy any other new dependencies it has, though it's not necessary to copy `NuGet.*.dll` or `Newtonsoft.Json.dll` or the `runtimes` subdirectory (since we execute it as a framework-dependent app).
 
