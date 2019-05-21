@@ -88,4 +88,12 @@ jobs:
           arguments: 'locals all -clear'
       - script: eng\common\cibuild.cmd -configuration $(_BuildConfig) -prepareMachine $(_BuildArgs)
         displayName: Build and Publish
+      - task: PublishBuildArtifacts@1
+        displayName: Upload package artifacts
+        condition: succeeded()
+        inputs:
+          pathtoPublish: artifacts/packages/
+          artifactName: packages
+          artifactType: Container
+          parallel: true
 
