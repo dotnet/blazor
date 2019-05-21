@@ -2,21 +2,21 @@
 
   <ItemGroup>
     <!-- Exclude all of the mono binaries from getting code-signed -->
-    <FileSignInfo Include="illink.dll" CertificateName="None"/>
-    <FileSignInfo Include="Mono.Cecil.dll" CertificateName="None"/>
-    <FileSignInfo Include="Mono.Cecil.Mdb.dll" CertificateName="None"/>
-    <FileSignInfo Include="Mono.Cecil.Pdb.dll" CertificateName="None"/>
-    <FileSignInfo Include="Mono.Cecil.Rocks.dll" CertificateName="None"/>
     <FileSignInfo Include="I18N.CJK.dll" CertificateName="None"/>
     <FileSignInfo Include="I18N.dll" CertificateName="None"/>
     <FileSignInfo Include="I18N.MidEast.dll" CertificateName="None"/>
     <FileSignInfo Include="I18N.Other.dll" CertificateName="None"/>
     <FileSignInfo Include="I18N.Rare.dll" CertificateName="None"/>
     <FileSignInfo Include="I18N.West.dll" CertificateName="None"/>
+    <FileSignInfo Include="illink.dll" CertificateName="None"/>
     <FileSignInfo Include="Microsoft.CSharp.dll" CertificateName="None"/>
     <FileSignInfo Include="Microsoft.Win32.Primitives.dll" CertificateName="None"/>
     <FileSignInfo Include="Microsoft.Win32.Registry.AccessControl.dll" CertificateName="None"/>
     <FileSignInfo Include="Microsoft.Win32.Registry.dll" CertificateName="None"/>
+    <FileSignInfo Include="Mono.Cecil.dll" CertificateName="None"/>
+    <FileSignInfo Include="Mono.Cecil.Mdb.dll" CertificateName="None"/>
+    <FileSignInfo Include="Mono.Cecil.Pdb.dll" CertificateName="None"/>
+    <FileSignInfo Include="Mono.Cecil.Rocks.dll" CertificateName="None"/>
     <FileSignInfo Include="Mono.CSharp.dll" CertificateName="None"/>
     <FileSignInfo Include="Mono.Data.Sqlite.dll" CertificateName="None"/>
     <FileSignInfo Include="Mono.Data.Tds.dll" CertificateName="None"/>
@@ -117,7 +117,6 @@
     <FileSignInfo Include="System.Resources.ResourceManager.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Resources.Writer.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Runtime.CompilerServices.Unsafe.dll" CertificateName="None"/>
-    <FileSignInfo Include="System.Runtime.CompilerServices.Unsafe.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Runtime.CompilerServices.VisualC.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Runtime.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Runtime.Extensions.dll" CertificateName="None"/>
@@ -166,16 +165,14 @@
     <FileSignInfo Include="System.ServiceModel.Web.dll" CertificateName="None"/>
     <FileSignInfo Include="System.ServiceProcess.ServiceController.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Text.Encoding.CodePages.dll" CertificateName="None"/>
-    <FileSignInfo Include="System.Text.Encoding.CodePages.dll" CertificateName="None"/>
-    <FileSignInfo Include="System.Text.Encoding.CodePages.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Text.Encoding.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Text.Encoding.Extensions.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Text.RegularExpressions.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Threading.AccessControl.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Threading.dll" CertificateName="None"/>
-    <FileSignInfo Include="System.Threading.Tasks.Extensions.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Threading.Overlapped.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Threading.Tasks.dll" CertificateName="None"/>
+    <FileSignInfo Include="System.Threading.Tasks.Extensions.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Threading.Tasks.Parallel.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Threading.Thread.dll" CertificateName="None"/>
     <FileSignInfo Include="System.Threading.ThreadPool.dll" CertificateName="None"/>
