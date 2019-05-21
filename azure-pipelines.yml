@@ -7,8 +7,9 @@ variables:
     value: AspNetCore
   - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
     value: true
+  # Disabled because this repo is still running into issues with signing validation, and the exclusions file doesn't work
   - name: _PublishUsingPipelines
-    value: true
+    value: false
   - name: _DotNetArtifactsCategory
     value: ASPNETBLAZOR
   - name: Build.Repository.Clean
