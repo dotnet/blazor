@@ -1,29 +1,15 @@
 <Project>
-  <Import
-    Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))\AspNetCoreSettings.props"
-    Condition=" '$(CI)' != 'true' AND '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))' != '' " />
-
-  <Import Project="version.props" />
-  <Import Project="build\dependencies.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <PropertyGroup>
     <Product>Microsoft ASP.NET Core Blazor</Product>
-    <RepositoryUrl>https://github.com/aspnet/blazor</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://asp.net/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/aspnet/Blazor</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build\Key.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
+    <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AssemblySigningCertName>Microsoft</AssemblySigningCertName>
     <LangVersion>7.3</LangVersion>
-
-    <!-- Disable API baseline checks. -->
-    <EnableApiCheck>false</EnableApiCheck>
   </PropertyGroup>
 
-  <Import Project="build\arcade.props" />
-
-  <ItemGroup>
-    <PackageReference Include="Internal.AspNetCore.Sdk" PrivateAssets="All" Version="$(InternalAspNetCoreSdkPackageVersion)" />
-  </ItemGroup>
 </Project>

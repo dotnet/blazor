@@ -3,6 +3,6 @@ bin/
 obj/
 *.user
 artifacts/
-msbuild.binlog
 .vscode/
+.dotnet/
 *.binlog
