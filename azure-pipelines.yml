@@ -42,10 +42,10 @@ jobs:
     - job: Windows
       pool:
         ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          queue: windows-2019
+          vmImage: windows-2019
         ${{ if ne(variables['System.TeamProject'], 'public') }}:
           name: NetCoreInternal-Pool
-          queue: BuildPool.Windows.10.Amd64.VS2017
+          queue: BuildPool.Windows.10.Amd64.BT.VS2019
       variables:
         - name: _BuildConfig
           value: Release

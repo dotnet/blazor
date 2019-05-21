@@ -1,6 +1,9 @@
 {
   "tools": {
-    "dotnet": "3.0.100-preview5-011568"
+    "dotnet": "3.0.100-preview5-011568",
+    "runtimes": {
+      "dotnet": "2.1.11"
+    }
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "1.0.0-beta.19270.1",
