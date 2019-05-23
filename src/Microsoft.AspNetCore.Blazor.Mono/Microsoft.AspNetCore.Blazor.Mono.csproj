@@ -2,21 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
-    <BlazorBuildToolsExe>$(ArtifactsBinDir)Microsoft.AspNetCore.Blazor.BuildTools/netcoreapp2.1/Microsoft.AspNetCore.Blazor.BuildTools.dll</BlazorBuildToolsExe>
+    <PackageDescription>Binaries for the Mono WebAssembly runtime and build tools used in Blazor applications.</PackageDescription>
+    <IsPackable>true</IsPackable>
+    <IsShipping>true</IsShipping>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <NuspecFile>Microsoft.AspNetCore.Blazor.Mono.nuspec</NuspecFile>
   </PropertyGroup>
 
-  <!-- Pack settings -->
-  <Target Name="_SetNuSpecProperties" BeforeTargets="_IntermediatePack">
-    <PropertyGroup>
-      <NoPackageAnalysis>true</NoPackageAnalysis>
-      <NuspecFile>Microsoft.AspNetCore.Blazor.Mono.nuspec</NuspecFile>
-      <NuspecProperties>
-        version=$(PackageVersion);
-      </NuspecProperties>
-    </PropertyGroup>
-  </Target>
-
   <PropertyGroup>
+    <BlazorBuildToolsExe>$(ArtifactsBinDir)Microsoft.AspNetCore.Blazor.BuildTools/$(Configuration)/netcoreapp2.1/Microsoft.AspNetCore.Blazor.BuildTools.dll</BlazorBuildToolsExe>
     <MonoIncomingDir>$(MSBuildThisFileDirectory)incoming\</MonoIncomingDir>
     <MonoDistDir>$(MSBuildThisFileDirectory)dist\</MonoDistDir>
     <BclWipeSpecDir>$(MSBuildThisFileDirectory)bclwipe\</BclWipeSpecDir>
@@ -44,7 +38,7 @@
     <Copy SourceFiles="@(BclItemsToCopy)" DestinationFiles="@(BclItemsToCopy->'$(MonoDistDir)bcl\%(RecursiveDir)%(FileName)%(Extension)')">
       <Output TaskParameter="CopiedFiles" ItemName="_BclFilesCopied" />
     </Copy>
-    <Exec Command="dotnet &quot;$(BlazorBuildToolsExe)&quot; ilwipe -s &quot;$(BclWipeSpecDir.TrimEnd('\'))&quot; -i &quot;$(MonoIncomingDir)bcl&quot; -o &quot;$(MonoDistDir)bcl&quot;" />
+    <Exec Command="&quot;$(DotNetTool)&quot; &quot;$(BlazorBuildToolsExe)&quot; ilwipe -s &quot;$(BclWipeSpecDir.TrimEnd('\'))&quot; -i &quot;$(MonoIncomingDir)bcl&quot; -o &quot;$(MonoDistDir)bcl&quot;" />
     <Touch Files="@(_BclFilesCopied)" /> <!-- Make incremental builds work -->
   </Target>
 
