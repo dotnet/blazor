@@ -1,7 +1,7 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    This MSBuild file is intended to be used as the body of the default
+    This MSBuild file is intended to be used as the body of the default 
     publishing release pipeline. The release pipeline will use this file
     to invoke the PushToStaticFeed task that will read the build asset
     manifest and publish the assets described in the manifest to
@@ -19,7 +19,7 @@
     https://github.com/dotnet/arcade/issues/2266
   -->
   <Import Project="$(MSBuildThisFileDirectory)ArtifactsCategory.props" Condition="Exists('$(MSBuildThisFileDirectory)ArtifactsCategory.props')" />
-
+  
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
 
   <Target Name="PublishToFeed">
@@ -57,8 +57,8 @@
       <TargetStaticFeed Condition="'$(ArtifactsCategory.ToUpper())' == 'ASPNETBLAZOR'">https://dotnetfeed.blob.core.windows.net/aspnet-blazor/index.json</TargetStaticFeed>
     </PropertyGroup>
 
-    <Error
-      Condition="'$(TargetStaticFeed)' == ''"
+    <Error 
+      Condition="'$(TargetStaticFeed)' == ''" 
       Text="'$(ArtifactsCategory)' wasn't recognized as a valid artifact category. Valid categories are: '.NetCore' and '.NetCoreValidation'" />
 
     <!-- Iterate publishing assets from each manifest file. -->
