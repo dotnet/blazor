@@ -6,7 +6,8 @@
   <files>
     <file src="..\..\THIRD-PARTY-NOTICES.txt" />
     <file src="build\**" target="build" />
-    <file src="dist\**\*" target="tools\mono"  />
+    <file src="dist\**\*" target="tools\mono" exclude="dist\framework\*" />
     <file src="tools\binaries\illink\**\*.*" target="tools\illink" />
+    <file src="dist\framework\*" target="lib\netstandard1.0"  />
   </files>
 </package>
