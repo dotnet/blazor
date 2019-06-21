@@ -14,11 +14,11 @@
 
 **Shortcut:** Browse directly to https://jenkins.mono-project.com/job/test-mono-mainline-wasm/255/label=ubuntu-1804-amd64/Azure/, replacing the number 255 with the desired build number.
 
-## Updating Blazor's `src\mono\incoming` directory
+## Updating Blazor's `src\Microsoft.AspNetCore.Blazor.Mono\incoming` directory
 
 1. Extract the contents of the Mono build .zip file to a temporary directory.
 
-1. Replace the contents of `Blazor\src\mono\incoming` with the equivalents from the new Mono build:
+1. Replace the contents of `Blazor\src\Microsoft.AspNetCore.Blazor.Mono\incoming` with the equivalents from the new Mono build:
 
    * In Blazor's `src\Microsoft.AspNetCore.Blazor.Mono\incoming\wasm` dir, replace `mono.wasm` and `mono.js` with the new files from Mono's `release` dir
    * In Blazor's `src\Microsoft.AspNetCore.Blazor.Mono\incoming\bcl`, delete all the `.dll` files (including from the `Facades` subdirectory), and copy in all the new `.dll` files from Mono's `wasm-bcl\wasm` dir. **Note:** We *only* need the `.dll` files, so don't include `.pdb`/`.cs`/`.tmp`/`.stamp` or others. Also you can omit `nunitlite.dll` - we don't need that either.
