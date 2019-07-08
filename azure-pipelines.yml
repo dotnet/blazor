@@ -90,6 +90,15 @@ jobs:
       - script: eng\common\cibuild.cmd -configuration $(_BuildConfig) -prepareMachine $(_BuildArgs)
         displayName: Build and Publish
       - task: PublishBuildArtifacts@1
+        displayName: Upload TestResults
+        condition: always()
+        continueOnError: true
+        inputs:
+          pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
+          artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+          artifactType: Container
+          parallel: true
+      - task: PublishBuildArtifacts@1
         displayName: Upload package artifacts
         condition: succeeded()
         inputs:
@@ -97,4 +106,3 @@ jobs:
           artifactName: packages
           artifactType: Container
           parallel: true
-
