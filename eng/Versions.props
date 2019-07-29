@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
     <VersionPrefix>3.0.0</VersionPrefix>
-    <PreReleaseVersionLabel>preview8</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>preview9</PreReleaseVersionLabel>
   </PropertyGroup>
 </Project>
