@@ -11,6 +11,8 @@ variables:
     value: true
   - name: _DotNetArtifactsCategory
     value: ASPNETBLAZOR
+  - name: _DotNetValidationArtifactsCategory
+    value: ASPNETBLAZOR
   - name: Build.Repository.Clean
     value: true
 
