@@ -7,9 +7,8 @@ variables:
     value: AspNetCore
   - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
     value: true
-  # Disabled because this repo is still running into issues with signing validation, and the exclusions file doesn't work
   - name: _PublishUsingPipelines
-    value: false
+    value: true
   - name: _DotNetArtifactsCategory
     value: ASPNETBLAZOR
   - name: Build.Repository.Clean
@@ -38,10 +37,12 @@ stages:
       enableMicrobuild: true
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
-      enablePublishBuildAssets: true
-      enablePublishUsingPipelines: $(_PublishUsingPipelines)
+      enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
       enableTelemetry: true
       helixRepo: aspnet/Blazor
+      ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+        enableMicrobuild: true
+        enablePublishBuildAssets: true
       jobs:
       - job: Windows
         pool:
@@ -73,13 +74,15 @@ stages:
               value: true
             - name: _BuildArgs
               value: /p:DotNetSignType=$(_SignType)
-                    /p:TeamName=$(_TeamName)
-                    /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                    /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/aspnet-blazor/index.json
-                    /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
-                    /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
-                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-                    /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+                     /p:TeamName=$(_TeamName)
+                     /p:PublishToAzure=true
+                     /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
+                     /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                     /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+                     /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/aspnet-blazor/index.json
+                     /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed) /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+                     /p:ManifestBuildBranch=$(Build.SourceBranchName)
+                     /p:ManifestBuildNumber=$(Build.BuildNumber)
 
         steps:
         - checkout: self
@@ -103,7 +106,7 @@ stages:
             parallel: true
         - task: PublishBuildArtifacts@1
           displayName: Upload package artifacts
-          condition: succeeded()
+          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
           inputs:
             pathtoPublish: artifacts/packages/
             artifactName: packages
@@ -113,8 +116,10 @@ stages:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
-      # See https://github.com/dotnet/arcade/issues/2871
-      enableSymbolValidation: false
+      # Disabled because this repo is still running into issues with signing validation, and the exclusions file doesn't work.
+      enableSigningValidation: false
       # Shipped package contains minimal managed code and lots of repackaged external and native assemblies. We
       # don't ship relevant PDBs except (for some assemblies) later in aspnet/AspNetcore.
       enableSourceLinkValidation: false
+      # See https://github.com/dotnet/arcade/issues/2871
+      enableSymbolValidation: false
