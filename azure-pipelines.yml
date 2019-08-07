@@ -34,7 +34,6 @@ stages:
   jobs:
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
-      enableMicrobuild: true
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
