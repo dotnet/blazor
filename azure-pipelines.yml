@@ -7,10 +7,11 @@ variables:
     value: AspNetCore
   - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
     value: true
-  # Disabled because this repo is still running into issues with signing validation, and the exclusions file doesn't work
   - name: _PublishUsingPipelines
-    value: false
+    value: true
   - name: _DotNetArtifactsCategory
+    value: ASPNETBLAZOR
+  - name: _DotNetValidationArtifactsCategory
     value: ASPNETBLAZOR
   - name: Build.Repository.Clean
     value: true
@@ -29,80 +30,97 @@ pr:
     include:
     - '*'
 
-jobs:
-- template: /eng/common/templates/jobs/jobs.yml
-  parameters:
-    enableMicrobuild: true
-    enablePublishBuildArtifacts: true
-    enablePublishTestResults: true
-    enablePublishBuildAssets: true
-    enablePublishUsingPipelines: $(_PublishUsingPipelines)
-    enableTelemetry: true
-    helixRepo: aspnet/Blazor
-    jobs:
-    - job: Windows
-      pool:
-        ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          vmImage: windows-2019
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          name: NetCoreInternal-Pool
-          queue: BuildPool.Windows.10.Amd64.VS2019
-      variables:
-        - name: _BuildConfig
-          value: Release
-        - name: _BuildArgs
-          value: ''
-        # PRs or external builds are not signed.
-        - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-          - name: _SignType
-            value: test
-          - name: _DotNetPublishToBlobFeed
-            value: false
-        # Only enable publishing in official builds.
-        - ${{ if and(eq(variables['System.TeamProject'], 'internal'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          # DotNet-Blob-Feed provides: dotnetfeed-storage-access-key-1
-          # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
-          - group: DotNet-Blob-Feed
-          - group: Publish-Build-Assets
-          - name: _SignType
-            value: real
-          - name: _DotNetPublishToBlobFeed
-            value: true
+stages:
+- stage: build
+  displayName: Build
+  jobs:
+  - template: /eng/common/templates/jobs/jobs.yml
+    parameters:
+      enablePublishBuildArtifacts: true
+      enablePublishTestResults: true
+      enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
+      enableTelemetry: true
+      helixRepo: aspnet/Blazor
+      ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+        enableMicrobuild: true
+        enablePublishBuildAssets: true
+      jobs:
+      - job: Windows
+        pool:
+          ${{ if eq(variables['System.TeamProject'], 'public') }}:
+            vmImage: windows-2019
+          ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            name: NetCoreInternal-Pool
+            queue: BuildPool.Windows.10.Amd64.VS2019
+        variables:
+          - name: _BuildConfig
+            value: Release
           - name: _BuildArgs
-            value: /p:DotNetSignType=$(_SignType)
-                  /p:TeamName=$(_TeamName)
-                  /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                  /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/aspnet-blazor/index.json
-                  /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
-                  /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
-                  /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-                  /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+            value: ''
+          # PRs or external builds are not signed.
+          - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+            - name: _SignType
+              value: test
+            - name: _DotNetPublishToBlobFeed
+              value: false
+          # Only enable publishing in official builds.
+          - ${{ if and(eq(variables['System.TeamProject'], 'internal'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+            # DotNet-Blob-Feed provides: dotnetfeed-storage-access-key-1
+            # Publish-Build-Assets provides: MaestroAccessToken, BotAccount-dotnet-maestro-bot-PAT
+            - group: DotNet-Blob-Feed
+            - group: Publish-Build-Assets
+            - name: _SignType
+              value: real
+            - name: _DotNetPublishToBlobFeed
+              value: true
+            - name: _BuildArgs
+              value: /p:DotNetSignType=$(_SignType)
+                     /p:TeamName=$(_TeamName)
+                     /p:PublishToAzure=true
+                     /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
+                     /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                     /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+                     /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/aspnet-blazor/index.json
+                     /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed) /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+                     /p:ManifestBuildBranch=$(Build.SourceBranchName)
+                     /p:ManifestBuildNumber=$(Build.BuildNumber)
 
-      steps:
-      - checkout: self
-        clean: true
-      - task: NuGetCommand@2
-        displayName: 'Clear NuGet caches'
-        condition: succeeded()
-        inputs:
-          command: custom
-          arguments: 'locals all -clear'
-      - script: eng\common\cibuild.cmd -configuration $(_BuildConfig) -prepareMachine $(_BuildArgs)
-        displayName: Build and Publish
-      - task: PublishBuildArtifacts@1
-        displayName: Upload TestResults
-        condition: always()
-        continueOnError: true
-        inputs:
-          pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-          artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-          artifactType: Container
-          parallel: true
-      - task: PublishBuildArtifacts@1
-        displayName: Upload package artifacts
-        condition: succeeded()
-        inputs:
-          pathtoPublish: artifacts/packages/
-          artifactName: packages
-          artifactType: Container
-          parallel: true
+        steps:
+        - checkout: self
+          clean: true
+        - task: NuGetCommand@2
+          displayName: 'Clear NuGet caches'
+          condition: succeeded()
+          inputs:
+            command: custom
+            arguments: 'locals all -clear'
+        - script: eng\common\cibuild.cmd -configuration $(_BuildConfig) -prepareMachine $(_BuildArgs)
+          displayName: Build and Publish
+        - task: PublishBuildArtifacts@1
+          displayName: Upload TestResults
+          condition: always()
+          continueOnError: true
+          inputs:
+            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
+            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+            artifactType: Container
+            parallel: true
+        - task: PublishBuildArtifacts@1
+          displayName: Upload package artifacts
+          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+          inputs:
+            pathtoPublish: artifacts/packages/
+            artifactName: packages
+            artifactType: Container
+            parallel: true
+
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: eng\common\templates\post-build\post-build.yml
+    parameters:
+      # Disabled because this repo is still running into issues with signing validation, and the exclusions file doesn't work.
+      enableSigningValidation: false
+      # Shipped package contains minimal managed code and lots of repackaged external and native assemblies. We
+      # don't ship relevant PDBs except (for some assemblies) later in aspnet/AspNetcore.
+      enableSourceLinkValidation: false
+      # See https://github.com/dotnet/arcade/issues/2871
+      enableSymbolValidation: false
