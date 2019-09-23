@@ -8,5 +8,6 @@
     <file src="build\**" target="build" />
     <file src="dist\**\*" target="tools\mono"  />
     <file src="tools\binaries\illink\**\*.*" target="tools\illink" />
+    <file src="$PackageIcon$" target="" />
   </files>
 </package>

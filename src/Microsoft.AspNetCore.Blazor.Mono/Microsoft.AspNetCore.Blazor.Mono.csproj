@@ -22,6 +22,10 @@
     <BclWipeSpecFiles Include="$(BclWipeSpecDir)**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <NuspecProperty Include="PackageIcon=$(PackageIconFullPath)" />
+  </ItemGroup>
+
   <Target Name="OptimizeMono" DependsOnTargets="OptimizeMonoWasm; OptimizeBcl" BeforeTargets="Build" />
 
   <Target Name="OptimizeMonoWasm" Inputs="@(WasmItemsToCopy)" Outputs="@(WasmItemsToCopy->'$(MonoDistDir)wasm\%(RecursiveDir)%(FileName)%(Extension)')">
