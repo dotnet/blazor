@@ -41,6 +41,7 @@
     <_MonoBinaryToExcludeFromSigning Include="System.Core.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Data.Common.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Data.dll" />
+    <_MonoBinaryToExcludeFromSigning Include="System.Data.DataSetExtensions.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Data.Services.Client.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Data.SqlClient.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Diagnostics.Contracts.dll" />
