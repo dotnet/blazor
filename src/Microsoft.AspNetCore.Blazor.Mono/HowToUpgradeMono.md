@@ -22,6 +22,10 @@
 
    * In Blazor's `src\mono\incoming\wasm` dir, replace `mono.wasm` and `mono.js` with the new files from Mono's `builds\release` dir
    * In Blazor's `src\mono\incoming\bcl`, delete all the `.dll` files (including from the `Facades` subdirectory), and copy in all the new `.dll` files from Mono's `wasm-bcl\wasm` dir. **Note:** We *only* need the `.dll` files, so don't include `.pdb`/`.cs`/`.tmp`/`.stamp` or others. Also you can omit `nunitlite.dll` - we don't need that either.
+   * In Blazor's `src\mono\incoming\framework`, replace the following files with equivalents from Mono's `framework` dir:
+       * `WebAssembly.Bindings.dll`
+       * `WebAssembly.Net.Http.dll`
+       * `WebAssembly.Net.WebSockets.dll`
 
 The net effect is that you're replacing everything with the newer versions, including adding any new `.dll` files and removing any older `.dll` files that are no longer involved.
 
