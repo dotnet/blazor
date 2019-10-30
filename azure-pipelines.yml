@@ -15,6 +15,9 @@ variables:
     value: ASPNETBLAZOR
   - name: Build.Repository.Clean
     value: true
+  # used for post-build phases, internal builds only
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - group: DotNet-AspNet-SDLValidation-Params
 
 # CI and PR triggers
 trigger:
@@ -124,3 +127,17 @@ stages:
       enableSourceLinkValidation: false
       # See https://github.com/dotnet/arcade/issues/2871
       enableSymbolValidation: false
+      # This is to enable SDL runs part of Post-Build Validation Stage
+      SDLValidationParameters:
+        enable: true
+        continueOnError: false
+        params: ' -SourceToolsList @("policheck","credscan")
+        -TsaInstanceURL $(_TsaInstanceURL)
+        -TsaProjectName $(_TsaProjectName)
+        -TsaNotificationEmail $(_TsaNotificationEmail)
+        -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+        -TsaBugAreaPath $(_TsaBugAreaPath)
+        -TsaIterationPath $(_TsaIterationPath)
+        -TsaRepositoryName "Blazor"
+        -TsaCodebaseName "Blazor"
+        -TsaPublish $True'
