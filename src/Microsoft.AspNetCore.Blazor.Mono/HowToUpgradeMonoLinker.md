@@ -1,16 +1,10 @@
 # Upgrading Mono Linker
 
- * Download the latest build from CI on dnceng
-   * Go to build pipeline on dnceng internal
-   * Read the build logs for the latest good build to find the URL of the last-pushed package, e.g., https://dotnetfeed.blob.core.windows.net/dotnet-core/flatcontainer/illink.tasks/0.1.6-prerelease.19263.1/illink.tasks.0.1.6-prerelease.19263.1.nupkg and download it
- * Unzip the nupkg
- * Open its `tools\netcoreapp2.0` directory
- * Copy the following to `(blazorroot)/mono/tools/binaries/illink`:
-    * `illink.dll`
-    * `Mono.Cecil.dll`
-    * `Mono.Cecil.Mdb.dll`
-    * `Mono.Cecil.Pdb.dll`
+ * First upgrade to whatever version of Mono you want to use as per `HowToUpgradeMono.md`
+ * In the Mono build you downloaded and extracted, find the `wasm-bcl\wasm_tools` dir. From this directory, copy the following to `(blazorroot)/src/Microsoft.AspNetCore.Blazor.Mono/tools/binaries/monolinker`:
+   * `monolinker.exe`
+   * `Mono.Cecil.dll`
 
-Presumably you should also copy any other new dependencies it has, though it's not necessary to copy `NuGet.*.dll` or `Newtonsoft.Json.dll` or the `runtimes` subdirectory (since we execute it as a framework-dependent app).
+That should be all you need. Note that the target dir also contains `monolinker.runtimeconfig.json`, which is necessary for `dotnet monolinker.exe` to work.
 
-Note that `(blazorroot)/mono/tools/binaries/illink` also contains `illink.runtimeconfig.json`, which is necessary for `dotnet illink.dll` to work.
+Now commit this with a message similar to `Upgrade Mono linker binaries to <their-commit-sha>`.

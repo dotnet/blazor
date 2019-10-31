@@ -8,7 +8,7 @@
     <_MonoBinaryToExcludeFromSigning Include="I18N.Other.dll" />
     <_MonoBinaryToExcludeFromSigning Include="I18N.Rare.dll" />
     <_MonoBinaryToExcludeFromSigning Include="I18N.West.dll" />
-    <_MonoBinaryToExcludeFromSigning Include="illink.dll" />
+    <_MonoBinaryToExcludeFromSigning Include="monolinker.exe" />
     <_MonoBinaryToExcludeFromSigning Include="Microsoft.CSharp.dll" />
     <_MonoBinaryToExcludeFromSigning Include="Microsoft.Win32.Primitives.dll" />
     <_MonoBinaryToExcludeFromSigning Include="Microsoft.Win32.Registry.AccessControl.dll" />
@@ -193,6 +193,9 @@
     <_MonoBinaryToExcludeFromSigning Include="System.Xml.XPath.XDocument.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Xml.XPath.XmlDocument.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Xml.Xsl.Primitives.dll" />
+    <_MonoBinaryToExcludeFromSigning Include="WebAssembly.Bindings.dll" />
+    <_MonoBinaryToExcludeFromSigning Include="WebAssembly.Net.Http.dll" />
+    <_MonoBinaryToExcludeFromSigning Include="WebAssembly.Net.WebSockets.dll" />
 
     <FileSignInfo Include="@(_MonoBinaryToExcludeFromSigning)" CertificateName="None" />
     <SignValidationExclusionList Include="@(_MonoBinaryToExcludeFromSigning)" />

@@ -1,9 +1,10 @@
 ﻿<Project>
   <PropertyGroup>
     <BlazorMonoRuntimeBasePath>$(MSBuildThisFileDirectory)../../</BlazorMonoRuntimeBasePath>
-    <MonoLinkerPath>$(BlazorMonoRuntimeBasePath)tools/illink/illink.dll</MonoLinkerPath>
+    <MonoLinkerPath>$(BlazorMonoRuntimeBasePath)tools/monolinker/monolinker.exe</MonoLinkerPath>
     <MonoBaseClassLibraryPath>$(BlazorMonoRuntimeBasePath)tools/mono/bcl/</MonoBaseClassLibraryPath>
     <MonoBaseClassLibraryFacadesPath>$(BlazorMonoRuntimeBasePath)tools/mono/bcl/Facades/</MonoBaseClassLibraryFacadesPath>
     <MonoWasmRuntimePath>$(BlazorMonoRuntimeBasePath)tools/mono/wasm/</MonoWasmRuntimePath>
+    <MonoWasmFrameworkPath>$(BlazorMonoRuntimeBasePath)tools/mono/framework/</MonoWasmFrameworkPath>
   </PropertyGroup>
 </Project>
