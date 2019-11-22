@@ -19,6 +19,7 @@
   <ItemGroup>
     <WasmItemsToCopy Include="$(MonoIncomingDir)wasm\**" />
     <BclItemsToCopy Include="$(MonoIncomingDir)bcl\**" />
+    <FrameworkItemsToCopy Include="$(MonoIncomingDir)framework\**" />
     <BclWipeSpecFiles Include="$(BclWipeSpecDir)**" />
   </ItemGroup>
 
@@ -38,8 +39,12 @@
     <Copy SourceFiles="@(BclItemsToCopy)" DestinationFiles="@(BclItemsToCopy->'$(MonoDistDir)bcl\%(RecursiveDir)%(FileName)%(Extension)')">
       <Output TaskParameter="CopiedFiles" ItemName="_BclFilesCopied" />
     </Copy>
+    <Copy SourceFiles="@(FrameworkItemsToCopy)" DestinationFiles="@(FrameworkItemsToCopy->'$(MonoDistDir)framework\%(RecursiveDir)%(FileName)%(Extension)')">
+      <Output TaskParameter="CopiedFiles" ItemName="_FrameworkFilesCopied" />
+    </Copy>
     <Exec Command="&quot;$(DotNetTool)&quot; &quot;$(BlazorBuildToolsExe)&quot; ilwipe -s &quot;$(BclWipeSpecDir.TrimEnd('\'))&quot; -i &quot;$(MonoIncomingDir)bcl&quot; -o &quot;$(MonoDistDir)bcl&quot;" />
     <Touch Files="@(_BclFilesCopied)" /> <!-- Make incremental builds work -->
+    <Touch Files="@(_FrameworkFilesCopied)" /> <!-- Make incremental builds work -->
   </Target>
 
 </Project>
