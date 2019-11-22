@@ -10,6 +10,8 @@
     <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>7.3</LangVersion>
+    <!-- Nothing from this branch should ship - we ship Blazor packages out of master -->
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
 
 </Project>
