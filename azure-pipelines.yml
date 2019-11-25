@@ -26,6 +26,7 @@ trigger:
     include:
     - master
     - release/*
+    - internal/release/3.*
 
 pr:
   autoCancel: false
