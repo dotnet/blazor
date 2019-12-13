@@ -1,4 +1,4 @@
-# Upgrading Mono
+# Upgrading Mono and Mono Linker
 
 ## Obtaining a Mono build
 
@@ -14,20 +14,26 @@
 
 **Shortcut:** Browse directly to https://jenkins.mono-project.com/job/test-mono-mainline-wasm/255/label=ubuntu-1804-amd64/Azure/, replacing the number 255 with the desired build number.
 
-## Updating Blazor's `src\mono\incoming` directory
+## Update files in this repo using the new Mono build
 
-1. Extract the contents of the Mono build .zip file to a temporary directory.
+From the root directory of this repo, run the script
 
-1. Replace the contents of `Blazor\src\mono\incoming` with the equivalents from the new Mono build:
+    UpgradeMono.[cmd|ps1] <path_to_extracted_mono_build>
 
-   * In Blazor's `src\mono\incoming\wasm` dir, replace `mono.wasm` and `mono.js` with the new files from Mono's `builds\release` dir
-   * In Blazor's `src\mono\incoming\bcl`, delete all the `.dll` files (including from the `Facades` subdirectory), and copy in all the new `.dll` files from Mono's `wasm-bcl\wasm` dir. **Note:** We *only* need the `.dll` files, so don't include `.pdb`/`.cs`/`.tmp`/`.stamp` or others. Also you can omit `nunitlite.dll` - we don't need that either.
-   * In Blazor's `src\mono\incoming\framework`, replace the following files with equivalents from Mono's `framework` dir:
-       * `WebAssembly.Bindings.dll`
-       * `WebAssembly.Net.Http.dll`
-       * `WebAssembly.Net.WebSockets.dll`
+For example,
 
-The net effect is that you're replacing everything with the newer versions, including adding any new `.dll` files and removing any older `.dll` files that are no longer involved.
+    UpgradeMono.cmd C:\Users\you\Downloads\mono-wasm-a93e4712ecd
+
+All this script does is remove older binaries from the `incoming` and `tools` directories in this repo, and then copy in an equivalent structure from the directory you indicated.
+
+Verify that there were no errors, and that resulting git diff looks reasonable. For normal upgrades, you should see:
+
+ * `mono.js` and `mono.wasm` have been modified
+ * Many of the .NET assemblies in `bcl` and `bcl\facades` have been modified. Occasionally some new ones will be added, or some may be removed, though this is quite unusual.
+ * The three .NET assemblies in `framework` will usually have been modified. It's not expected for assemblies to be added or removed here, so check with Mono if that seems to have happened.
+ * The linker binaries in `tools` will usually have been modified.
+
+Getting this far is not a guarantee that the resulting applications will run correctly. For example, it's possible that the linker has new dependencies and cannot run as-is. See verification steps later.
 
 **Commit**
 
@@ -35,14 +41,13 @@ At this stage, make a Git commit with a message similar to `Upgrade Mono binarie
 
 ## Verifying
 
-Rebuild Blazor completely from a clean state:
+Push your change as a PR to the `blazor` repo. Once the CI system has built the resulting package, download it. It usually has a name like `Microsoft.AspNetCore.Blazor.Mono.3.2.0-ci.nupkg`.
 
- * `cd` to the root of your Blazor repo
- * Verify `git status` shows your working copy has no uncommitted edits
- * `git clean -xdf`
- * `git submodule foreach git clean -xdf`
- * `build.cmd` or `./build.sh`
+Switch over to the `aspnetcore` repo and modify the `eng\Versions.props` file to use your new version (e.g., `3.2.0-ci`). To restore this correctly,
 
-Now run the E2E tests.
+ * Make sure you don't already have a `-ci` version of that package in your NuGet package cache
+ * Run a `dotnet restore` with `-s <directory_containing_the_download>`
 
-If anything seems broken, you might want to start investigations in the MonoSanity project, since this just uses Mono directly, without most of what Blazor builds on top of it.
+Now try running the StandaloneApp and perf benchmarks to be sure the apps still work, and the size and perf numbers haven't regressed badly. Ideally, also run all the E2E tests.
+
+If everything looks good, you can proceed with merging your PR to the `blazor` repo.
