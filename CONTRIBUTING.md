@@ -1,1 +1,1 @@
-Please see https://github.com/aspnet/AspNetCore/blob/master/CONTRIBUTING.md
+Please see https://github.com/dotnet/aspnetcore/blob/master/CONTRIBUTING.md

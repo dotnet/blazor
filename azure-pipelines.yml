@@ -44,7 +44,7 @@ stages:
       enablePublishTestResults: true
       enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
       enableTelemetry: true
-      helixRepo: aspnet/Blazor
+      helixRepo: dotnet/blazor
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         enableMicrobuild: true
         enablePublishBuildAssets: true
@@ -124,7 +124,7 @@ stages:
       # Disabled because this repo is still running into issues with signing validation, and the exclusions file doesn't work.
       enableSigningValidation: false
       # Shipped package contains minimal managed code and lots of repackaged external and native assemblies. We
-      # don't ship relevant PDBs except (for some assemblies) later in aspnet/AspNetcore.
+      # don't ship relevant PDBs except (for some assemblies) later in dotnet/aspnetcore.
       enableSourceLinkValidation: false
       # See https://github.com/dotnet/arcade/issues/2871
       enableSymbolValidation: false
