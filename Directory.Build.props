@@ -5,7 +5,7 @@
     <Product>Microsoft ASP.NET Core Blazor</Product>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://asp.net/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/aspnet/Blazor</RepositoryUrl>
+    <RepositoryUrl>https://github.com/dotnet/blazor</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
