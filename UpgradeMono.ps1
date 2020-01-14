@@ -32,8 +32,8 @@ $outputFrameworkDir = Join-Path -Path $outputRoot -ChildPath framework
 $outputLinkerDir = Join-Path -Path $outputRoot -ChildPath "..\tools\binaries\monolinker"
 
 New-Item -Force -ItemType "directory" $outputWasmDir | Out-Null
-Copy-Item "$inputWasmDir\mono.wasm" -Destination $outputWasmDir
-Copy-Item "$inputWasmDir\mono.js" -Destination $outputWasmDir
+Copy-Item "$inputWasmDir\dotnet.wasm" -Destination $outputWasmDir
+Copy-Item "$inputWasmDir\dotnet.js" -Destination $outputWasmDir
 
 New-Item -Force -ItemType "directory" $outputBclDir | Out-Null
 Copy-Item "$inputBclDir\*.dll" -Destination $outputBclDir
