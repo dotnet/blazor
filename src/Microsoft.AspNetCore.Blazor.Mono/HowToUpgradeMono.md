@@ -58,7 +58,7 @@ After running the above checks, also run all the E2E tests:
 - switch to the `src\Components\test\E2ETest`
 - run `yarn install` to install the necessary packages (selenium, chrome debug adapter, ...)
 - if you don't have installed Java yet, do so
-- run `dotnet test`
+- run `dotnet test` from the Command Line. Alternatively, you can open the solution file from this directory and run the tests from within VS.
 
 
 If everything looks good, you can proceed with merging your PR to the `blazor` repo.
