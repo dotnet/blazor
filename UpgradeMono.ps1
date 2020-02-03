@@ -31,6 +31,7 @@ $outputBclFacadesDir = Join-Path -Path $outputBclDir -ChildPath Facades
 $outputFrameworkDir = Join-Path -Path $outputRoot -ChildPath framework
 $outputLinkerDir = Join-Path -Path $outputRoot -ChildPath "..\tools\binaries\monolinker"
 
+Write-Host "Copying in new Mono binaries from '$MonoRootDir'..."
 New-Item -Force -ItemType "directory" $outputWasmDir | Out-Null
 Copy-Item "$inputWasmDir\dotnet.wasm" -Destination $outputWasmDir
 Copy-Item "$inputWasmDir\dotnet.js" -Destination $outputWasmDir

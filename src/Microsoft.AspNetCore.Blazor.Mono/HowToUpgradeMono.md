@@ -29,7 +29,7 @@ All this script does is remove older binaries from the `incoming` and `tools` di
 
 Verify that there were no errors, and that resulting git diff looks reasonable. For normal upgrades, you should see:
 
- * `mono.js` and `mono.wasm` have been modified
+ * `dotnet.js` and `dotnet.wasm` have been modified
  * Many of the .NET assemblies in `bcl` and `bcl\facades` have been modified. Occasionally some new ones will be added, or some may be removed, though this is quite unusual.
  * The three .NET assemblies in `framework` will usually have been modified. It's not expected for assemblies to be added or removed here, so check with Mono if that seems to have happened.
  * The linker binaries in `tools` will usually have been modified.
