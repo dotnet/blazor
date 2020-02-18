@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B867E038-B3C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.BuildTools", "src\Microsoft.AspNetCore.Blazor.BuildTools\Microsoft.AspNetCore.Blazor.BuildTools.csproj", "{AC3B5C2C-B935-4A64-8CDB-B8217EE26DC6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Mono", "src\Microsoft.AspNetCore.Blazor.Mono\Microsoft.AspNetCore.Blazor.Mono.csproj", "{E74CC0F5-876C-4DB3-A01F-5D81D5772440}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Components.WebAssembly.Runtime", "src\Microsoft.AspNetCore.Components.WebAssembly.Runtime\Microsoft.AspNetCore.Components.WebAssembly.Runtime.csproj", "{E74CC0F5-876C-4DB3-A01F-5D81D5772440}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
