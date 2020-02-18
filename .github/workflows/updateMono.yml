@@ -1,0 +1,14 @@
+name: Update Mono
+
+on:
+   schedule:
+   - cron: '15 21 * * *'
+
+jobs:
+  update-mono:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: pranavkm/blazorupdate@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
