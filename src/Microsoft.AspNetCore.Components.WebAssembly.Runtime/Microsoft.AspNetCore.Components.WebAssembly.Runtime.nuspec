@@ -7,7 +7,7 @@
     $CommonFileElements$
     <file src="..\..\THIRD-PARTY-NOTICES.txt" />
     <file src="build\**" target="build" />
-    <file src="dist\**\*" target="tools\mono"  />
+    <file src="dist\**\*" target="tools\dotnetwasm"  />
     <file src="tools\binaries\monolinker\**\*.*" target="tools\monolinker" />
   </files>
 </package>

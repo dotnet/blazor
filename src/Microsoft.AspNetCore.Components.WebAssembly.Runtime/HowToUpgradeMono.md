@@ -10,7 +10,7 @@
 
 1. Now on the sidebar, navigate to *Azure Artifacts*.
 
-1. Download the .zip file. Note that the commit's SHA hash is in the filename - you'll need that later to track which Mono version we're using in Blazor. 
+1. Download the .zip file. Note that the commit's SHA hash is in the filename - you'll need that later to track which Mono version we're using in Blazor.
   **NOTE**: The Jenkins UI may show some errors when opening a specific build. The `Shortcut` below is most probably still accessible, so move forward with it.
 
 **Shortcut:** Browse directly to https://jenkins.mono-project.com/job/test-mono-mainline-wasm/255/label=ubuntu-1804-amd64/Azure/, replacing the number 255 with the desired build number.
@@ -42,17 +42,17 @@ At this stage, make a Git commit with a message similar to `Upgrade Mono binarie
 
 ## Verifying
 
-Push your change as a PR to the `blazor` repo. Once the CI system has built the resulting package, download it. It usually has a name like `Microsoft.AspNetCore.Blazor.Mono.3.2.0-ci.nupkg`.
+Push your change as a PR to the `blazor` repo. Once the CI system has built the resulting package, download it. It usually has a name like `Microsoft.AspNetCore.Components.WebAssembly.Runtime.3.2.0-ci.nupkg`.
 
-Switch over to the `aspnetcore` repo and modify the `eng\Versions.props` file to use your new version (e.g., `3.2.0-ci`). Locate the `MicrosoftAspNetCoreBlazorMonoPackageVersion` property and update the version to the desired version:
- ```<MicrosoftAspNetCoreBlazorMonoPackageVersion>3.2.0-CI</MicrosoftAspNetCoreBlazorMonoPackageVersion>```
- 
+Switch over to the `aspnetcore` repo and modify the `eng\Versions.props` file to use your new version (e.g., `3.2.0-ci`). Locate the `MicrosoftAspNetCoreComponentsWebAssemblyRuntimePackageVersion` property and update the version to the desired version:
+ ```<MicrosoftAspNetCoreComponentsWebAssemblyRuntimePackageVersion>3.2.0-CI</MicrosoftAspNetCoreComponentsWebAssemblyRuntimePackageVersion>```
+
  To restore this correctly:
- 
+
  * Make sure you don't already have a `-ci` version of that package in your NuGet package cache
  * Run a `dotnet restore` with `-s <directory_containing_the_download>`
 
-Now try running the StandaloneApp and perf benchmarks to be sure the apps still work, and the size and perf numbers haven't regressed badly. 
+Now try running the StandaloneApp and perf benchmarks to be sure the apps still work, and the size and perf numbers haven't regressed badly.
 
 After running the above checks, also run all the E2E tests:
 - switch to the `src\Components\test\E2ETest`

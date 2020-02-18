@@ -17,7 +17,7 @@ foreach ($dirToCheck in ($MonoRootDir, $inputWasmDir, $inputBclDir, $inputBclFac
 }
 
 # Delete old binaries
-$outputRoot = Join-Path -Path $PSScriptRoot -ChildPath "src\Microsoft.AspNetCore.Blazor.Mono\incoming"
+$outputRoot = Join-Path -Path $PSScriptRoot -ChildPath "src\Microsoft.AspNetCore.Components.WebAssembly.Runtime\incoming"
 if (-not (Test-Path -LiteralPath $outputRoot)) {
     Write-Error -Message "Directory '$outputRoot' not found." -ErrorAction Stop
 }
