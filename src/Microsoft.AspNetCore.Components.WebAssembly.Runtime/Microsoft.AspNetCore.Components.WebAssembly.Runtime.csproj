@@ -32,7 +32,7 @@
         Condition="'%(Extension)'!='.js'" />
 
       <_WasmItemsToCopy Include="@(WasmItemsToCopy)"
-        DestinationPath="$(MonoDistDir)wasm\%(RecursiveDir)%(FileName)$(PackageVersion)%(Extension)"
+        DestinationPath="$(MonoDistDir)wasm\%(RecursiveDir)%(FileName).$(PackageVersion)%(Extension)"
         Condition="'%(Extension)'=='.js'" />
     </ItemGroup>
 
