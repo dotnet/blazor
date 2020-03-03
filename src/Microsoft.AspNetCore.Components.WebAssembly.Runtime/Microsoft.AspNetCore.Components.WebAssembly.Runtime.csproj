@@ -26,17 +26,13 @@
   <Target Name="OptimizeMono" DependsOnTargets="OptimizeMonoWasm; OptimizeBcl" BeforeTargets="Build" />
 
   <Target Name="OptimizeMonoWasm">
-    <PropertyGroup>
-      <_SanitizedVersion>$([System.Text.RegularExpressions.Regex]::Replace('$(PackageVersion)', '[\.+]', '_'))</_SanitizedVersion>
-    </PropertyGroup>
-
     <ItemGroup>
       <_WasmItemsToCopy Include="@(WasmItemsToCopy)"
         DestinationPath="$(MonoDistDir)wasm\%(RecursiveDir)%(FileName)%(Extension)"
         Condition="'%(Extension)'!='.js'" />
 
       <_WasmItemsToCopy Include="@(WasmItemsToCopy)"
-        DestinationPath="$(MonoDistDir)wasm\%(RecursiveDir)%(FileName)$(_SanitizedVersion)%(Extension)"
+        DestinationPath="$(MonoDistDir)wasm\%(RecursiveDir)%(FileName)$(PackageVersion)%(Extension)"
         Condition="'%(Extension)'=='.js'" />
     </ItemGroup>
 
