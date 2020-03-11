@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
-    <PackageDescription>Binaries for the Mono WebAssembly runtime and build tools used in Blazor applications.</PackageDescription>
+    <PackageDescription>Binaries for the .NET WebAssembly runtime and build tools used in Blazor applications.</PackageDescription>
     <IsPackable>true</IsPackable>
     <IsShipping>true</IsShipping>
     <NoPackageAnalysis>true</NoPackageAnalysis>
