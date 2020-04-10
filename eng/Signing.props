@@ -194,7 +194,7 @@
     <_MonoBinaryToExcludeFromSigning Include="System.Xml.XPath.XmlDocument.dll" />
     <_MonoBinaryToExcludeFromSigning Include="System.Xml.Xsl.Primitives.dll" />
     <_MonoBinaryToExcludeFromSigning Include="WebAssembly.Bindings.dll" />
-    <_MonoBinaryToExcludeFromSigning Include="WebAssembly.Net.Http.dll" />
+    <_MonoBinaryToExcludeFromSigning Include="System.Net.Http.WebAssemblyHttpHandler.dll" />
     <_MonoBinaryToExcludeFromSigning Include="WebAssembly.Net.WebSockets.dll" />
 
     <FileSignInfo Include="@(_MonoBinaryToExcludeFromSigning)" CertificateName="None" />
