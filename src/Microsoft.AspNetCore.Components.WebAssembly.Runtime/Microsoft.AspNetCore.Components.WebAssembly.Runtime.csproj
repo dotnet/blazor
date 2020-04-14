@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <WasmItemsToCopy Include="$(MonoIncomingDir)wasm\*" />
+    <WasmItemsToCopy Include="..\TimeZoneData\dotnet.timezones.dat" />
+
     <BclItemsToCopy Include="$(MonoIncomingDir)bcl\**" />
     <FrameworkItemsToCopy Include="$(MonoIncomingDir)framework\**" />
     <BclWipeSpecFiles Include="$(BclWipeSpecDir)**" />
