@@ -2,5 +2,6 @@
   <PropertyGroup>
     <VersionPrefix>3.2.0</VersionPrefix>
     <PreReleaseVersionLabel>rc1</PreReleaseVersionLabel>
+    <DotNetFinalVersionKind>release</DotNetFinalVersionKind>
   </PropertyGroup>
 </Project>
