@@ -5,6 +5,8 @@
     <LangVersion>8.0</LangVersion>
     <PackageId>Microsoft.AspNetCore.Components.WebAssembly.DebugProxy</PackageId>
     <IsShipping>true</IsShipping>
+    <IsPackable>true</IsPackable>
+
     <HasReferenceAssembly>false</HasReferenceAssembly>
     <PackageDescription>Debug proxy for use when building Blazor applications.</PackageDescription>
     <NuspecFile>Microsoft.AspNetCore.Components.WebAssembly.DebugProxy.nuspec</NuspecFile>
