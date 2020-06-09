@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>8.0</LangVersion>
-    <OutputType>Exe</OutputType>
     <PackageId>Microsoft.AspNetCore.Components.WebAssembly.DebugProxy</PackageId>
-    <IsShippingPackage>true</IsShippingPackage>
+    <IsShipping>true</IsShipping>
     <HasReferenceAssembly>false</HasReferenceAssembly>
-    <Description>Debug proxy for use when building Blazor applications.</Description>
+    <PackageDescription>Debug proxy for use when building Blazor applications.</PackageDescription>
+    <NuspecFile>Microsoft.AspNetCore.Components.WebAssembly.DebugProxy.nuspec</NuspecFile>
     <!-- Set this to false because assemblies should not reference this assembly directly, (except for tests, of course). -->
     <IsProjectReferenceProvider>false</IsProjectReferenceProvider>
     <NoWarn>$(NoWarn);CS0649</NoWarn>
