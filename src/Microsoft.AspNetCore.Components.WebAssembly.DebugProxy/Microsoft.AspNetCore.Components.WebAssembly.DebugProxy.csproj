@@ -24,12 +24,10 @@
   </ItemGroup>
 
 
-  <Target Name="GenerateDotnetTool" BeforeTargets="GenerateNuspec">
+  <Target Name="GenerateDotnetTool" BeforeTargets="GenerateNuspec" DependsOnTargets="Publish">
     <ItemGroup>
       <NuspecProperty Include="Path=..\..\artifacts\bin\Microsoft.AspNetCore.Components.WebAssembly.DebugProxy\$(Configuration)\$(TargetFramework)\" />
     </ItemGroup>
-
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Publish" Properties="TargetFramework=$(TargetFramework)" />
   </Target>
 
 </Project>
