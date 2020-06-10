@@ -6,5 +6,9 @@
   <files>
     $CommonFileElements$
     <file src="..\..\THIRD-PARTY-NOTICES.txt" />
+    <file src="$Path$*.dll" target="tools" />
+    <file src="$Path$DebugProxy.dll" target="tools" />
+    <file src="$Path$DebugProxy.runtimeconfig.json" target="tools" />
+    <file src="$Path$DebugProxy.deps.json" target="tools" />
   </files>
 </package>

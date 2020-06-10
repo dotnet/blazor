@@ -1,18 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
     <PackageId>Microsoft.AspNetCore.Components.WebAssembly.DebugProxy</PackageId>
     <IsShipping>true</IsShipping>
     <IsPackable>true</IsPackable>
+    <OutputType>exe</OutputType>
     <HasReferenceAssembly>false</HasReferenceAssembly>
+    <AssemblyName>DebugProxy</AssemblyName>
     <PackageDescription>Debug proxy for use when building Blazor applications.</PackageDescription>
     <NuspecFile>Microsoft.AspNetCore.Components.WebAssembly.DebugProxy.nuspec</NuspecFile>
     <!-- Set this to false because assemblies should not reference this assembly directly, (except for tests, of course). -->
     <IsProjectReferenceProvider>false</IsProjectReferenceProvider>
     <NoWarn>$(NoWarn);CS0649</NoWarn>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,5 +22,14 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
+
+
+  <Target Name="GenerateDotnetTool" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <NuspecProperty Include="Path=..\..\artifacts\bin\Microsoft.AspNetCore.Components.WebAssembly.DebugProxy\$(Configuration)\$(TargetFramework)\" />
+    </ItemGroup>
+
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Publish" Properties="TargetFramework=$(TargetFramework)" />
+  </Target>
 
 </Project>

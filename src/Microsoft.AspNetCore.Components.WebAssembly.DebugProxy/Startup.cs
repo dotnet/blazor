@@ -4,8 +4,6 @@
 using System;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WebAssembly.Net.Debugging;
@@ -18,16 +16,17 @@ namespace Microsoft.AspNetCore.Components.WebAssembly.DebugProxy
         {
             app.UseDeveloperExceptionPage();
             app.UseWebSockets();
+            app.UseRouting();
 
-            app.UseRouter(routes =>
+            app.UseEndpoints(endpoints =>
             {
                 // At the homepage, we check whether we can uniquely identify the target tab
                 //  - If yes, we redirect directly to the debug tools, proxying to that tab
                 //  - If no, we present a list of available tabs for the user to pick from
-                routes.MapGet("/", new TargetPickerUi(debugProxyOptions).Display);
+                endpoints.MapGet("/", new TargetPickerUi(debugProxyOptions).Display);
 
                 // At this URL, we wire up the actual WebAssembly proxy
-                routes.MapGet("/ws-proxy", async (context) =>
+                endpoints.MapGet("/ws-proxy", async (context) =>
                 {
                     if (!context.WebSockets.IsWebSocketRequest)
                     {
@@ -41,11 +40,6 @@ namespace Microsoft.AspNetCore.Components.WebAssembly.DebugProxy
                     await new MonoProxy(loggerFactory).Run(browserUri, ideSocket);
                 });
             });
-        }
-
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddRouting();
         }
     }
 }
