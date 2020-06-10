@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Components.WebAssembly.DebugProxy.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
@@ -36,23 +37,8 @@ namespace Microsoft.AspNetCore.Components.WebAssembly.DebugProxy
 
             app.OnExecute(() =>
             {
-                var host = WebHost.CreateDefaultBuilder(args)
-                    .UseStartup<Startup>()
-                    .UseUrls("http://127.0.0.1:0")
-                    .ConfigureAppConfiguration((hostingContext, config) =>
-                    {
-                        config.AddCommandLine(args);
-                    })
-                    .ConfigureServices(serviceCollection =>
-                    {
-                        serviceCollection.AddSingleton(new DebugProxyOptions
-                        {
-                            BrowserHost = browserHostOption.HasValue()
-                                ? browserHostOption.Value()
-                                : "http://127.0.0.1:9222",
-                        });
-                    })
-                    .Build();
+                var browserHost = browserHostOption.HasValue() ? browserHostOption.Value(): "http://127.0.0.1:9222";
+                var host = DebugProxyHost.CreateDefaultBuilder(args, browserHost).Build();
 
                 if (ownerPidOption.HasValue())
                 {
