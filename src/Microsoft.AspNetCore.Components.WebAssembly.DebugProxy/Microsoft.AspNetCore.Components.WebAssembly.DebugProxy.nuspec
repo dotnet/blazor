@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+   $CommonMetadataElements$
+  </metadata>
+  <files>
+    $CommonFileElements$
+    <file src="..\..\THIRD-PARTY-NOTICES.txt" />
+    <file src="$Path$*.dll" target="tools" />
+    <file src="$Path$DebugProxy.dll" target="tools" />
+    <file src="$Path$DebugProxy.runtimeconfig.json" target="tools" />
+    <file src="$Path$DebugProxy.deps.json" target="tools" />
+  </files>
+</package>
