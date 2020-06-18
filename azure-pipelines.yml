@@ -105,7 +105,7 @@ stages:
           condition: always()
           continueOnError: true
           inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
+            pathtoPublish: artifacts/TestResults/
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
             artifactType: Container
             parallel: true
