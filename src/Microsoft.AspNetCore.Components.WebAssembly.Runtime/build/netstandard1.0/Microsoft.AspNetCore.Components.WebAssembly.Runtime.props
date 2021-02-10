@@ -1,0 +1,10 @@
+﻿<Project>
+  <PropertyGroup>
+    <ComponentsWebAssemblyRuntimeBasePath>$(MSBuildThisFileDirectory)../../</ComponentsWebAssemblyRuntimeBasePath>
+    <ComponentsWebAssemblyLinkerPath>$(ComponentsWebAssemblyRuntimeBasePath)tools/monolinker/monolinker.exe</ComponentsWebAssemblyLinkerPath>
+    <ComponentsWebAssemblyBaseClassLibraryPath>$(ComponentsWebAssemblyRuntimeBasePath)tools/dotnetwasm/bcl/</ComponentsWebAssemblyBaseClassLibraryPath>
+    <ComponentsWebAssemblyBaseClassLibraryFacadesPath>$(ComponentsWebAssemblyRuntimeBasePath)tools/dotnetwasm/bcl/Facades/</ComponentsWebAssemblyBaseClassLibraryFacadesPath>
+    <ComponentsWebAssemblyFrameworkPath>$(ComponentsWebAssemblyRuntimeBasePath)tools/dotnetwasm/framework/</ComponentsWebAssemblyFrameworkPath>
+    <ComponentsWebAssemblyRuntimePath>$(ComponentsWebAssemblyRuntimeBasePath)tools/dotnetwasm/wasm/</ComponentsWebAssemblyRuntimePath>
+  </PropertyGroup>
+</Project>

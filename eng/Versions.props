@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
-    <VersionPrefix>5.0.0</VersionPrefix>
-    <PreReleaseVersionLabel>alpha1</PreReleaseVersionLabel>
+    <VersionPrefix>3.2.0</VersionPrefix>
+    <PreReleaseVersionLabel>rc1</PreReleaseVersionLabel>
+    <DotNetFinalVersionKind>release</DotNetFinalVersionKind>
   </PropertyGroup>
 </Project>

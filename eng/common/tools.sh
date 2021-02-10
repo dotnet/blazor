@@ -152,6 +152,15 @@ function InitializeDotNetCli {
   # build steps from using anything other than what we've downloaded.
   Write-PipelinePrependPath -path "$dotnet_root"
 
+  # Work around issues with Azure Artifacts credential provider
+  # https://github.com/dotnet/arcade/issues/3932
+  if [[ "$ci" == true ]]; then
+    export NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS=20
+    export NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS=20
+    Write-PipelineSetVariable -name "NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS" -value "20"
+    Write-PipelineSetVariable -name "NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS" -value "20"
+  fi
+
   Write-PipelineSetVariable -name "DOTNET_MULTILEVEL_LOOKUP" -value "0"
   Write-PipelineSetVariable -name "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" -value "1"
 
@@ -191,8 +200,30 @@ function InstallDotNet {
   fi
   bash "$install_script" --version $version --install-dir "$root" $archArg $runtimeArg $skipNonVersionedFilesArg || {
     local exit_code=$?
-    Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to install dotnet SDK (exit code '$exit_code')."
-    ExitWithExitCode $exit_code
+    Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to install dotnet SDK from public location (exit code '$exit_code')."
+
+    if [[ -n "$runtimeArg" ]]; then
+      local runtimeSourceFeed=''
+      if [[ -n "${6:-}" ]]; then
+        runtimeSourceFeed="--azure-feed $6"
+      fi
+
+      local runtimeSourceFeedKey=''
+      if [[ -n "${7:-}" ]]; then
+        decodedFeedKey=`echo $7 | base64 --decode`
+        runtimeSourceFeedKey="--feed-credential $decodedFeedKey"
+      fi
+
+      if [[ -n "$runtimeSourceFeed" || -n "$runtimeSourceFeedKey" ]]; then
+        bash "$install_script" --version $version --install-dir "$root" $archArg $runtimeArg $skipNonVersionedFilesArg $runtimeSourceFeed $runtimeSourceFeedKey || {
+          local exit_code=$?
+          Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to install dotnet SDK from custom location '$runtimeSourceFeed' (exit code '$exit_code')."
+          ExitWithExitCode $exit_code
+        }
+      else
+        ExitWithExitCode $exit_code
+      fi
+    fi
   }
 }
 
@@ -328,6 +359,13 @@ function MSBuild {
   if [[ "$pipelines_log" == true ]]; then
     InitializeBuildTool
     InitializeToolset
+
+    # Work around issues with Azure Artifacts credential provider
+    # https://github.com/dotnet/arcade/issues/3932
+    if [[ "$ci" == true ]]; then
+      dotnet nuget locals http-cache -c
+    fi
+
     local toolset_dir="${_InitializeToolset%/*}"
     local logger_path="$toolset_dir/$_InitializeBuildToolFramework/Microsoft.DotNet.Arcade.Sdk.dll"
     args=( "${args[@]}" "-logger:$logger_path" )

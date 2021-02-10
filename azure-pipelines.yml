@@ -15,6 +15,9 @@ variables:
     value: ASPNETBLAZOR
   - name: Build.Repository.Clean
     value: true
+  # used for post-build phases, internal builds only
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - group: DotNet-AspNet-SDLValidation-Params
 
 # CI and PR triggers
 trigger:
@@ -23,6 +26,7 @@ trigger:
     include:
     - master
     - release/*
+    - internal/release/3.*
 
 pr:
   autoCancel: false
@@ -37,10 +41,10 @@ stages:
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: true
-      enablePublishTestResults: true
+      enablePublishTestResults: false
       enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
       enableTelemetry: true
-      helixRepo: aspnet/Blazor
+      helixRepo: dotnet/blazor
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         enableMicrobuild: true
         enablePublishBuildAssets: true
@@ -51,7 +55,7 @@ stages:
             vmImage: windows-2019
           ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: NetCoreInternal-Pool
-            queue: BuildPool.Windows.10.Amd64.VS2019
+            queue: BuildPool.Server.Amd64.VS2019
         variables:
           - name: _BuildConfig
             value: Release
@@ -97,15 +101,6 @@ stages:
         - script: eng\common\cibuild.cmd -configuration $(_BuildConfig) -prepareMachine $(_BuildArgs)
           displayName: Build and Publish
         - task: PublishBuildArtifacts@1
-          displayName: Upload TestResults
-          condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
-        - task: PublishBuildArtifacts@1
           displayName: Upload package artifacts
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
           inputs:
@@ -120,7 +115,21 @@ stages:
       # Disabled because this repo is still running into issues with signing validation, and the exclusions file doesn't work.
       enableSigningValidation: false
       # Shipped package contains minimal managed code and lots of repackaged external and native assemblies. We
-      # don't ship relevant PDBs except (for some assemblies) later in aspnet/AspNetcore.
+      # don't ship relevant PDBs except (for some assemblies) later in dotnet/aspnetcore.
       enableSourceLinkValidation: false
       # See https://github.com/dotnet/arcade/issues/2871
       enableSymbolValidation: false
+      # This is to enable SDL runs part of Post-Build Validation Stage
+      SDLValidationParameters:
+        enable: true
+        continueOnError: false
+        params: ' -SourceToolsList @("policheck","credscan")
+        -TsaInstanceURL $(_TsaInstanceURL)
+        -TsaProjectName $(_TsaProjectName)
+        -TsaNotificationEmail $(_TsaNotificationEmail)
+        -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+        -TsaBugAreaPath $(_TsaBugAreaPath)
+        -TsaIterationPath $(_TsaIterationPath)
+        -TsaRepositoryName "Blazor"
+        -TsaCodebaseName "Blazor"
+        -TsaPublish $True'

@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B867E038-B3CE-43E3-9292-61568C46CDEB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.BuildTools", "src\Microsoft.AspNetCore.Blazor.BuildTools\Microsoft.AspNetCore.Blazor.BuildTools.csproj", "{AC3B5C2C-B935-4A64-8CDB-B8217EE26DC6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Blazor.Mono", "src\Microsoft.AspNetCore.Blazor.Mono\Microsoft.AspNetCore.Blazor.Mono.csproj", "{E74CC0F5-876C-4DB3-A01F-5D81D5772440}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Components.WebAssembly.Runtime", "src\Microsoft.AspNetCore.Components.WebAssembly.Runtime\Microsoft.AspNetCore.Components.WebAssembly.Runtime.csproj", "{E74CC0F5-876C-4DB3-A01F-5D81D5772440}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Components.WebAssembly.DebugProxy", "src\Microsoft.AspNetCore.Components.WebAssembly.DebugProxy\Microsoft.AspNetCore.Components.WebAssembly.DebugProxy.csproj", "{695F29C8-65CC-4721-AA03-C225084E6C00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +25,10 @@ Global
 		{E74CC0F5-876C-4DB3-A01F-5D81D5772440}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E74CC0F5-876C-4DB3-A01F-5D81D5772440}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E74CC0F5-876C-4DB3-A01F-5D81D5772440}.Release|Any CPU.Build.0 = Release|Any CPU
+		{695F29C8-65CC-4721-AA03-C225084E6C00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{695F29C8-65CC-4721-AA03-C225084E6C00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{695F29C8-65CC-4721-AA03-C225084E6C00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{695F29C8-65CC-4721-AA03-C225084E6C00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

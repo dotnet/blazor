@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+   $CommonMetadataElements$
+  </metadata>
+  <files>
+    $CommonFileElements$
+    <file src="..\..\THIRD-PARTY-NOTICES.txt" />
+    <file src="build\**" target="build" />
+    <file src="dist\**\*" target="tools\dotnetwasm"  />
+    <file src="tools\binaries\monolinker\**\*.*" target="tools\monolinker" />
+  </files>
+</package>
